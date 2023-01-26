@@ -33,7 +33,7 @@ Pycript is a Burp Suite extension that enables users to encrypt and decrypt requ
     
 ## Features
 
-- [X] Encrypt & Derypt the Selected Strings from Request Response
+- [X] Encrypt & Decrypt the Selected Strings from Request Response
 - [X] View and Modify the encrypted request in plain text
 - [X] Decrypt Multiple Requests 
 - [X] Perform Burp Scanner, Sql Map, Intruder Bruteforce or any Automation in Plain Text
@@ -102,7 +102,7 @@ console.log(plaintext)
 - [ ] Response Encryption & Decryption
 - [ ] Support for GET Paramters
 - [ ] Allowing Edit Headers for Request Type ```Custom Request```
-
+- [ ] Supporting multiple languages for encryption and decryption 
 
 
 
