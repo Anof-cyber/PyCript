@@ -37,7 +37,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         callbacks.printOutput("Author: Sourav Kalal")
         callbacks.printOutput("Version: 0.1")
         callbacks.printOutput("https://github.com/Anof-cyber/PyCript")
-        callbacks.printOutput("https://pycript.souravkalal.tech/")
+        callbacks.printOutput("https://souravkalal.tech/")
         callbacks.registerMessageEditorTabFactory(self)
         callbacks.registerContextMenuFactory(self)
         
