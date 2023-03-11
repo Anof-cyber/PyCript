@@ -24,7 +24,9 @@ Pycript is a Burp Suite extension that enables users to encrypt and decrypt requ
 
 <a href="https://pycript.souravkalal.tech/#/"><img src="https://i.ibb.co/NLTJ6MR/70686099-3855f780-1c79-11ea-8141-899e39459da2.png" alt="70686099-3855f780-1c79-11ea-8141-899e39459da2" border="0"></a>
 
-
+## Reference
+- [Bypassing Asymmetric Client Side Encryption Without Private Key](https://infosecwriteups.com/bypassing-asymmetric-client-side-encryption-without-private-key-822ed0d8aeb6)
+- [Manipulating Encrypted Traffic using PyCript](https://infosecwriteups.com/manipulating-encrypted-traffic-using-pycript-b637612528bb)
 
 ## Requirements
 
