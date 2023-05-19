@@ -1,19 +1,15 @@
 from burp import (IBurpExtender, ITab,IMessageEditorTabFactory,IMessageEditorTab,IContextMenuFactory, IContextMenuInvocation,IMessageEditorController,IHttpListener)
 from java.awt import (BorderLayout,Font,Color)
-from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,
-JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu,SwingConstants)
+from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,
+JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu)
 from javax.swing.table import AbstractTableModel;
 from javax.swing.filechooser import FileNameExtensionFilter
 from java.lang import Short
 import sys
-from java import io
 from threading import Thread,Lock
 
-sys.path.append("Resource/rsyntaxtextarea-3.3.1.jar")
-
-from org.fife.ui.rsyntaxtextarea import RSyntaxTextArea,SyntaxConstants,Theme
-from org.fife.ui.rtextarea import RTextArea,RTextScrollPane
 from pycript.Requesttab import CriptInputTab
+from pycript.Responsetab import ResponeCriptInputTab
 from pycript.Reqcheck import Requestchecker,DecryptRequest,EncryptRequest
 
 
@@ -35,16 +31,24 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         # Informing Burp suite the name of the extension
         callbacks.setExtensionName("PyCript")
         callbacks.printOutput("Author: Sourav Kalal")
-        callbacks.printOutput("Version: 0.1")
-        callbacks.printOutput("https://github.com/Anof-cyber/PyCript")
-        callbacks.printOutput("https://souravkalal.tech/")
-        callbacks.registerMessageEditorTabFactory(self)
+        callbacks.printOutput("Version: 0.2")
+        callbacks.printOutput("GitHub - https://github.com/Anof-cyber/PyCript")
+        callbacks.printOutput("Website - https://souravkalal.tech/")
+        callbacks.printOutput("Documentation - https://pycript.souravkalal.tech/")
+        
         callbacks.registerContextMenuFactory(self)
+        
+
         
 
 
 
+        
+        
+
+
         self.selectedrequesttpye = None
+        self.selectedresponsetpye = None
         self.tab = JPanel()
         self.tabbedPane = JTabbedPane()
         self.tab.add("Center", self.tabbedPane) 
@@ -62,6 +66,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         
         self._log = list()
         self._lock = Lock()
+        
         
         
 
@@ -110,355 +115,664 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
         callbacks.addSuiteTab(self)
 
-        self.decryptionfilepath = None
-        self.encryptionfilepath = None
+        
 
-        self.RequestTypeRadioGroup = ButtonGroup();
-        self.Wholebodyjsonradio = JRadioButton();
+
+
+
+        # Request Type UI
+        self.requestlayerpane = JLayeredPane();
         self.Requestypelabel = JLabel();
-        self.JsonValueradio = JRadioButton();
-        self.JsonkeyValueradio = JRadioButton();
-        self.CustomBodyRadio = JRadioButton();
-        self.CustomRequestRadio = JRadioButton();
-        self.RequestTypeNoneRadio = JRadioButton();
-        self.jSeparator1 = JSeparator();
-        self.Encryptionfilelabel = JLabel();
-        self.FileChooserLabel = JLabel();
-        self.Encryptionfilechooserbutton = JButton();
-        self.Decryptionfilelabel = JLabel();
-        self.Decryptionfilechooserbutton = JButton();
-        self.FileChooserErrorlabel = JLabel();
-        self.AutoEncryptLabel = JLabel();
-        self.Autoencryptonoffbutton = JToggleButton();
-        self.Autoencryptonoffbutton.setEnabled(False)
-
-        self.AutoencryptTogglestatuslabel = JLabel();
-        self.FileChooserErrorlabel1 = JLabel();
-        self.jSeparator4 = JSeparator();
-        self.AutoencryptTooltypeScanner = JCheckBox();
-        self.AutoencryptTooltypeScanner.addActionListener(self.encrypttoollistener)
-
-        self.AutoEncryptLabel1 = JLabel();
-        self.AutoencryptTooltypeExtender = JCheckBox();
-        self.AutoencryptTooltypeExtender.addActionListener(self.encrypttoollistener)
-
-        self.AutoencryptTooltypeRepeater = JCheckBox();
-        self.AutoencryptTooltypeRepeater.addActionListener(self.encrypttoollistener)
-
-
-        self.AutoencryptTooltypeProxy = JCheckBox();
-        self.AutoencryptTooltypeProxy.addActionListener(self.encrypttoollistener)
-
-        self.AutoencryptTooltypeIntruder = JCheckBox();
-        self.AutoencryptTooltypeIntruder.addActionListener(self.encrypttoollistener)
-
-        self.AutoEncrypttooltypeerrorlabel = JLabel();
-        self.Encryptioncodelabel = JLabel();
-        self.Decryptioncodelabel = JLabel();
-        #self.jScrollPane1 = JScrollPane();
-        #self.EncryptioncodeEditorPane = JEditorPane();
-        self.EncryptioncodeEditorPane = RSyntaxTextArea()
-        self.EncryptioncodeEditorPane.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT)
-        
-        self.EncryptioncodeEditorPane.setCodeFoldingEnabled(True);
-        self.EncryptioncodeEditorPane.setAutoIndentEnabled(True)
-        self.EncryptioncodeEditorPane.setEditable(False)
-        self.jScrollPane1 = RTextScrollPane(self.EncryptioncodeEditorPane)
-
-        with open("Resource/dark.xml", "r") as file:
-            theme_xml = file.read()
-            file.close()
-
-        input_stream = io.StringBufferInputStream(theme_xml)
-        theme = Theme.load(input_stream) 
-        theme.apply(self.EncryptioncodeEditorPane)   
-     
-
-
-        #self.jScrollPane2 = JScrollPane();
-        self.DecryptioncodeEditorPane = RSyntaxTextArea();
-        self.DecryptioncodeEditorPane.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT)
-        self.DecryptioncodeEditorPane.setCodeFoldingEnabled(True);
-        self.DecryptioncodeEditorPane.setAutoIndentEnabled(True)
-        self.DecryptioncodeEditorPane.setEditable(False)
-        self.jScrollPane2 = RTextScrollPane(self.DecryptioncodeEditorPane)
-        theme.apply(self.DecryptioncodeEditorPane)  
-
-        self.RequestTypeRadioGroup.add(self.Wholebodyjsonradio);
-        self.Wholebodyjsonradio.setText("Whole Body (JSON)");
-        self.Wholebodyjsonradio.addActionListener(self.requestypelistner)
-
-        self.Requestypelabel.setFont(Font("Segoe UI", 1, 14))
         self.Requestypelabel.setText("Request Type");
-
-        self.RequestTypeRadioGroup.add(self.JsonValueradio);
-        self.JsonValueradio.setText("JSON Value");
-        self.JsonValueradio.addActionListener(self.requestypelistner)
+        self.Requestypelabel.setFont(Font("Segoe UI", 1, 14))
         
-        self.RequestTypeRadioGroup.add(self.JsonkeyValueradio);
-        self.JsonkeyValueradio.setText("JSON Key & Value");
-        self.JsonkeyValueradio.addActionListener(self.requestypelistner)
-
+        self.RequestTypeRadioGroup = ButtonGroup()
+        
+        self.CustomBodyRadio = JRadioButton();
         self.RequestTypeRadioGroup.add(self.CustomBodyRadio);
-        self.CustomBodyRadio.setText("Custom Body");
+        self.CustomBodyRadio.setText("Complete Body");
         self.CustomBodyRadio.addActionListener(self.requestypelistner)
-
+        
+		
+        self.parametervalueRadio = JRadioButton();
+        self.RequestTypeRadioGroup.add(self.parametervalueRadio);
+        self.parametervalueRadio.setText("Parameter Value");
+        self.parametervalueRadio.addActionListener(self.requestypelistner)
+        
+        self.paramkeyvalueRadio = JRadioButton();
+        self.RequestTypeRadioGroup.add(self.paramkeyvalueRadio);
+        self.paramkeyvalueRadio.setText("Parameter Key and Value");
+        self.paramkeyvalueRadio.addActionListener(self.requestypelistner)
+		
+        self.CustomRequestRadio = JRadioButton();
         self.RequestTypeRadioGroup.add(self.CustomRequestRadio);
         self.CustomRequestRadio.setText("Custom Request");
         self.CustomRequestRadio.addActionListener(self.requestypelistner)
-
+		
+        self.CustomRequestheaderRadio = JRadioButton();
+        self.RequestTypeRadioGroup.add(self.CustomRequestheaderRadio);
+        self.CustomRequestheaderRadio.setText("Custom Request (Edit Header)");
+        self.CustomRequestheaderRadio.addActionListener(self.requestypelistner)
+		
+        self.RequestTypeNoneRadio = JRadioButton();
         self.RequestTypeRadioGroup.add(self.RequestTypeNoneRadio);
         self.RequestTypeNoneRadio.setText("None");
-        self.RequestTypeNoneRadio.addActionListener(self.requestypelistner)
         self.RequestTypeNoneRadio.setSelected(True)
+        self.RequestTypeNoneRadio.addActionListener(self.requestypelistner)
+		
+		
+		# Response Type UI
+        self.responslayerpane = JLayeredPane();
+        self.Responsetypelabel1 = JLabel();
+        self.Responsetypelabel1.setText("Response Type");
+        self.Responsetypelabel1.setFont(Font("Segoe UI", 1, 14))
+        
+        self.ReesponseTypeRadioGroup = ButtonGroup()
+        
+        self.responseCustomBodyRadio = JRadioButton();
+        self.ReesponseTypeRadioGroup.add(self.responseCustomBodyRadio);
+        self.responseCustomBodyRadio.setText("Complete Body");
+        self.responseCustomBodyRadio.addActionListener(self.responsetypelister)
+        
+        self.responsejsonvalueradio = JRadioButton();
+        self.ReesponseTypeRadioGroup.add(self.responsejsonvalueradio);
+        self.responsejsonvalueradio.setText("JSON Value")
+        self.responsejsonvalueradio.addActionListener(self.responsetypelister)
+        
+        self.responsejsonkeyvalueradio = JRadioButton();
+        self.ReesponseTypeRadioGroup.add(self.responsejsonkeyvalueradio);
+        self.responsejsonkeyvalueradio.setText("JSON Key and Value");
+        self.responsejsonkeyvalueradio.addActionListener(self.responsetypelister)
+        
+        self.ResponseTypeNoneRadio = JRadioButton();
+        self.ReesponseTypeRadioGroup.add(self.ResponseTypeNoneRadio);
+        self.ResponseTypeNoneRadio.setText("None");
+        self.ResponseTypeNoneRadio.setSelected(True)
+        self.ResponseTypeNoneRadio.addActionListener(self.responsetypelister)
+		
+		
+		
+		#Additional Setting UI
+        self.additionallayerpane = JLayeredPane();
+        
+        self.AdditionalSettinglabel = JLabel();
+        self.AdditionalSettinglabel.setText("Additional Setting");
+        self.AdditionalSettinglabel.setFont(Font("Segoe UI", 1, 14))
+        
+        self.languagelabel = JLabel();
+        self.languagelabel.setText("Language");
+        
+        self.langdata = ("JavaScript", "Python", "Java Jar")
+        self.languagecombobox = JComboBox(self.langdata)
+		
+        
+        self.reqmethodlabel = JLabel();
+        self.reqmethodlabel.setText("Encryption and Decryption Method(Only for Request)");
+		
+        self.methoddata = ("GET", "BODY", "BOTH")
+        self.reqmethodcombobox = JComboBox(self.methoddata);
+		
+        self.reqresponselabel = JLabel();
+        self.reqresponselabel.setText("Encryption Decryption For");
+		
+        self.reqresponsedata = ("Request", "Response", "Both")
+        self.reqresponsecombobox = JComboBox(self.reqresponsedata);
 
-        self.Encryptionfilelabel.setText("Encryption Javascript File");
-        self.Encryptionfilechooserbutton.addActionListener(self.importencryptionjsfile)
-
-
-
-        self.FileChooserLabel.setFont(Font("Segoe UI", 1, 14));
-        self.FileChooserLabel.setText("Encryption Deryption Files");
-
-        self.Encryptionfilechooserbutton.setText("Choose JS File");
+        
+        
         
 
-        self.Decryptionfilelabel.setText("Decryption Javascript File");
-        self.Decryptionfilechooserbutton.addActionListener(self.importdecryptionjsfile)
-
-        self.Decryptionfilechooserbutton.setText("Choose JS File");
-        
-
-        self.FileChooserErrorlabel.setForeground(Color(237, 121, 5));
-        self.FileChooserErrorlabel.setFont(Font("Segoe UI", 1, 14));
-        #self.FileChooserErrorlabel.setText("Invalid File Selected");
-
+        self.autoencryptlayerpane = JLayeredPane();
+        self.AutoEncryptLabel = JLabel();
         self.AutoEncryptLabel.setFont(Font("Segoe UI", 1, 14));
-        self.AutoEncryptLabel.setText("Auto Encrypt The Request (Request Type should be selected)");
-
+        self.AutoEncryptLabel.setText("Auto Encrypt The Request (Request Type should be selected)")
+        
+        self.AutoEncryptLabel1 = JLabel();
+        self.AutoEncryptLabel1.setFont(Font("Segoe UI", 1, 14))
+        self.AutoEncryptLabel1.setText("Auto Encrypt Tool Type");
+        
+        self.Autoencryptonoffbutton = JToggleButton();
+        self.Autoencryptonoffbutton.setEnabled(False)
         self.Autoencryptonoffbutton.setText("Turn On");
         self.Autoencryptonoffbutton.setBackground(Color(255, 21, 0))
         self.Autoencryptonoffbutton.setForeground(Color(255, 255, 255));
         self.Autoencryptonoffbutton.setFont(Font("Segoe UI", 1, 15));
         self.Autoencryptonoffbutton.setToolTipText("");
         self.Autoencryptonoffbutton.addItemListener(self.Autoencryptstatuslistner)
-
+        
+        self.AutoencryptTogglestatuslabel = JLabel();
         self.AutoencryptTogglestatuslabel.setText("Current Status: OFF");
-
+        
+        self.FileChooserErrorlabel1 = JLabel();
         self.FileChooserErrorlabel1.setForeground(Color(237, 121, 5));
-        self.FileChooserErrorlabel1.setText("Cannot Turn On Unless Request Type is not selected");
-
-        #self.AutoencryptTooltypeScanner.setSelected(True);
+        self.FileChooserErrorlabel1.setText("Cannot Turn On Unless Request Type and Tool Type is not selected");
+		
+        jSeparator1 =JSeparator();
+        
+        self.AutoencryptTooltypeScanner = JCheckBox();
         self.AutoencryptTooltypeScanner.setText("Scanner");
+        self.AutoencryptTooltypeScanner.addActionListener(self.encrypttoollistener)
         
-
-
-        self.AutoEncryptLabel1.setFont(Font("Segoe UI", 1, 14))
-        self.AutoEncryptLabel1.setText("Auto Encrypt Tool Type");
-
+        self.AutoencryptTooltypeExtender = JCheckBox();
         self.AutoencryptTooltypeExtender.setText("Extender");
+        self.AutoencryptTooltypeExtender.addActionListener(self.encrypttoollistener)
         
-
+        self.AutoencryptTooltypeRepeater = JCheckBox();
+        self.AutoencryptTooltypeRepeater.addActionListener(self.encrypttoollistener)
         self.AutoencryptTooltypeRepeater.setText("Repeater");
-       
-
-        self.AutoencryptTooltypeProxy.setText("Proxy");
         
-
+        self.AutoencryptTooltypeProxy = JCheckBox();
+        self.AutoencryptTooltypeProxy.addActionListener(self.encrypttoollistener)
+        self.AutoencryptTooltypeProxy.setText("Proxy");
+		
+        self.AutoencryptTooltypeIntruder = JCheckBox();
+        self.AutoencryptTooltypeIntruder.addActionListener(self.encrypttoollistener)
         self.AutoencryptTooltypeIntruder.setText("Intruder");
         
+        
+        
+        self.requestscriptfilelayerpane = JLayeredPane();
+        self.FileChooserLabel = JLabel();
+        self.FileChooserLabel.setFont(Font("Segoe UI", 1, 14));
+        self.FileChooserLabel.setText("Request Encryption Deryption Files");
+        
+        self.Encryptionfilelabel = JLabel();
+        self.Encryptionfilelabel.setText("Encryption File");
 
-        self.AutoEncrypttooltypeerrorlabel.setForeground(Color(237, 121, 5));
-        self.AutoEncrypttooltypeerrorlabel.setText("At Least One should be selected to turn on Auto Encrypt");
+        self.Decryptionfilelabel = JLabel();
+        self.Decryptionfilelabel.setText("Decryption File");
+		
+        self.Encryptionfilechooserbutton = JButton();
+        self.Encryptionfilechooserbutton.addActionListener(self.importencryptionjsfile)
+        self.Encryptionfilechooserbutton.setText("Choose File");
+		
+        self.Decryptionfilechooserbutton = JButton();
+        self.Decryptionfilechooserbutton.addActionListener(self.importdecryptionjsfile)
+        self.Decryptionfilechooserbutton.setText("Choose File");
+		
+        self.requestencrpytionpath = JLabel();
+        self.requestencrpytionpath.setText("");
+        
+        self.requestdecryptionpath = JLabel();
+        self.requestdecryptionpath.setText("");
 
-        self.Encryptioncodelabel.setFont(Font("Segoe UI", 1, 12)); 
-        self.Encryptioncodelabel.setText("Encryption Code");
 
-        self.Decryptioncodelabel.setFont(Font("Segoe UI", 1, 12)); 
-        self.Decryptioncodelabel.setText("Decryption Code");
+        self.responescriptfilelayerpane = JLayeredPane();
 
-        #self.EncryptioncodeEditorPane.setContentType("text/javascript");
-        #self.jScrollPane1.setViewportView(self.EncryptioncodeEditorPane);
-        #self.EncryptioncodeEditorPane.getAccessibleContext().setAccessibleDescription("text/javascript");
-        #self.EncryptioncodeEditorPane.setText("Hellowlr");
-        #self.EncryptioncodeEditorPane.setEditable(False);
+        self.responseFileChooserLabel = JLabel();
+        self.responseFileChooserLabel.setFont(Font("Segoe UI", 1, 14));
+        self.responseFileChooserLabel.setText("Response Encryption Deryption Files");
+        
+        self.ResponseEncryptionfilelabel = JLabel();
+        self.ResponseEncryptionfilelabel.setText("Encryption File");
+        
+        self.ResponseDecryptionfilelabel = JLabel();
+        self.ResponseDecryptionfilelabel.setText("Decryption File");
+        
 
-        #self.DecryptioncodeEditorPane.setContentType("text/javascript");
-        #self.jScrollPane2.setViewportView(self.DecryptioncodeEditorPane);
-        #self.DecryptioncodeEditorPane.setEditable(False);
-        #self.DecryptioncodeEditorPane.getAccessibleContext().setAccessibleDescription("text/javascript");
-       
+
+        self.ResponseEncryptionfilechooserbutton = JButton();
+        self.ResponseEncryptionfilechooserbutton.setText("Choose File");
+        self.ResponseEncryptionfilechooserbutton.addActionListener(self.importresponseencfile)
+
+        self.RsponseDecryptionfilechooserbutton = JButton();
+        self.RsponseDecryptionfilechooserbutton.setText("Choose File");
+        self.RsponseDecryptionfilechooserbutton.addActionListener(self.importresponsedecfile)
+        
+        self.responseencryptionpath = JLabel();
+        self.responseencryptionpath.setText("");
+        
+        self.responsedecryptionpath = JLabel();
+        self.responsedecryptionpath.setText("");
+
+        self.reqencpath = callbacks.loadExtensionSetting('requestencryptionfilesave')
+        self.reqdecpath = callbacks.loadExtensionSetting('requestdecryptionfilesave')
+        
+        if self.reqencpath == None:
+            self.encryptionfilepath = None
+        else:
+            self.encryptionfilepath = self.reqencpath
+            self.requestencrpytionpath.setText(self.encryptionfilepath)
+
+        if self.reqdecpath == None:
+            self.decryptionfilepath = None
+        else:
+            self.decryptionfilepath = self.reqdecpath
+            self.requestdecryptionpath.setText(self.decryptionfilepath)
+
+        self.respencpath = callbacks.loadExtensionSetting('responseencryptionfilesave')
+        self.respdecpath = callbacks.loadExtensionSetting('responsedecryptionfilesave')
+
+        if self.respencpath == None:
+            self.responseencryptionfilepath = None;
+        else:
+            self.responseencryptionfilepath = self.reqencpath
+            self.responseencryptionpath.setText(self.responseencryptionfilepath);
+        
+        if self.respdecpath == None:
+            self.responsedecryptionfilepath = None;
+        else:
+            self.responsedecryptionfilepath = self.respdecpath
+            self.responsedecryptionpath.setText(self.responsedecryptionfilepath)
+        
+
+        ## Request/ Response need to be loaded afterr all UI 
+        request_tab_factory = RequestTabFactory(self)
+        response_tab_factory = ResponseTabFactory(self)
+        callbacks.registerMessageEditorTabFactory(request_tab_factory)
+        callbacks.registerMessageEditorTabFactory(response_tab_factory)
+
+        self.requestlayerpane.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
+        self.requestlayerpane.setLayer(self.Requestypelabel, JLayeredPane.DEFAULT_LAYER);
+        self.requestlayerpane.setLayer(self.CustomBodyRadio, JLayeredPane.DEFAULT_LAYER);
+        self.requestlayerpane.setLayer(self.parametervalueRadio, JLayeredPane.DEFAULT_LAYER);
+        self.requestlayerpane.setLayer(self.paramkeyvalueRadio, JLayeredPane.DEFAULT_LAYER);
+        self.requestlayerpane.setLayer(self.CustomRequestRadio, JLayeredPane.DEFAULT_LAYER);
+        self.requestlayerpane.setLayer(self.CustomRequestheaderRadio, JLayeredPane.DEFAULT_LAYER);
+        self.requestlayerpane.setLayer(self.RequestTypeNoneRadio, JLayeredPane.DEFAULT_LAYER);
+
+        self.requestlayerpaneLayout = GroupLayout(self.requestlayerpane);
+        self.requestlayerpane.setLayout(self.requestlayerpaneLayout);
+        self.requestlayerpaneLayout.setHorizontalGroup(
+            self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(self.Requestypelabel)
+                    .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
+                        .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(self.CustomBodyRadio)
+                            .addComponent(self.paramkeyvalueRadio)
+                            .addComponent(self.CustomRequestheaderRadio))
+                        .addGap(2, 2, 2)
+                        .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(self.RequestTypeNoneRadio)
+                            .addComponent(self.CustomRequestRadio)
+                            .addComponent(self.parametervalueRadio))))
+                .addContainerGap(53, Short.MAX_VALUE))
+        );
+        self.requestlayerpaneLayout.setVerticalGroup(
+            self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(self.Requestypelabel)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.CustomBodyRadio)
+                    .addComponent(self.parametervalueRadio))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.paramkeyvalueRadio)
+                    .addComponent(self.CustomRequestRadio))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(self.RequestTypeNoneRadio)
+                    .addComponent(self.CustomRequestheaderRadio))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+
+
+
+
+
+
+
+        self.responslayerpane.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
+        self.responslayerpane.setLayer(self.Responsetypelabel1, JLayeredPane.DEFAULT_LAYER);
+        self.responslayerpane.setLayer(self.responseCustomBodyRadio, JLayeredPane.DEFAULT_LAYER);
+        self.responslayerpane.setLayer(self.responsejsonvalueradio, JLayeredPane.DEFAULT_LAYER);
+        self.responslayerpane.setLayer(self.responsejsonkeyvalueradio, JLayeredPane.DEFAULT_LAYER);
+        self.responslayerpane.setLayer(self.ResponseTypeNoneRadio, JLayeredPane.DEFAULT_LAYER);
+
+        self.responslayerpaneLayout = GroupLayout(self.responslayerpane);
+        self.responslayerpane.setLayout(self.responslayerpaneLayout);
+        self.responslayerpaneLayout.setHorizontalGroup(
+            self.responslayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.responslayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(self.responslayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(self.Responsetypelabel1)
+                    .addGroup(self.responslayerpaneLayout.createSequentialGroup()
+                        .addGroup(self.responslayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(self.responsejsonkeyvalueradio)
+                            .addComponent(self.responseCustomBodyRadio))
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(self.responslayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(self.responsejsonvalueradio)
+                            .addComponent(self.ResponseTypeNoneRadio))))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        self.responslayerpaneLayout.setVerticalGroup(
+            self.responslayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.responslayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(self.Responsetypelabel1)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(self.responslayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.responseCustomBodyRadio)
+                    .addComponent(self.responsejsonvalueradio))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(self.responslayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.responsejsonkeyvalueradio)
+                    .addComponent(self.ResponseTypeNoneRadio))
+                .addContainerGap(38, Short.MAX_VALUE))
+        );
+
+
+
+
+
+
+
+        self.additionallayerpane.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
+        self.additionallayerpane.setLayer(self.AdditionalSettinglabel, JLayeredPane.DEFAULT_LAYER);
+        self.additionallayerpane.setLayer(self.languagelabel, JLayeredPane.DEFAULT_LAYER);
+        self.additionallayerpane.setLayer(self.languagecombobox, JLayeredPane.DEFAULT_LAYER);
+        self.additionallayerpane.setLayer(self.reqmethodlabel, JLayeredPane.DEFAULT_LAYER);
+        self.additionallayerpane.setLayer(self.reqmethodcombobox, JLayeredPane.DEFAULT_LAYER);
+        self.additionallayerpane.setLayer(self.reqresponselabel, JLayeredPane.DEFAULT_LAYER);
+        self.additionallayerpane.setLayer(self.reqresponsecombobox, JLayeredPane.DEFAULT_LAYER);
+
+        self.additionallayerpaneLayout = GroupLayout(self.additionallayerpane);
+        self.additionallayerpane.setLayout(self.additionallayerpaneLayout);
+        self.additionallayerpaneLayout.setHorizontalGroup(
+            self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.additionallayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(self.AdditionalSettinglabel)
+                    .addGroup(self.additionallayerpaneLayout.createSequentialGroup()
+                        .addGroup(self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(self.reqmethodlabel)
+                            .addGroup(self.additionallayerpaneLayout.createSequentialGroup()
+                                .addComponent(self.languagelabel)
+                                .addGap(18, 18, 18)
+                                .addComponent(self.languagecombobox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(self.reqmethodcombobox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                    .addGroup(self.additionallayerpaneLayout.createSequentialGroup()
+                        .addComponent(self.reqresponselabel)
+                        .addGap(18, 18, 18)
+                        .addComponent(self.reqresponsecombobox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(25, Short.MAX_VALUE))
+        );
+        self.additionallayerpaneLayout.setVerticalGroup(
+            self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.additionallayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(self.AdditionalSettinglabel)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.languagelabel)
+                    .addComponent(self.languagecombobox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.reqmethodlabel)
+                    .addComponent(self.reqmethodcombobox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.reqresponselabel)
+                    .addComponent(self.reqresponsecombobox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+
+
+
+        self.autoencryptlayerpane.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
+        self.autoencryptlayerpane.setLayer(self.AutoEncryptLabel, JLayeredPane.DEFAULT_LAYER);
+        self.autoencryptlayerpane.setLayer(self.AutoEncryptLabel1, JLayeredPane.DEFAULT_LAYER);
+        self.autoencryptlayerpane.setLayer(self.Autoencryptonoffbutton, JLayeredPane.DEFAULT_LAYER);
+        self.autoencryptlayerpane.setLayer(self.AutoencryptTogglestatuslabel, JLayeredPane.DEFAULT_LAYER);
+        self.autoencryptlayerpane.setLayer(self.FileChooserErrorlabel1, JLayeredPane.DEFAULT_LAYER);
+        self.autoencryptlayerpane.setLayer(jSeparator1, JLayeredPane.DEFAULT_LAYER);
+        self.autoencryptlayerpane.setLayer(self.AutoencryptTooltypeScanner, JLayeredPane.DEFAULT_LAYER);
+        self.autoencryptlayerpane.setLayer(self.AutoencryptTooltypeExtender, JLayeredPane.DEFAULT_LAYER);
+        self.autoencryptlayerpane.setLayer(self.AutoencryptTooltypeRepeater, JLayeredPane.DEFAULT_LAYER);
+        self.autoencryptlayerpane.setLayer(self.AutoencryptTooltypeProxy, JLayeredPane.DEFAULT_LAYER);
+        self.autoencryptlayerpane.setLayer(self.AutoencryptTooltypeIntruder, JLayeredPane.DEFAULT_LAYER);
+
+        self.autoencryptlayerpaneLayout = GroupLayout(self.autoencryptlayerpane);
+        self.autoencryptlayerpane.setLayout(self.autoencryptlayerpaneLayout);
+        self.autoencryptlayerpaneLayout.setHorizontalGroup(
+            self.autoencryptlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.autoencryptlayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(self.autoencryptlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(self.AutoEncryptLabel)
+                    .addGroup(self.autoencryptlayerpaneLayout.createSequentialGroup()
+                        .addGap(6, 6, 6)
+                        .addGroup(self.autoencryptlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(self.FileChooserErrorlabel1)
+                            .addGroup(self.autoencryptlayerpaneLayout.createSequentialGroup()
+                                .addComponent(self.Autoencryptonoffbutton)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(self.AutoencryptTogglestatuslabel))
+                            .addComponent(self.AutoEncryptLabel1)
+                            .addGroup(self.autoencryptlayerpaneLayout.createSequentialGroup()
+                                .addComponent(self.AutoencryptTooltypeScanner)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(self.AutoencryptTooltypeExtender)
+                                .addGap(18, 18, 18)
+                                .addComponent(self.AutoencryptTooltypeRepeater))
+                            .addGroup(self.autoencryptlayerpaneLayout.createSequentialGroup()
+                                .addComponent(self.AutoencryptTooltypeProxy)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(self.AutoencryptTooltypeIntruder))))
+                    .addComponent(jSeparator1, GroupLayout.PREFERRED_SIZE, 295, GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        self.autoencryptlayerpaneLayout.setVerticalGroup(
+            self.autoencryptlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.autoencryptlayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(self.AutoEncryptLabel)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(self.autoencryptlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.Autoencryptonoffbutton)
+                    .addComponent(self.AutoencryptTogglestatuslabel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(self.FileChooserErrorlabel1)
+                .addGap(5, 5, 5)
+                .addComponent(jSeparator1, GroupLayout.PREFERRED_SIZE, 10, GroupLayout.PREFERRED_SIZE)
+                .addGap(3, 3, 3)
+                .addComponent(self.AutoEncryptLabel1)
+                .addGap(18, 18, 18)
+                .addGroup(self.autoencryptlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.AutoencryptTooltypeScanner)
+                    .addComponent(self.AutoencryptTooltypeExtender)
+                    .addComponent(self.AutoencryptTooltypeRepeater))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(self.autoencryptlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.AutoencryptTooltypeProxy)
+                    .addComponent(self.AutoencryptTooltypeIntruder))
+                .addContainerGap(32, Short.MAX_VALUE))
+        );
+
+
+
+
+        self.requestscriptfilelayerpane.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
+        self.requestscriptfilelayerpane.setLayer(self.FileChooserLabel, JLayeredPane.DEFAULT_LAYER);
+        self.requestscriptfilelayerpane.setLayer(self.Encryptionfilelabel, JLayeredPane.DEFAULT_LAYER);
+        self.requestscriptfilelayerpane.setLayer(self.Decryptionfilelabel, JLayeredPane.DEFAULT_LAYER);
+        self.requestscriptfilelayerpane.setLayer(self.Encryptionfilechooserbutton, JLayeredPane.DEFAULT_LAYER);
+        self.requestscriptfilelayerpane.setLayer(self.Decryptionfilechooserbutton, JLayeredPane.DEFAULT_LAYER);
+        self.requestscriptfilelayerpane.setLayer(self.requestencrpytionpath, JLayeredPane.DEFAULT_LAYER);
+        self.requestscriptfilelayerpane.setLayer(self.requestdecryptionpath, JLayeredPane.DEFAULT_LAYER);
+
+        self.requestscriptfilelayerpaneLayout = GroupLayout(self.requestscriptfilelayerpane);
+        self.requestscriptfilelayerpane.setLayout(self.requestscriptfilelayerpaneLayout);
+        self.requestscriptfilelayerpaneLayout.setHorizontalGroup(
+            self.requestscriptfilelayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.requestscriptfilelayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(self.requestscriptfilelayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(self.FileChooserLabel)
+                    .addGroup(self.requestscriptfilelayerpaneLayout.createSequentialGroup()
+                        .addComponent(self.Encryptionfilelabel)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(self.Encryptionfilechooserbutton)
+                        .addGap(18, 18, 18)
+                        .addComponent(self.requestencrpytionpath))
+                    .addGroup(self.requestscriptfilelayerpaneLayout.createSequentialGroup()
+                        .addComponent(self.Decryptionfilelabel)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(self.Decryptionfilechooserbutton)
+                        .addGap(18, 18, 18)
+                        .addComponent(self.requestdecryptionpath)))
+                .addContainerGap(341, Short.MAX_VALUE))
+        );
+        self.requestscriptfilelayerpaneLayout.setVerticalGroup(
+            self.requestscriptfilelayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.requestscriptfilelayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(self.FileChooserLabel)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(self.requestscriptfilelayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.Encryptionfilelabel)
+                    .addComponent(self.Encryptionfilechooserbutton)
+                    .addComponent(self.requestencrpytionpath))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(self.requestscriptfilelayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.Decryptionfilelabel)
+                    .addComponent(self.Decryptionfilechooserbutton)
+                    .addComponent(self.requestdecryptionpath))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+
+
+
+        self.responescriptfilelayerpane.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
+        self.responescriptfilelayerpane.setLayer(self.responseFileChooserLabel, JLayeredPane.DEFAULT_LAYER);
+        self.responescriptfilelayerpane.setLayer(self.ResponseEncryptionfilelabel, JLayeredPane.DEFAULT_LAYER);
+        self.responescriptfilelayerpane.setLayer(self.ResponseDecryptionfilelabel, JLayeredPane.DEFAULT_LAYER);
+        self.responescriptfilelayerpane.setLayer(self.ResponseEncryptionfilechooserbutton, JLayeredPane.DEFAULT_LAYER);
+        self.responescriptfilelayerpane.setLayer(self.RsponseDecryptionfilechooserbutton, JLayeredPane.DEFAULT_LAYER);
+        self.responescriptfilelayerpane.setLayer(self.responseencryptionpath, JLayeredPane.DEFAULT_LAYER);
+        self.responescriptfilelayerpane.setLayer(self.responsedecryptionpath, JLayeredPane.DEFAULT_LAYER);
+
+        self.responescriptfilelayerpaneLayout = GroupLayout(self.responescriptfilelayerpane);
+        self.responescriptfilelayerpane.setLayout(self.responescriptfilelayerpaneLayout);
+        self.responescriptfilelayerpaneLayout.setHorizontalGroup(
+            self.responescriptfilelayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.responescriptfilelayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(self.responescriptfilelayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(self.responseFileChooserLabel)
+                    .addGroup(self.responescriptfilelayerpaneLayout.createSequentialGroup()
+                        .addComponent(self.ResponseEncryptionfilelabel)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(self.ResponseEncryptionfilechooserbutton)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(self.responseencryptionpath))
+                    .addGroup(self.responescriptfilelayerpaneLayout.createSequentialGroup()
+                        .addComponent(self.ResponseDecryptionfilelabel)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(self.RsponseDecryptionfilechooserbutton)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(self.responsedecryptionpath)))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        self.responescriptfilelayerpaneLayout.setVerticalGroup(
+            self.responescriptfilelayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(self.responescriptfilelayerpaneLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(self.responseFileChooserLabel)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(self.responescriptfilelayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.ResponseEncryptionfilelabel)
+                    .addComponent(self.ResponseEncryptionfilechooserbutton)
+                    .addComponent(self.responseencryptionpath))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(self.responescriptfilelayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(self.ResponseDecryptionfilelabel)
+                    .addComponent(self.RsponseDecryptionfilechooserbutton)
+                    .addComponent(self.responsedecryptionpath))
+                .addContainerGap(14, Short.MAX_VALUE))
+        );
+
+
+
+
         layout = GroupLayout(self.firstTab);
         self.firstTab.setLayout(layout);
-        layout.linkSize(SwingConstants.VERTICAL, [self.jScrollPane1, self.jScrollPane2]);
-        layout.linkSize(SwingConstants.VERTICAL, [self.Decryptioncodelabel, self.Encryptioncodelabel]);
-        layout.linkSize(SwingConstants.HORIZONTAL, [self.jScrollPane1, self.jScrollPane2]);
-        layout.linkSize(SwingConstants.HORIZONTAL, [self.Decryptioncodelabel, self.Encryptioncodelabel]);
         layout.setHorizontalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(self.jSeparator4)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(self.AutoEncryptLabel)
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(self.jScrollPane1, GroupLayout.PREFERRED_SIZE, 450, GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(self.jScrollPane2, GroupLayout.PREFERRED_SIZE, 450, GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE))))
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(self.autoencryptlayerpane)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(225, 225, 225)
-                                .addComponent(self.FileChooserErrorlabel))
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(self.Autoencryptonoffbutton)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(self.AutoencryptTogglestatuslabel))
-                                    .addComponent(self.FileChooserErrorlabel1)
-                                    .addComponent(self.AutoEncryptLabel1)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(self.AutoencryptTooltypeScanner)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(self.AutoencryptTooltypeExtender)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(self.AutoencryptTooltypeRepeater)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(self.AutoencryptTooltypeProxy)
-                                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(self.AutoencryptTooltypeIntruder))
-                                    .addComponent(self.AutoEncrypttooltypeerrorlabel)
-                                    .addComponent(self.FileChooserLabel)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                            .addGroup(layout.createSequentialGroup()
-                                            .addGap(195, 195, 195)
-                                                .addComponent(self.Encryptionfilelabel)
-                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(self.Encryptionfilechooserbutton)
-                                                .addGap(35, 35, 35)
-                                                .addComponent(self.Decryptionfilelabel))
-                                                .addGap(35, 35, 35)
-                                                .addGap(65, 65, 65)
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addGap(94, 94, 94)
-                                                .addComponent(self.Encryptioncodelabel)))
-                                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(self.Decryptionfilechooserbutton))
-                                            .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                            .addGap(94, 94, 94)
-                                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                .addComponent(self.Decryptioncodelabel)
-                                                )))))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(self.Requestypelabel))
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(self.Wholebodyjsonradio)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(self.JsonValueradio)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(self.JsonkeyValueradio)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(self.CustomBodyRadio)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(self.CustomRequestRadio)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(self.RequestTypeNoneRadio))
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(self.jSeparator1)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
-        )
+                            .addComponent(self.requestscriptfilelayerpane)
+                            .addComponent(self.responescriptfilelayerpane)))
+                    .addGroup(GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(self.requestlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(self.additionallayerpane)))
+                .addGap(18, 18, 18))
+        );
         layout.setVerticalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(14, 14, 14)
-                .addComponent(self.Requestypelabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(self.Wholebodyjsonradio)
-                    .addComponent(self.JsonValueradio)
-                    .addComponent(self.JsonkeyValueradio)
-                    .addComponent(self.CustomBodyRadio)
-                    .addComponent(self.CustomRequestRadio)
-                    .addComponent(self.RequestTypeNoneRadio))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(self.jSeparator1, GroupLayout.PREFERRED_SIZE, 10, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(self.AutoEncryptLabel)
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(self.Autoencryptonoffbutton)
-                    .addComponent(self.AutoencryptTogglestatuslabel))
-                .addGap(11, 11, 11)
-                .addComponent(self.FileChooserErrorlabel1)
-                .addGap(18, 18, 18)
-                .addComponent(self.AutoEncryptLabel1)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(self.AutoencryptTooltypeScanner)
-                    .addComponent(self.AutoencryptTooltypeExtender)
-                    .addComponent(self.AutoencryptTooltypeRepeater)
-                    .addComponent(self.AutoencryptTooltypeProxy)
-                    .addComponent(self.AutoencryptTooltypeIntruder))
-                .addGap(5, 5, 5)
-                .addComponent(self.AutoEncrypttooltypeerrorlabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(self.jSeparator4, GroupLayout.PREFERRED_SIZE, 10, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(self.FileChooserLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(self.Encryptionfilelabel)
-                    .addComponent(self.Encryptionfilechooserbutton)
-                    .addGap(18, 18, 18)
-                    .addComponent(self.Decryptionfilelabel)
-                    .addGap(18, 18, 18)
-                    .addComponent(self.Decryptionfilechooserbutton))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(self.FileChooserErrorlabel)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(self.Encryptioncodelabel)
-                    .addComponent(self.Decryptioncodelabel))
-                    
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(self.jScrollPane1, GroupLayout.PREFERRED_SIZE, 300, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(self.jScrollPane2, GroupLayout.PREFERRED_SIZE, 300, GroupLayout.PREFERRED_SIZE))
-                .addGap(16, 16, 16))
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                    .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
+                        .addComponent(self.additionallayerpane)
+                        .addComponent(self.requestlayerpane)))
+                .addGap(31, 31, 31)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
+                    .addComponent(self.autoencryptlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(self.requestscriptfilelayerpane)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(self.responescriptfilelayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(843, Short.MAX_VALUE))
+        );
 
-
-                
-        )
+        
     
+
+
+    # Listeners for Response type radio buttons
+    def responsetypelister(self,e):
+        selected = e.getSource()
+        if not selected.getText() == "None":
+            if None not in (self.responsedecryptionfilepath,self.responseencryptionfilepath):
+                self.ResponseTypeNoneRadio.setSelected(False)
+                self.selectedresponsetpye = selected.getText()
+            else:
+                JOptionPane.showMessageDialog(None, "Response Encryption and Decryption File Required to Start")
+                self.ResponseTypeNoneRadio.setSelected(True)
+                self.selectedresponsetpye = "None"
+        elif selected.getText() == "None":
+            self.selectedresponsetpye = "None"
+            self.ResponseTypeNoneRadio.setSelected(True)
+
+
+
     # Listeners for Request type radio buttons
     def requestypelistner(self, e):
         selected = e.getSource()
         if not selected.getText() == "None":
 
             if None not in (self.decryptionfilepath,self.encryptionfilepath):
-                self.FileChooserErrorlabel.setText("");
+                #self.FileChooserErrorlabel.setText("");
                 #self.Autoencryptonoffbutton.setEnabled(True)
                 self.RequestTypeNoneRadio.setSelected(False)
                 self.selectedrequesttpye = selected.getText()
                 if self.AutoencryptTooltypeScanner.isSelected() or self.AutoencryptTooltypeExtender.isSelected() or self.AutoencryptTooltypeRepeater.isSelected() or self.AutoencryptTooltypeProxy.isSelected() or self.AutoencryptTooltypeIntruder.isSelected() == True:
                     self.Autoencryptonoffbutton.setEnabled(True)
             else:
-                self.FileChooserErrorlabel.setText("Encryption and Decryption File Required to Start");
+                #self.FileChooserErrorlabel.setText("Encryption and Decryption File Required to Start");
+                JOptionPane.showMessageDialog(None, "Request Encryption and Decryption File Required to Start")
                 self.RequestTypeNoneRadio.setSelected(True)
                 self.Autoencryptonoffbutton.setEnabled(False)
                 self.Autoencryptonoffbutton.setSelected(False)
@@ -470,6 +784,32 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
 
 
+    # handle response encryption file
+    def importresponseencfile(self,e):
+        chooseFile = JFileChooser()
+        filter = FileNameExtensionFilter("js files", ["js"])
+        chooseFile.addChoosableFileFilter(filter)
+        ret = chooseFile.showDialog(self.tab, "Choose file")  
+        if ret == JFileChooser.APPROVE_OPTION: 
+            fileLoad = chooseFile.getSelectedFile()
+            self.responseencryptionfilepath = fileLoad.getAbsolutePath()
+            self.responseencryptionpath.setText(self.responseencryptionfilepath)
+            self.callbacks.saveExtensionSetting("responseencryptionfilesave", self.responseencryptionfilepath)
+
+
+    # handle import response decryption files
+    def importresponsedecfile(self,e):
+        chooseFile = JFileChooser()
+        filter = FileNameExtensionFilter("js files", ["js"])
+        chooseFile.addChoosableFileFilter(filter)
+        ret = chooseFile.showDialog(self.tab, "Choose file")  
+        if ret == JFileChooser.APPROVE_OPTION: 
+            fileLoad = chooseFile.getSelectedFile()
+            self.responsedecryptionfilepath = fileLoad.getAbsolutePath()
+            self.responsedecryptionpath.setText(self.responsedecryptionfilepath)
+            self.callbacks.saveExtensionSetting("responsedecryptionfilesave", self.responsedecryptionfilepath)
+
+
     # Handles Import for the Encryption File
     def importencryptionjsfile(self,e):
         chooseFile = JFileChooser()
@@ -479,10 +819,9 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         if ret == JFileChooser.APPROVE_OPTION:
             fileLoad = chooseFile.getSelectedFile()
             self.encryptionfilepath = fileLoad.getAbsolutePath()
-            file = open(self.encryptionfilepath,mode='r')
-            self.encryptioncode = file.read()
-            self.EncryptioncodeEditorPane.setText(self.encryptioncode)
-            file.close()
+            self.requestencrpytionpath.setText(self.encryptionfilepath)
+            self.callbacks.saveExtensionSetting("requestencryptionfilesave", self.encryptionfilepath)
+            
 
 
     # Handle Import for Decryption File
@@ -494,11 +833,9 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         if ret == JFileChooser.APPROVE_OPTION:
             fileLoad = chooseFile.getSelectedFile()
             self.decryptionfilepath = fileLoad.getAbsolutePath()
-            file = open(self.decryptionfilepath,mode='r')
-            self.encryptioncode = file.read()
-            self.DecryptioncodeEditorPane.setText(self.encryptioncode)
-            file.close()
-
+            self.requestdecryptionpath.setText(self.decryptionfilepath)
+            self.callbacks.saveExtensionSetting("requestdecryptionfilesave", self.decryptionfilepath)
+            
 
 
     # Returning the Extension Tab name to burp
@@ -510,21 +847,15 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
     def getUiComponent(self):
         return self.tabbedPane    
 
-
-    # Creating the tab for Request/Response to view Decrypted Request body
-    def createNewInstance(self, controller, editable):
-        
-        # create a new instance of our custom editor tab
-        return CriptInputTab(self, controller, editable)   
-
-
-
+  
+    
     # Auto Encrypt the request and modify the request
     def processHttpMessage(self, toolFlag, messageIsRequest, messageInfo):
         if messageIsRequest:
             toolname = self.callbacks.getToolName(toolFlag)
-           
-            if toolname in self.tooltypelist:
+            
+            
+            if toolname in self.tooltypelist and self.callbacks.isInScope(self.helpers.analyzeRequest(messageInfo).getUrl()):
 
                 request = self.helpers.analyzeRequest(messageInfo)
                 bodyoffset = request.getBodyOffset()
@@ -533,7 +864,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 self.body = self.stringrequest[bodyoffset:len(self.stringrequest)]
 
                 
-                messageInfo.setRequest(EncryptRequest(self,self.body,self.header))
+                messageInfo.setRequest(EncryptRequest(self,messageInfo))
 
 
     # Listener for Auto Encrpyt the request 
@@ -562,9 +893,10 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             if self.RequestTypeNoneRadio.isSelected():
                 self.Autoencryptonoffbutton.setEnabled(False)
                 self.Autoencryptonoffbutton.setSelected(False)
+                del self.tooltypelist[:]
             else:
                 self.Autoencryptonoffbutton.setEnabled(True)
-                self.tooltypelist = []
+                
                 if self.AutoencryptTooltypeScanner.isSelected():
                     self.tooltypelist.append("Scanner")
                 if self.AutoencryptTooltypeExtender.isSelected():
@@ -579,6 +911,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
 
         else:
+            del self.tooltypelist[:]
             self.Autoencryptonoffbutton.setEnabled(False)
             self.Autoencryptonoffbutton.setSelected(False)
         
@@ -607,15 +940,11 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 self.method = req.getMethod()
                 self.url = items.getUrl()
                 
-                gettingrequest = items.getRequest()
-                self.requestinst = self.helpers.bytesToString(gettingrequest)
                 self.responseinbytes = items.getResponse()
                 self.responseinst = self.helpers.bytesToString(self.responseinbytes)
-                getody = req.getBodyOffset()
-                self.body = self.requestinst[getody:len(self.requestinst)]
-                self.header = req.getHeaders()
+               
 
-                self.decryptedrequest = DecryptRequest(self,self.body,self.header)
+                self.decryptedrequest = DecryptRequest(self,items)
                 rowss = self.logTable.getRowCount()
                 self.sr2 = str((rowss + 1))
                 httpservice = items.getHttpService()
@@ -623,6 +952,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
                 self._lock.acquire()
                 row = len(self._log)
+
+                #self.url = self.helpers.analyzeRequest(self.decryptedrequest).getUrl()
                
                 self._log.append(LogEntry(self.sr2,self.url, self.method,self.decryptedrequest, self.responseinst,httpservice))
                
@@ -646,9 +977,22 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 self.selectedrequst = False
                 message_bytes = http_request_response.getResponse()
 
+            if self.selectedrequst:
+                if not self.encryptionfilepath == "None":
+                    encpath = self.encryptionfilepath
+                elif not self.responseencryptionfilepath == "None":
+                    encpath = self.responseencryptionfilepath
+            else:
+                if not self.responseencryptionfilepath == "None":
+                    encpath = self.responseencryptionfilepath
+                elif not self.encryptionfilepath == "None":
+                    encpath = self.encryptionfilepath
+
+
+
             text = self.helpers.bytesToString(message_bytes)
             query = text[self.selection[0]:self.selection[1]]
-            output = Requestchecker(self,query,http_request_response)
+            output = Requestchecker(self,encpath,query,http_request_response)
             encryptedstring = output.encryptstring()
             
         
@@ -676,9 +1020,21 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 self.selectedrequst = False
                 message_bytes = http_request_response.getResponse()
 
+
+            if self.selectedrequst:
+                if not self.decryptionfilepath == "None":
+                    encpath = self.decryptionfilepath
+                elif not self.responsedecryptionfilepath == "None":
+                    encpath = self.responsedecryptionfilepath
+            else:
+                if not self.responsedecryptionfilepath == "None":
+                    encpath = self.responsedecryptionfilepath
+                elif not self.decryptionfilepath == "None":
+                    encpath = self.decryptionfilepath
+
             text = self.helpers.bytesToString(message_bytes)
             query = text[self.selection[0]:self.selection[1]]
-            output = Requestchecker(self,query,http_request_response)
+            output = Requestchecker(self,encpath,query,http_request_response)
             decryptedstring = output.decryptstring()
            
         
@@ -822,6 +1178,7 @@ class Table(JTable):
         
         JTable.changeSelection(self, row, col, toggle, extend)
 
+
 #Store the Decrypted Requests
 class LogEntry:
     def __init__(self, sr,url, method, request, response,service):
@@ -832,3 +1189,16 @@ class LogEntry:
         self._response = response
         self._service = service
        
+class RequestTabFactory(IMessageEditorTabFactory):
+    def __init__(self, extender):
+        self.extender = extender
+        self.callbacks = self.extender.callbacks
+    def createNewInstance(self, controller, editable):
+        return CriptInputTab(self.extender, controller, editable)
+
+class ResponseTabFactory(IMessageEditorTabFactory):
+    def __init__(self, extender):
+        self.extender = extender
+        self.callbacks = self.extender.callbacks
+    def createNewInstance(self, controller, editable):
+        return ResponeCriptInputTab(self.extender, controller, editable)

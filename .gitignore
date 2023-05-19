@@ -128,3 +128,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+
+
+### internal
+
+Demo/
+Django/
+Android/
+images/
+

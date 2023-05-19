@@ -1,102 +1,21 @@
-
-
-from .decryption import Jsonvaluedecrypt, Customrequestdecrypt,Customeditrequestdecrypt
-from .encryption import Jsonvalueencrypt, Customrequestencrypt,Customeditrequestencrypt
-import json
-from collections import OrderedDict
-from burp import IParameter
+from .decryption import Jsonvaluedecrypt,Customrequestdecrypt,Customeditrequestdecrypt
+from .encryption import Jsonvalueencrypt,Customrequestencrypt,Customeditrequestencrypt
 from java.util import ArrayList
-from base64 import b64encode
+from burp import IParameter
+import json
 
-
-class Requestchecker():
-    def __init__(self, extender,encpath, query, http_request_response):
-        self._extender = extender
-        self._selectedmessage = query
-        self.message = http_request_response
-        self.selectedlang = extender.languagecombobox.getSelectedItem()
-        self.encpath = encpath
-
-    def encryptstring(self):
-        if self._extender.selectedrequst == True:
-            self.myrequest = self._extender.helpers.analyzeRequest(
-                self.message.getRequest())
-            self.header = self.myrequest.getHeaders()
-
-            req = self._extender.helpers.analyzeRequest(self.message.getRequest())
-            gettingrequest = self.message.getRequest()   
-            requestinst = self._extender.helpers.bytesToString(gettingrequest)
-            getody = req.getBodyOffset()
-            headers_str = requestinst[:getody].strip()
-            
-        else:
-            pass
-
-        if str(self._extender.selectedrequesttpye) == "Custom Request":
-
-            encrypted = Customrequestencrypt(self.selectedlang,self.encpath, str(self.header), self._selectedmessage)
-            return encrypted
-
-        elif str(self._extender.selectedrequesttpye) == "Custom Request (Edit Header)":
-
-            updatedheader, encrypted = Customeditrequestencrypt(self.selectedlang, self.encpath, str(headers_str), self._selectedmessage)
-            return encrypted
-
-
-        else:
-            encrypted = Jsonvalueencrypt(self.selectedlang, self.encpath, self._selectedmessage)
-            return encrypted
-
-
-
-
-    def decryptstring(self):
-        if self._extender.selectedrequst == True:
-            self.myrequest = self._extender.helpers.analyzeRequest(self.message.getRequest())
-            self.header = self.myrequest.getHeaders()
-            req = self._extender.helpers.analyzeRequest(self.message.getRequest())
-            gettingrequest = self.message.getRequest()   
-            requestinst = self._extender.helpers.bytesToString(gettingrequest)
-            getody = req.getBodyOffset()
-            headers_str = requestinst[:getody].strip()
-           
-        else:
-            pass
-
-        if str(self._extender.selectedrequesttpye) == "Custom Request":
-
-            decrypted = Customrequestdecrypt(self.selectedlang,self.encpath, str(self.header), self._selectedmessage)
-            return decrypted
-
-        elif str(self._extender.selectedrequesttpye) == "Custom Request (Edit Header)":
-            updatedheader, encrypted = Customeditrequestdecrypt(self.selectedlang, self.encpath, str(headers_str), self._selectedmessage)
-
-        else:
-            decrypted = Jsonvaluedecrypt(self.selectedlang, self.encpath, self._selectedmessage)
-           
-            return decrypted
-
-
-def DecryptRequest(extender,items):#, stringbody, header):
-
-    
+def decrypt(extender,items):
     decryptionpath = extender.decryptionfilepath
-    req = extender.helpers.analyzeRequest(items)
-    header = req.getHeaders()
-    mynewjson = OrderedDict()
-    gettingrequest = items.getRequest()
     selectedlang = extender.languagecombobox.getSelectedItem()
-        
-    requestinst = extender.helpers.bytesToString(gettingrequest)
+    req = extender.helpers.analyzeRequest(items)
+
+    requestinst = extender.helpers.bytesToString(items)
     getody = req.getBodyOffset()
     body = requestinst[getody:len(requestinst)]
     headers_str = requestinst[:getody].strip()
-    #headers_list = headers_str.splitlines()
+    header = req.getHeaders()
 
     if str(extender.selectedrequesttpye) == "Complete Body":
-
-        
-        
 
         decryptedvalue = Jsonvaluedecrypt(selectedlang, decryptionpath, body)
         output = extender.helpers.stringToBytes(decryptedvalue)
@@ -105,7 +24,7 @@ def DecryptRequest(extender,items):#, stringbody, header):
     elif str(extender.selectedrequesttpye) == "Parameter Value":
         parameters = extender.helpers.analyzeRequest(items).getParameters()
         selected_method = extender.reqmethodcombobox.getSelectedItem()
-        currentreq = items.getRequest()
+        currentreq = items
         for param in parameters:
             if selected_method == "GET" and param.getType() == IParameter.PARAM_URL:
                 decrypteedparam =  Jsonvaluedecrypt(selectedlang, decryptionpath, param.getValue())
@@ -179,7 +98,7 @@ def DecryptRequest(extender,items):#, stringbody, header):
     elif str(extender.selectedrequesttpye) == "Parameter Key and Value":
         parameters = extender.helpers.analyzeRequest(items).getParameters()
         selected_method = extender.reqmethodcombobox.getSelectedItem()
-        currentreq = items.getRequest()
+        currentreq = items
         for param in parameters:
             if selected_method == "GET" and param.getType() == IParameter.PARAM_URL:
                 decrypted_param_name = Jsonvaluedecrypt(selectedlang, decryptionpath, param.getName())
@@ -279,7 +198,7 @@ def DecryptRequest(extender,items):#, stringbody, header):
                 break
 
         return currentreq
-    
+
 
     elif str(extender.selectedrequesttpye) == "Custom Request":
 
@@ -287,13 +206,13 @@ def DecryptRequest(extender,items):#, stringbody, header):
         output = Customrequestdecrypt(selectedlang, decryptionpath, str(header), body)
         return extender.helpers.buildHttpMessage(header, output)
     
+
     elif str(extender.selectedrequesttpye) == "Custom Request (Edit Header)":
-        currentreq = items.getRequest()        
+        currentreq = items      
         updatedheader, body = Customeditrequestdecrypt(selectedlang, decryptionpath, str(headers_str), body)
         
         updatedheaders = list(updatedheader.split("\n"))
-
-
+        
         headerlist = ArrayList()
        
         for data in updatedheaders:
@@ -303,18 +222,17 @@ def DecryptRequest(extender,items):#, stringbody, header):
 
 
 
-def EncryptRequest(extender,items):
+def encrypt(extender,items):
 
     selectedlang = extender.languagecombobox.getSelectedItem()
     encryptionpath = extender.encryptionfilepath
     req = extender.helpers.analyzeRequest(items)
     header = req.getHeaders() 
-    gettingrequest = items.getRequest()    
-    requestinst = extender.helpers.bytesToString(gettingrequest)
+
+    requestinst = extender.helpers.bytesToString(items)
     getody = req.getBodyOffset()
     body = requestinst[getody:len(requestinst)]
     headers_str = requestinst[:getody].strip()
-    #headers_list = headers_str.splitlines()
 
     if str(extender.selectedrequesttpye) == "Complete Body":
         decryptedvalue = Jsonvalueencrypt(selectedlang, encryptionpath, body)
@@ -322,11 +240,10 @@ def EncryptRequest(extender,items):
         return extender.helpers.buildHttpMessage(header, output)
     
 
-
     elif str(extender.selectedrequesttpye) == "Parameter Value":
         parameters = extender.helpers.analyzeRequest(items).getParameters()
         selected_method = extender.reqmethodcombobox.getSelectedItem()
-        currentreq = items.getRequest()
+        currentreq = items
         for param in parameters:
             if selected_method == "GET" and param.getType() == IParameter.PARAM_URL:
                 decrypteedparam =  Jsonvalueencrypt(selectedlang, encryptionpath, param.getValue())
@@ -396,11 +313,10 @@ def EncryptRequest(extender,items):
                 break
         return currentreq
     
-
     elif str(extender.selectedrequesttpye) == "Parameter Key and Value":
         parameters = extender.helpers.analyzeRequest(items).getParameters()
         selected_method = extender.reqmethodcombobox.getSelectedItem()
-        currentreq = items.getRequest()
+        currentreq = items
         for param in parameters:
             if selected_method == "GET" and param.getType() == IParameter.PARAM_URL:
                 decrypted_param_name = Jsonvalueencrypt(selectedlang, encryptionpath, param.getName())
@@ -507,24 +423,16 @@ def EncryptRequest(extender,items):
         output = Customrequestencrypt(selectedlang, encryptionpath, str(header), body)
         return extender.helpers.buildHttpMessage(header, output)
     
-
     elif str(extender.selectedrequesttpye) == "Custom Request (Edit Header)":
-        currentreq = items.getRequest()        
+        currentreq = items       
         updatedheader, body = Customeditrequestencrypt(selectedlang, encryptionpath, str(headers_str), body)
         
         updatedheaders = list(updatedheader.split("\n"))
-     
+        
         headerlist = ArrayList()
        
         for data in updatedheaders:
             headerlist.add(data.strip())
        
         return extender.helpers.buildHttpMessage(headerlist, body)
-
-
-
-
-
-
-
 
