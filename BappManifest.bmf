@@ -3,7 +3,7 @@ ExtensionType: 2
 Name: PyCript
 RepoName: pycript
 ScreenVersion: 0.2
-SerialVersion: 1
+SerialVersion: 2
 MinPlatformVersion: 0
 ProOnly: False
 Author: Sourav Kalal
