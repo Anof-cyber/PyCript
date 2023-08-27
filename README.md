@@ -30,8 +30,10 @@ Pycript is a Burp Suite extension that enables users to encrypt and decrypt requ
 <a href="https://pycript.souravkalal.tech/#/"><img src="https://i.ibb.co/NLTJ6MR/70686099-3855f780-1c79-11ea-8141-899e39459da2.png" alt="70686099-3855f780-1c79-11ea-8141-899e39459da2" border="0"></a>
 
 ## Reference
+- [Youtube - PyCript Demo](https://www.youtube.com/watch?v=J8KE5VR8yDk)
 - [Bypassing Asymmetric Client Side Encryption Without Private Key](https://infosecwriteups.com/bypassing-asymmetric-client-side-encryption-without-private-key-822ed0d8aeb6)
 - [Manipulating Encrypted Traffic using PyCript](https://infosecwriteups.com/manipulating-encrypted-traffic-using-pycript-b637612528bb)
+
 
 ## Requirements
 
@@ -43,7 +45,7 @@ Pycript is a Burp Suite extension that enables users to encrypt and decrypt requ
 - [X] Encrypt & Decrypt the Selected Strings from Request Response
 - [X] View and Modify the encrypted request in plain text
 - [X] Decrypt Multiple Requests 
-- [X] Perform Burp Scanner, Sql Map, Intruder Bruteforce or any Automation in Plain Text
+- [X] Perform Burp Scanner, SQL Map, Intruder Bruteforce or any Automation in Plain Text
 - [X] Auto Encrpyt the request on the fly
 - [X] Complete freedom for encryption and decryption logic
 - [X] Ability to handle encryption and decryption even with Key and IV in Request Header or Body
