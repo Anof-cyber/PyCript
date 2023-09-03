@@ -1,0 +1,13 @@
+Uuid: 4826bfa0c67d41a8b518139186693131
+ExtensionType: 2
+Name: PyCript
+RepoName: pycript
+ScreenVersion: 0.2
+SerialVersion: 2
+MinPlatformVersion: 0
+ProOnly: False
+Author: Sourav Kalal
+ShortDescription: Bypass client-side encryption using custom logic for manual and automation testing
+EntryPoint: pycript.py
+BuildCommand: 
+SupportedProducts: Pro, Community
