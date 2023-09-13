@@ -1,23 +1,26 @@
 import subprocess
 from base64 import b64encode,b64decode
 
+import os
 
 
-def Jsonvaluedecrypt(selectedlang, path,data):
+def Jsonvaluedecrypt(selectedlang, path, data):
     try:
-        data2 = b64encode(data)
+        data2 = base64.b64encode(data)
 
         if selectedlang == "JavaScript":
-            output = subprocess.check_output(["node", path,"-d",data2]).rstrip()
+            command = f"node {path} -d {data2}"
         elif selectedlang == "Python":
-            output = subprocess.check_output(["python", path,"-d",data2]).rstrip()
+            command = f"python {path} -d {data2}"
         elif selectedlang == "Java Jar":
-              output = subprocess.check_output(["java", "-jar",path,"-d",data2]).rstrip()
+            command = f"java -jar {path} -d {data2}"
 
-    except subprocess.CalledProcessError:
-    
+        output = os.popen(command).read().rstrip()
+
+    except Exception as e:
         output = data
-    return output    
+
+    return output
 
 
 def Customrequestdecrypt(selectedlang, path,header,body):
