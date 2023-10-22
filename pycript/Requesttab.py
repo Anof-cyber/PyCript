@@ -1,7 +1,7 @@
 from burp import IMessageEditorTab
 import json
-from .decryption import Jsonvaluedecrypt,Customrequestdecrypt
-from .encryption import Jsonvalueencrypt,Customrequestencrypt
+from .decryption import Parameterdecrypt,Customrequestdecrypt
+from .encryption import Parameterencrypt,Customrequestencrypt
 from collections import OrderedDict
 from requestvalidator import decrypt,encrypt
 from .Reqcheck import DecryptRequest

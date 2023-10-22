@@ -2,14 +2,13 @@ from . import encoding, decoding
 from .execution import execute_command
 
 
-def Jsonvalueencrypt(selectedlang, path, data):
+#Jsonvalueencrypt     -->   Parameterencrypt 
+
+def Parameterencrypt(selectedlang, path, data):
     data = encoding.encode_base64(data)
     command = [selectedlang, path, "-d", str(data)]
     output = execute_command(selectedlang, path, "-d", str(data)).decode('utf-8')
     return output
-
-
-
 
 
 def Customrequestencrypt(selectedlang, path, header, body):
@@ -18,9 +17,6 @@ def Customrequestencrypt(selectedlang, path, header, body):
     output = execute_command(selectedlang, path, "-d", body, "-h", header).decode('utf-8')
     return output
     
-
-
-
 
 def Customeditrequestencrypt(selectedlang, path, header, body):
     body2 = encoding.encode_base64(body)

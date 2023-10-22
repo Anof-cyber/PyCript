@@ -1,6 +1,6 @@
 from burp import IMessageEditorTab
-from .decryption import Jsonvaluedecrypt,Customrequestdecrypt
-from .encryption import Jsonvalueencrypt,Customrequestencrypt
+from .decryption import Parameterdecrypt,Customrequestdecrypt
+from .encryption import Parameterencrypt,Customrequestencrypt
 import json
 
 
@@ -72,7 +72,7 @@ class ResponeCriptInputTab(IMessageEditorTab):
 
                 if str(self._extender.selectedresponsetpye) == "Complete Body":
 
-                    decryptedvalue = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, self.stringbody)
+                    decryptedvalue = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, self.stringbody)
                     output = self._extender.helpers.stringToBytes(decryptedvalue)
                     self._txtInput.setText(output)
                     self._txtInput.setEditable(True)
@@ -84,16 +84,16 @@ class ResponeCriptInputTab(IMessageEditorTab):
                     for key, value in json_object.items():
                         if isinstance(value, dict):
                             for inner_key, inner_value in value.items():
-                                value[inner_key] = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, inner_value)
+                                value[inner_key] = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, inner_value)
                         elif isinstance(value, list):
                             for i in range(len(value)):
                                 if isinstance(value[i], dict):
                                     for inner_key, inner_value in value[i].items():
-                                        value[i][inner_key] = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, inner_value)
+                                        value[i][inner_key] = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, inner_value)
                                 else:
-                                    value[i] = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, value[i])
+                                    value[i] = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, value[i])
                         else:
-                            json_object[key] = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, value)
+                            json_object[key] = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, value)
 
                     output = self._extender.helpers.stringToBytes(json.dumps(json_object))
                     self._txtInput.setText(output)
@@ -104,25 +104,25 @@ class ResponeCriptInputTab(IMessageEditorTab):
                     json_object = json.loads(self.stringbody)
 
                     for key, value in json_object.items():
-                        new_key = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, key)
+                        new_key = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, key)
                         if isinstance(value, dict):
                             for inner_key, inner_value in value.items():
-                                new_inner_key = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, inner_key)
-                                value[new_inner_key] = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, inner_value)
+                                new_inner_key = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, inner_key)
+                                value[new_inner_key] = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, inner_value)
                                 if inner_key != new_inner_key:
                                     del value[inner_key]
                         elif isinstance(value, list):
                             for i in range(len(value)):
                                 if isinstance(value[i], dict):
                                     for inner_key, inner_value in value[i].items():
-                                        new_inner_key = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, inner_key)
-                                        value[i][new_inner_key] = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, inner_value)
+                                        new_inner_key = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, inner_key)
+                                        value[i][new_inner_key] = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, inner_value)
                                         if inner_key != new_inner_key:
                                             del value[i][inner_key]
                                 else:
-                                    value[i] = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, value[i])
+                                    value[i] = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, value[i])
                         else:
-                            json_object[new_key] = Jsonvaluedecrypt(self.selectedlang, self.decryptionresponsepath, value)
+                            json_object[new_key] = Parameterdecrypt(self.selectedlang, self.decryptionresponsepath, value)
                             if key != new_key:
                                 del json_object[key]
 
@@ -152,7 +152,7 @@ class ResponeCriptInputTab(IMessageEditorTab):
 
 
             if str(self._extender.selectedresponsetpye) == "Complete Body":
-                encrypted = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, self.editedstring)
+                encrypted = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, self.editedstring)
                 output = self._extender.helpers.stringToBytes(encrypted)
                 return self._extender.helpers.buildHttpMessage(self.header,output)
             
@@ -163,16 +163,16 @@ class ResponeCriptInputTab(IMessageEditorTab):
                 for key, value in json_object.items():
                         if isinstance(value, dict):
                             for inner_key, inner_value in value.items():
-                                value[inner_key] = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, inner_value)
+                                value[inner_key] = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, inner_value)
                         elif isinstance(value, list):
                             for i in range(len(value)):
                                 if isinstance(value[i], dict):
                                     for inner_key, inner_value in value[i].items():
-                                        value[i][inner_key] = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, inner_value)
+                                        value[i][inner_key] = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, inner_value)
                                 else:
-                                    value[i] = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, value[i])
+                                    value[i] = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, value[i])
                         else:
-                            json_object[key] = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, value)
+                            json_object[key] = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, value)
 
                 output = self._extender.helpers.stringToBytes(json.dumps(json_object))
                 return self._extender.helpers.buildHttpMessage(self.header, output)
@@ -184,25 +184,25 @@ class ResponeCriptInputTab(IMessageEditorTab):
 
 
                 for key, value in json_object.items():
-                        new_key = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, key)
+                        new_key = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, key)
                         if isinstance(value, dict):
                             for inner_key, inner_value in value.items():
-                                new_inner_key = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, inner_key)
-                                value[new_inner_key] = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, inner_value)
+                                new_inner_key = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, inner_key)
+                                value[new_inner_key] = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, inner_value)
                                 if inner_key != new_inner_key:
                                     del value[inner_key]
                         elif isinstance(value, list):
                             for i in range(len(value)):
                                 if isinstance(value[i], dict):
                                     for inner_key, inner_value in value[i].items():
-                                        new_inner_key = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, inner_key)
-                                        value[i][new_inner_key] = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, inner_value)
+                                        new_inner_key = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, inner_key)
+                                        value[i][new_inner_key] = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, inner_value)
                                         if inner_key != new_inner_key:
                                             del value[i][inner_key]
                                 else:
-                                    value[i] = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, value[i])
+                                    value[i] = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, value[i])
                         else:
-                            json_object[new_key] = Jsonvalueencrypt(self.selectedlang, self.encryptionresponsepath, value)
+                            json_object[new_key] = Parameterencrypt(self.selectedlang, self.encryptionresponsepath, value)
                             if key != new_key:
                                 del json_object[key]
 

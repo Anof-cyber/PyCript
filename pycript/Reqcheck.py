@@ -1,7 +1,7 @@
 
 
-from .decryption import Jsonvaluedecrypt, Customrequestdecrypt,Customeditrequestdecrypt
-from .encryption import Jsonvalueencrypt, Customrequestencrypt,Customeditrequestencrypt
+from .decryption import Parameterdecrypt, Customrequestdecrypt,Customeditrequestdecrypt
+from .encryption import Parameterencrypt, Customrequestencrypt,Customeditrequestencrypt
 import json
 from collections import OrderedDict
 from burp import IParameter
@@ -44,7 +44,7 @@ class Requestchecker():
 
 
         else:
-            encrypted = Jsonvalueencrypt(self.selectedlang, self.encpath, self._selectedmessage)
+            encrypted = Parameterencrypt(self.selectedlang, self.encpath, self._selectedmessage)
             return encrypted
 
 
@@ -72,7 +72,7 @@ class Requestchecker():
             updatedheader, encrypted = Customeditrequestdecrypt(self.selectedlang, self.encpath, str(headers_str), self._selectedmessage)
 
         else:
-            decrypted = Jsonvaluedecrypt(self.selectedlang, self.encpath, self._selectedmessage)
+            decrypted = Parameterdecrypt(self.selectedlang, self.encpath, self._selectedmessage)
            
             return decrypted
 
@@ -98,7 +98,7 @@ def DecryptRequest(extender,items):#, stringbody, header):
         
         
 
-        decryptedvalue = Jsonvaluedecrypt(selectedlang, decryptionpath, body)
+        decryptedvalue = Parameterdecrypt(selectedlang, decryptionpath, body)
         output = extender.helpers.stringToBytes(decryptedvalue)
         return extender.helpers.buildHttpMessage(header, output)
     
@@ -108,13 +108,13 @@ def DecryptRequest(extender,items):#, stringbody, header):
         currentreq = items.getRequest()
         for param in parameters:
             if selected_method == "GET" and param.getType() == IParameter.PARAM_URL:
-                decrypteedparam =  Jsonvaluedecrypt(selectedlang, decryptionpath, param.getValue())
+                decrypteedparam =  Parameterdecrypt(selectedlang, decryptionpath, param.getValue())
                 
                 currentreq = extender.helpers.updateParameter(currentreq, extender.helpers.buildParameter(param.getName(), decrypteedparam, param.getType()))
             
             elif selected_method == "BODY" and param.getType() != IParameter.PARAM_URL:
                 if param.getType() == IParameter.PARAM_BODY:
-                    decrypteedparam =  Jsonvaluedecrypt(selectedlang, decryptionpath, param.getValue())
+                    decrypteedparam =  Parameterdecrypt(selectedlang, decryptionpath, param.getValue())
                     currentreq = extender.helpers.updateParameter(currentreq, extender.helpers.buildParameter(param.getName(), decrypteedparam, param.getType()))
                 elif param.getType() == IParameter.PARAM_JSON:
 
@@ -123,16 +123,16 @@ def DecryptRequest(extender,items):#, stringbody, header):
                     for key, value in json_object.items():
                         if isinstance(value, dict):
                             for inner_key, inner_value in value.items():
-                                value[inner_key] = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_value)
+                                value[inner_key] = Parameterdecrypt(selectedlang, decryptionpath, inner_value)
                         elif isinstance(value, list):
                             for i in range(len(value)):
                                 if isinstance(value[i], dict):
                                     for inner_key, inner_value in value[i].items():
-                                        value[i][inner_key] = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_value)
+                                        value[i][inner_key] = Parameterdecrypt(selectedlang, decryptionpath, inner_value)
                                 else:
-                                    value[i] = Jsonvaluedecrypt(selectedlang, decryptionpath, value[i])
+                                    value[i] = Parameterdecrypt(selectedlang, decryptionpath, value[i])
                         else:
-                            json_object[key] = Jsonvaluedecrypt(selectedlang, decryptionpath, value)
+                            json_object[key] = Parameterdecrypt(selectedlang, decryptionpath, value)
 
                     output = extender.helpers.stringToBytes(json.dumps(json_object))
                     currentreq =  extender.helpers.buildHttpMessage(header, output)
@@ -141,12 +141,12 @@ def DecryptRequest(extender,items):#, stringbody, header):
             else:
 
                 if param.getType() == IParameter.PARAM_URL:
-                    decrypteedparam =  Jsonvaluedecrypt(selectedlang, decryptionpath, param.getValue())
+                    decrypteedparam =  Parameterdecrypt(selectedlang, decryptionpath, param.getValue())
                 
                     currentreq = extender.helpers.updateParameter(currentreq, extender.helpers.buildParameter(param.getName(), decrypteedparam, param.getType()))
 
                 elif param.getType() == IParameter.PARAM_BODY:
-                    decrypteedparam =  Jsonvaluedecrypt(selectedlang, decryptionpath, param.getValue())
+                    decrypteedparam =  Parameterdecrypt(selectedlang, decryptionpath, param.getValue())
                     currentreq = extender.helpers.updateParameter(currentreq, extender.helpers.buildParameter(param.getName(), decrypteedparam, param.getType()))
 
         parameters = extender.helpers.analyzeRequest(currentreq).getParameters()
@@ -159,16 +159,16 @@ def DecryptRequest(extender,items):#, stringbody, header):
                 for key, value in json_object.items():
                     if isinstance(value, dict):
                         for inner_key, inner_value in value.items():
-                            value[inner_key] = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_value)
+                            value[inner_key] = Parameterdecrypt(selectedlang, decryptionpath, inner_value)
                     elif isinstance(value, list):
                         for i in range(len(value)):
                             if isinstance(value[i], dict):
                                 for inner_key, inner_value in value[i].items():
-                                    value[i][inner_key] = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_value)
+                                    value[i][inner_key] = Parameterdecrypt(selectedlang, decryptionpath, inner_value)
                             else:
-                                value[i] = Jsonvaluedecrypt(selectedlang, decryptionpath, value[i])
+                                value[i] = Parameterdecrypt(selectedlang, decryptionpath, value[i])
                     else:
-                        json_object[key] = Jsonvaluedecrypt(selectedlang, decryptionpath, value)
+                        json_object[key] = Parameterdecrypt(selectedlang, decryptionpath, value)
 
                 output = extender.helpers.stringToBytes(json.dumps(json_object))
                 currentreq =  extender.helpers.buildHttpMessage(header, output)
@@ -182,8 +182,8 @@ def DecryptRequest(extender,items):#, stringbody, header):
         currentreq = items.getRequest()
         for param in parameters:
             if selected_method == "GET" and param.getType() == IParameter.PARAM_URL:
-                decrypted_param_name = Jsonvaluedecrypt(selectedlang, decryptionpath, param.getName())
-                decrypted_param_value = Jsonvaluedecrypt(selectedlang, decryptionpath, param.getValue())
+                decrypted_param_name = Parameterdecrypt(selectedlang, decryptionpath, param.getName())
+                decrypted_param_value = Parameterdecrypt(selectedlang, decryptionpath, param.getValue())
                 currentreq = extender.helpers.removeParameter(currentreq, param)
                 new_param = extender.helpers.buildParameter(decrypted_param_name, decrypted_param_value, param.getType())
                 currentreq = extender.helpers.addParameter(currentreq, new_param)
@@ -191,8 +191,8 @@ def DecryptRequest(extender,items):#, stringbody, header):
 
             elif selected_method == "BODY" and param.getType() != IParameter.PARAM_URL:
                 if param.getType() == IParameter.PARAM_BODY:
-                    decrypted_param_name = Jsonvaluedecrypt(selectedlang, decryptionpath, param.getName())
-                    decrypted_param_value = Jsonvaluedecrypt(selectedlang, decryptionpath, param.getValue())
+                    decrypted_param_name = Parameterdecrypt(selectedlang, decryptionpath, param.getName())
+                    decrypted_param_value = Parameterdecrypt(selectedlang, decryptionpath, param.getValue())
                     currentreq = extender.helpers.removeParameter(currentreq, param)
                     new_param = extender.helpers.buildParameter(decrypted_param_name, decrypted_param_value, param.getType())
                     currentreq = extender.helpers.addParameter(currentreq, new_param)
@@ -202,25 +202,25 @@ def DecryptRequest(extender,items):#, stringbody, header):
                     json_object = json.loads(body)
 
                     for key, value in json_object.items():
-                        new_key = Jsonvaluedecrypt(selectedlang, decryptionpath, key)
+                        new_key = Parameterdecrypt(selectedlang, decryptionpath, key)
                         if isinstance(value, dict):
                             for inner_key, inner_value in value.items():
-                                new_inner_key = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_key)
-                                value[new_inner_key] = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_value)
+                                new_inner_key = Parameterdecrypt(selectedlang, decryptionpath, inner_key)
+                                value[new_inner_key] = Parameterdecrypt(selectedlang, decryptionpath, inner_value)
                                 if inner_key != new_inner_key:
                                     del value[inner_key]
                         elif isinstance(value, list):
                             for i in range(len(value)):
                                 if isinstance(value[i], dict):
                                     for inner_key, inner_value in value[i].items():
-                                        new_inner_key = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_key)
-                                        value[i][new_inner_key] = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_value)
+                                        new_inner_key = Parameterdecrypt(selectedlang, decryptionpath, inner_key)
+                                        value[i][new_inner_key] = Parameterdecrypt(selectedlang, decryptionpath, inner_value)
                                         if inner_key != new_inner_key:
                                             del value[i][inner_key]
                                 else:
-                                    value[i] = Jsonvaluedecrypt(selectedlang, decryptionpath, value[i])
+                                    value[i] = Parameterdecrypt(selectedlang, decryptionpath, value[i])
                         else:
-                            json_object[new_key] = Jsonvaluedecrypt(selectedlang, decryptionpath, value)
+                            json_object[new_key] = Parameterdecrypt(selectedlang, decryptionpath, value)
                             if key != new_key:
                                 del json_object[key]
 
@@ -231,15 +231,15 @@ def DecryptRequest(extender,items):#, stringbody, header):
             else:
 
                 if param.getType() == IParameter.PARAM_URL:
-                    decrypted_param_name = Jsonvaluedecrypt(selectedlang, decryptionpath, param.getName())
-                    decrypted_param_value = Jsonvaluedecrypt(selectedlang, decryptionpath, param.getValue())
+                    decrypted_param_name = Parameterdecrypt(selectedlang, decryptionpath, param.getName())
+                    decrypted_param_value = Parameterdecrypt(selectedlang, decryptionpath, param.getValue())
                     currentreq = extender.helpers.removeParameter(currentreq, param)
                     new_param = extender.helpers.buildParameter(decrypted_param_name, decrypted_param_value, param.getType())
                     currentreq = extender.helpers.addParameter(currentreq, new_param)
 
                 elif param.getType() == IParameter.PARAM_BODY:
-                    decrypted_param_name = Jsonvaluedecrypt(selectedlang, decryptionpath, param.getName())
-                    decrypted_param_value = Jsonvaluedecrypt(selectedlang, decryptionpath, param.getValue())
+                    decrypted_param_name = Parameterdecrypt(selectedlang, decryptionpath, param.getName())
+                    decrypted_param_value = Parameterdecrypt(selectedlang, decryptionpath, param.getValue())
                     currentreq = extender.helpers.removeParameter(currentreq, param)
                     new_param = extender.helpers.buildParameter(decrypted_param_name, decrypted_param_value, param.getType())
                     currentreq = extender.helpers.addParameter(currentreq, new_param)
@@ -252,25 +252,25 @@ def DecryptRequest(extender,items):#, stringbody, header):
                 json_object = json.loads(body)
 
                 for key, value in json_object.items():
-                        new_key = Jsonvaluedecrypt(selectedlang, decryptionpath, key)
+                        new_key = Parameterdecrypt(selectedlang, decryptionpath, key)
                         if isinstance(value, dict):
                             for inner_key, inner_value in value.items():
-                                new_inner_key = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_key)
-                                value[new_inner_key] = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_value)
+                                new_inner_key = Parameterdecrypt(selectedlang, decryptionpath, inner_key)
+                                value[new_inner_key] = Parameterdecrypt(selectedlang, decryptionpath, inner_value)
                                 if inner_key != new_inner_key:
                                     del value[inner_key]
                         elif isinstance(value, list):
                             for i in range(len(value)):
                                 if isinstance(value[i], dict):
                                     for inner_key, inner_value in value[i].items():
-                                        new_inner_key = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_key)
-                                        value[i][new_inner_key] = Jsonvaluedecrypt(selectedlang, decryptionpath, inner_value)
+                                        new_inner_key = Parameterdecrypt(selectedlang, decryptionpath, inner_key)
+                                        value[i][new_inner_key] = Parameterdecrypt(selectedlang, decryptionpath, inner_value)
                                         if inner_key != new_inner_key:
                                             del value[i][inner_key]
                                 else:
-                                    value[i] = Jsonvaluedecrypt(selectedlang, decryptionpath, value[i])
+                                    value[i] = Parameterdecrypt(selectedlang, decryptionpath, value[i])
                         else:
-                            json_object[new_key] = Jsonvaluedecrypt(selectedlang, decryptionpath, value)
+                            json_object[new_key] = Parameterdecrypt(selectedlang, decryptionpath, value)
                             if key != new_key:
                                 del json_object[key]
 
@@ -317,7 +317,7 @@ def EncryptRequest(extender,items):
     #headers_list = headers_str.splitlines()
 
     if str(extender.selectedrequesttpye) == "Complete Body":
-        decryptedvalue = Jsonvalueencrypt(selectedlang, encryptionpath, body)
+        decryptedvalue = Parameterencrypt(selectedlang, encryptionpath, body)
         output = extender.helpers.stringToBytes(decryptedvalue)
         return extender.helpers.buildHttpMessage(header, output)
     
@@ -329,13 +329,13 @@ def EncryptRequest(extender,items):
         currentreq = items.getRequest()
         for param in parameters:
             if selected_method == "GET" and param.getType() == IParameter.PARAM_URL:
-                decrypteedparam =  Jsonvalueencrypt(selectedlang, encryptionpath, param.getValue())
+                decrypteedparam =  Parameterencrypt(selectedlang, encryptionpath, param.getValue())
                 
                 currentreq = extender.helpers.updateParameter(currentreq, extender.helpers.buildParameter(param.getName(), decrypteedparam, param.getType()))
             
             elif selected_method == "BODY" and param.getType() != IParameter.PARAM_URL:
                 if param.getType() == IParameter.PARAM_BODY:
-                    decrypteedparam =  Jsonvalueencrypt(selectedlang, encryptionpath, param.getValue())
+                    decrypteedparam =  Parameterencrypt(selectedlang, encryptionpath, param.getValue())
                     currentreq = extender.helpers.updateParameter(currentreq, extender.helpers.buildParameter(param.getName(), decrypteedparam, param.getType()))
                 elif param.getType() == IParameter.PARAM_JSON:
 
@@ -344,16 +344,16 @@ def EncryptRequest(extender,items):
                     for key, value in json_object.items():
                         if isinstance(value, dict):
                             for inner_key, inner_value in value.items():
-                                value[inner_key] = Jsonvalueencrypt(selectedlang, encryptionpath, inner_value)
+                                value[inner_key] = Parameterencrypt(selectedlang, encryptionpath, inner_value)
                         elif isinstance(value, list):
                             for i in range(len(value)):
                                 if isinstance(value[i], dict):
                                     for inner_key, inner_value in value[i].items():
-                                        value[i][inner_key] = Jsonvalueencrypt(selectedlang, encryptionpath, inner_value)
+                                        value[i][inner_key] = Parameterencrypt(selectedlang, encryptionpath, inner_value)
                                 else:
-                                    value[i] = Jsonvalueencrypt(selectedlang, encryptionpath, value[i])
+                                    value[i] = Parameterencrypt(selectedlang, encryptionpath, value[i])
                         else:
-                            json_object[key] = Jsonvalueencrypt(selectedlang, encryptionpath, value)
+                            json_object[key] = Parameterencrypt(selectedlang, encryptionpath, value)
 
                     output = extender.helpers.stringToBytes(json.dumps(json_object))
                     currentreq =  extender.helpers.buildHttpMessage(header, output)
@@ -362,12 +362,12 @@ def EncryptRequest(extender,items):
             else:
 
                 if param.getType() == IParameter.PARAM_URL:
-                    decrypteedparam =  Jsonvalueencrypt(selectedlang, encryptionpath, param.getValue())
+                    decrypteedparam =  Parameterencrypt(selectedlang, encryptionpath, param.getValue())
                 
                     currentreq = extender.helpers.updateParameter(currentreq, extender.helpers.buildParameter(param.getName(), decrypteedparam, param.getType()))
 
                 elif param.getType() == IParameter.PARAM_BODY:
-                    decrypteedparam =  Jsonvalueencrypt(selectedlang, encryptionpath, param.getValue())
+                    decrypteedparam =  Parameterencrypt(selectedlang, encryptionpath, param.getValue())
                     currentreq = extender.helpers.updateParameter(currentreq, extender.helpers.buildParameter(param.getName(), decrypteedparam, param.getType()))
 
         parameters = extender.helpers.analyzeRequest(currentreq).getParameters()
@@ -380,16 +380,16 @@ def EncryptRequest(extender,items):
                 for key, value in json_object.items():
                     if isinstance(value, dict):
                         for inner_key, inner_value in value.items():
-                            value[inner_key] = Jsonvalueencrypt(selectedlang, encryptionpath, inner_value)
+                            value[inner_key] = Parameterencrypt(selectedlang, encryptionpath, inner_value)
                     elif isinstance(value, list):
                         for i in range(len(value)):
                             if isinstance(value[i], dict):
                                 for inner_key, inner_value in value[i].items():
-                                    value[i][inner_key] = Jsonvalueencrypt(selectedlang, encryptionpath, inner_value)
+                                    value[i][inner_key] = Parameterencrypt(selectedlang, encryptionpath, inner_value)
                             else:
-                                value[i] = Jsonvalueencrypt(selectedlang, encryptionpath, value[i])
+                                value[i] = Parameterencrypt(selectedlang, encryptionpath, value[i])
                     else:
-                        json_object[key] = Jsonvalueencrypt(selectedlang, encryptionpath, value)
+                        json_object[key] = Parameterencrypt(selectedlang, encryptionpath, value)
 
                 output = extender.helpers.stringToBytes(json.dumps(json_object))
                 currentreq =  extender.helpers.buildHttpMessage(header, output)
@@ -403,8 +403,8 @@ def EncryptRequest(extender,items):
         currentreq = items.getRequest()
         for param in parameters:
             if selected_method == "GET" and param.getType() == IParameter.PARAM_URL:
-                decrypted_param_name = Jsonvalueencrypt(selectedlang, encryptionpath, param.getName())
-                decrypted_param_value = Jsonvalueencrypt(selectedlang, encryptionpath, param.getValue())
+                decrypted_param_name = Parameterencrypt(selectedlang, encryptionpath, param.getName())
+                decrypted_param_value = Parameterencrypt(selectedlang, encryptionpath, param.getValue())
                 currentreq = extender.helpers.removeParameter(currentreq, param)
                 new_param = extender.helpers.buildParameter(decrypted_param_name, decrypted_param_value, param.getType())
                 currentreq = extender.helpers.addParameter(currentreq, new_param)
@@ -412,8 +412,8 @@ def EncryptRequest(extender,items):
 
             elif selected_method == "BODY" and param.getType() != IParameter.PARAM_URL:
                 if param.getType() == IParameter.PARAM_BODY:
-                    decrypted_param_name = Jsonvalueencrypt(selectedlang, encryptionpath, param.getName())
-                    decrypted_param_value = Jsonvalueencrypt(selectedlang, encryptionpath, param.getValue())
+                    decrypted_param_name = Parameterencrypt(selectedlang, encryptionpath, param.getName())
+                    decrypted_param_value = Parameterencrypt(selectedlang, encryptionpath, param.getValue())
                     currentreq = extender.helpers.removeParameter(currentreq, param)
                     new_param = extender.helpers.buildParameter(decrypted_param_name, decrypted_param_value, param.getType())
                     currentreq = extender.helpers.addParameter(currentreq, new_param)
@@ -423,25 +423,25 @@ def EncryptRequest(extender,items):
                     json_object = json.loads(body)
 
                     for key, value in json_object.items():
-                        new_key = Jsonvalueencrypt(selectedlang, encryptionpath, key)
+                        new_key = Parameterencrypt(selectedlang, encryptionpath, key)
                         if isinstance(value, dict):
                             for inner_key, inner_value in value.items():
-                                new_inner_key = Jsonvalueencrypt(selectedlang, encryptionpath, inner_key)
-                                value[new_inner_key] = Jsonvalueencrypt(selectedlang, encryptionpath, inner_value)
+                                new_inner_key = Parameterencrypt(selectedlang, encryptionpath, inner_key)
+                                value[new_inner_key] = Parameterencrypt(selectedlang, encryptionpath, inner_value)
                                 if inner_key != new_inner_key:
                                     del value[inner_key]
                         elif isinstance(value, list):
                             for i in range(len(value)):
                                 if isinstance(value[i], dict):
                                     for inner_key, inner_value in value[i].items():
-                                        new_inner_key = Jsonvalueencrypt(selectedlang, encryptionpath, inner_key)
-                                        value[i][new_inner_key] = Jsonvalueencrypt(selectedlang, encryptionpath, inner_value)
+                                        new_inner_key = Parameterencrypt(selectedlang, encryptionpath, inner_key)
+                                        value[i][new_inner_key] = Parameterencrypt(selectedlang, encryptionpath, inner_value)
                                         if inner_key != new_inner_key:
                                             del value[i][inner_key]
                                 else:
-                                    value[i] = Jsonvalueencrypt(selectedlang, encryptionpath, value[i])
+                                    value[i] = Parameterencrypt(selectedlang, encryptionpath, value[i])
                         else:
-                            json_object[new_key] = Jsonvalueencrypt(selectedlang, encryptionpath, value)
+                            json_object[new_key] = Parameterencrypt(selectedlang, encryptionpath, value)
                             if key != new_key:
                                 del json_object[key]
 
@@ -452,15 +452,15 @@ def EncryptRequest(extender,items):
             else:
 
                 if param.getType() == IParameter.PARAM_URL:
-                    decrypted_param_name = Jsonvalueencrypt(selectedlang, encryptionpath, param.getName())
-                    decrypted_param_value = Jsonvalueencrypt(selectedlang, encryptionpath, param.getValue())
+                    decrypted_param_name = Parameterencrypt(selectedlang, encryptionpath, param.getName())
+                    decrypted_param_value = Parameterencrypt(selectedlang, encryptionpath, param.getValue())
                     currentreq = extender.helpers.removeParameter(currentreq, param)
                     new_param = extender.helpers.buildParameter(decrypted_param_name, decrypted_param_value, param.getType())
                     currentreq = extender.helpers.addParameter(currentreq, new_param)
 
                 elif param.getType() == IParameter.PARAM_BODY:
-                    decrypted_param_name = Jsonvalueencrypt(selectedlang, encryptionpath, param.getName())
-                    decrypted_param_value = Jsonvalueencrypt(selectedlang, encryptionpath, param.getValue())
+                    decrypted_param_name = Parameterencrypt(selectedlang, encryptionpath, param.getName())
+                    decrypted_param_value = Parameterencrypt(selectedlang, encryptionpath, param.getValue())
                     currentreq = extender.helpers.removeParameter(currentreq, param)
                     new_param = extender.helpers.buildParameter(decrypted_param_name, decrypted_param_value, param.getType())
                     currentreq = extender.helpers.addParameter(currentreq, new_param)
@@ -473,25 +473,25 @@ def EncryptRequest(extender,items):
                 json_object = json.loads(body)
 
                 for key, value in json_object.items():
-                        new_key = Jsonvalueencrypt(selectedlang, encryptionpath, key)
+                        new_key = Parameterencrypt(selectedlang, encryptionpath, key)
                         if isinstance(value, dict):
                             for inner_key, inner_value in value.items():
-                                new_inner_key = Jsonvalueencrypt(selectedlang, encryptionpath, inner_key)
-                                value[new_inner_key] = Jsonvalueencrypt(selectedlang, encryptionpath, inner_value)
+                                new_inner_key = Parameterencrypt(selectedlang, encryptionpath, inner_key)
+                                value[new_inner_key] = Parameterencrypt(selectedlang, encryptionpath, inner_value)
                                 if inner_key != new_inner_key:
                                     del value[inner_key]
                         elif isinstance(value, list):
                             for i in range(len(value)):
                                 if isinstance(value[i], dict):
                                     for inner_key, inner_value in value[i].items():
-                                        new_inner_key = Jsonvalueencrypt(selectedlang, encryptionpath, inner_key)
-                                        value[i][new_inner_key] = Jsonvalueencrypt(selectedlang, encryptionpath, inner_value)
+                                        new_inner_key = Parameterencrypt(selectedlang, encryptionpath, inner_key)
+                                        value[i][new_inner_key] = Parameterencrypt(selectedlang, encryptionpath, inner_value)
                                         if inner_key != new_inner_key:
                                             del value[i][inner_key]
                                 else:
-                                    value[i] = Jsonvalueencrypt(selectedlang, encryptionpath, value[i])
+                                    value[i] = Parameterencrypt(selectedlang, encryptionpath, value[i])
                         else:
-                            json_object[new_key] = Jsonvalueencrypt(selectedlang, encryptionpath, value)
+                            json_object[new_key] = Parameterencrypt(selectedlang, encryptionpath, value)
                             if key != new_key:
                                 del json_object[key]
 

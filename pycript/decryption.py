@@ -2,8 +2,9 @@ from . import encoding, decoding
 from .execution import execute_command
 
 
+#Parameterdecrypt     -->   Parameterdecrypt 
 
-def Jsonvaluedecrypt(selectedlang, path, data):
+def Parameterdecrypt(selectedlang, path, data):
     data2 = encoding.encode_base64(data)
     output = execute_command(selectedlang, path, "-d", data2).decode('utf-8')
     return output
