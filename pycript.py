@@ -10,7 +10,8 @@ from threading import Thread,Lock
 
 from pycript.Requesttab import CriptInputTab
 from pycript.Responsetab import ResponeCriptInputTab
-from pycript.Reqcheck import Requestchecker,DecryptRequest,EncryptRequest
+from pycript.Reqcheck import DecryptRequest,EncryptRequest
+from pycript.stringcrypto import StringCrypto
 
 
 
@@ -992,8 +993,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
             text = self.helpers.bytesToString(message_bytes)
             query = text[self.selection[0]:self.selection[1]]
-            output = Requestchecker(self,encpath,query,http_request_response)
-            encryptedstring = output.encryptstring()
+            output = StringCrypto(self,encpath,query,http_request_response)
+            encryptedstring = output.encrypt_string()
             
         
         
@@ -1034,8 +1035,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
             text = self.helpers.bytesToString(message_bytes)
             query = text[self.selection[0]:self.selection[1]]
-            output = Requestchecker(self,encpath,query,http_request_response)
-            decryptedstring = output.decryptstring()
+            output = StringCrypto(self,encpath,query,http_request_response)
+            decryptedstring = output.decrypt_string()
            
         
         

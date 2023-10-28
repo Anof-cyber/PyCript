@@ -9,72 +9,14 @@ from java.util import ArrayList
 from base64 import b64encode
 
 
-class Requestchecker():
-    def __init__(self, extender,encpath, query, http_request_response):
-        self._extender = extender
-        self._selectedmessage = query
-        self.message = http_request_response
-        self.selectedlang = extender.languagecombobox.getSelectedItem()
-        self.encpath = encpath
-
-    def encryptstring(self):
-        if self._extender.selectedrequst == True:
-            self.myrequest = self._extender.helpers.analyzeRequest(
-                self.message.getRequest())
-            self.header = self.myrequest.getHeaders()
-
-            req = self._extender.helpers.analyzeRequest(self.message.getRequest())
-            gettingrequest = self.message.getRequest()   
-            requestinst = self._extender.helpers.bytesToString(gettingrequest)
-            getody = req.getBodyOffset()
-            headers_str = requestinst[:getody].strip()
-            
-        else:
-            pass
-
-        if str(self._extender.selectedrequesttpye) == "Custom Request":
-
-            encrypted = Customrequestencrypt(self.selectedlang,self.encpath, str(self.header), self._selectedmessage)
-            return encrypted
-
-        elif str(self._extender.selectedrequesttpye) == "Custom Request (Edit Header)":
-
-            updatedheader, encrypted = Customeditrequestencrypt(self.selectedlang, self.encpath, str(headers_str), self._selectedmessage)
-            return encrypted
-
-
-        else:
-            encrypted = Parameterencrypt(self.selectedlang, self.encpath, self._selectedmessage)
-            return encrypted
 
 
 
 
-    def decryptstring(self):
-        if self._extender.selectedrequst == True:
-            self.myrequest = self._extender.helpers.analyzeRequest(self.message.getRequest())
-            self.header = self.myrequest.getHeaders()
-            req = self._extender.helpers.analyzeRequest(self.message.getRequest())
-            gettingrequest = self.message.getRequest()   
-            requestinst = self._extender.helpers.bytesToString(gettingrequest)
-            getody = req.getBodyOffset()
-            headers_str = requestinst[:getody].strip()
-           
-        else:
-            pass
 
-        if str(self._extender.selectedrequesttpye) == "Custom Request":
 
-            decrypted = Customrequestdecrypt(self.selectedlang,self.encpath, str(self.header), self._selectedmessage)
-            return decrypted
 
-        elif str(self._extender.selectedrequesttpye) == "Custom Request (Edit Header)":
-            updatedheader, encrypted = Customeditrequestdecrypt(self.selectedlang, self.encpath, str(headers_str), self._selectedmessage)
 
-        else:
-            decrypted = Parameterdecrypt(self.selectedlang, self.encpath, self._selectedmessage)
-           
-            return decrypted
 
 
 def DecryptRequest(extender,items):#, stringbody, header):
