@@ -57,3 +57,4 @@ class StringCrypto:
 
         else:
             decrypted = Parameterdecrypt(self.selectedlang, self.encpath, self._selectedmessage)
+            return decrypted
