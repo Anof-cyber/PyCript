@@ -1,4 +1,6 @@
 from .decryption import Parameterdecrypt
+from .encryption import Parameterencrypt
+from java.util import ArrayList
 
 ## update json key and value both
 def update_json_key_value(json_obj, selectedlang, decryptionpath,enc_dec):
@@ -43,3 +45,27 @@ def update_json_value(json_obj, selectedlang, decryptionpath,enc_dec):
         else:
             json_obj[key] = enc_dec(selectedlang, decryptionpath, value)
     return json_obj
+
+
+
+def process_custom_headers(updated_header):
+    updatedheaders = list(updated_header.split("\n"))
+    headerlist = ArrayList()
+    for data in updatedheaders:
+        headerlist.add(data.strip())
+    return headerlist
+
+
+
+def analyze_request(extender, items):
+    req = extender.helpers.analyzeRequest(items)
+    return req
+
+
+# Return string format body and raw Headers from string request (It return raw headers not array/list format headers from burp header api)
+# Used for  Custom request (Edit Header)
+def extract_body_and_headers(request_inst, req):
+    getody = req.getBodyOffset()
+    body = request_inst[getody:]
+    headers_str = request_inst[:getody].strip()
+    return body, headers_str
