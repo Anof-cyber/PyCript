@@ -7,15 +7,13 @@ from burp import IParameter
 from .utils import update_json_value, update_json_key_value,process_custom_headers, analyze_request, extract_body_and_headers
 
 
-def EncryptRequest(extender, items):
+def EncryptRequest(extender, currentreq,req):
     encryptionpath = extender.encryptionfilepath
     selectedlang = extender.languagecombobox.getSelectedItem()
     selected_method = extender.reqmethodcombobox.getSelectedItem()
-    currentreq = items.getRequest()
-    req = analyze_request(extender, items)
     parameters = req.getParameters()
     header = req.getHeaders()  # Get Array/last format header from burp header api (used for Custom Request)
-    request_inst = extender.helpers.bytesToString(items.getRequest())    
+    request_inst = extender.helpers.bytesToString(currentreq)    
     body, headers_str = extract_body_and_headers(request_inst, req)
 
 
@@ -36,25 +34,22 @@ def EncryptRequest(extender, items):
         return extender.helpers.buildHttpMessage(headers_str, output)
     
     elif str(extender.selectedrequesttpye) == "Custom Request (Edit Header)":
-        currentreq = items.getRequest()
         updatedheader, body = Customeditrequestencrypt(selectedlang, encryptionpath, str(headers_str), body)
         headerlist = process_custom_headers(updatedheader)
         return extender.helpers.buildHttpMessage(headerlist, body)
 
 
 ## Function to decrypt request when Burp Menu to decrypt request is triggered
-def DecryptRequest(extender, items):
+def DecryptRequest(extender, currentreq,req):
     decryptionpath = extender.decryptionfilepath
     selectedlang = extender.languagecombobox.getSelectedItem()
     selected_method = extender.reqmethodcombobox.getSelectedItem()
-    currentreq = items.getRequest()
     
 
-    req = analyze_request(extender, items)
     parameters = req.getParameters()
     header = req.getHeaders()  # Get Array/last format header from burp header api (used for Custom Request)
     
-    request_inst = extender.helpers.bytesToString(items.getRequest())
+    request_inst = extender.helpers.bytesToString(currentreq)
     
     body, headers_str = extract_body_and_headers(request_inst, req)
     

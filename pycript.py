@@ -854,18 +854,10 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
     def processHttpMessage(self, toolFlag, messageIsRequest, messageInfo):
         if messageIsRequest:
             toolname = self.callbacks.getToolName(toolFlag)
-            
-            
             if toolname in self.tooltypelist and self.callbacks.isInScope(self.helpers.analyzeRequest(messageInfo).getUrl()):
-
                 request = self.helpers.analyzeRequest(messageInfo)
-                bodyoffset = request.getBodyOffset()
-                self.header = request.getHeaders()
-                self.stringrequest = self.helpers.bytesToString(messageInfo.getRequest())
-                self.body = self.stringrequest[bodyoffset:len(self.stringrequest)]
-
-                
-                messageInfo.setRequest(EncryptRequest(self,messageInfo))
+                currentreq = messageInfo.getRequest()
+                messageInfo.setRequest(EncryptRequest(self,currentreq,request))
 
 
     # Listener for Auto Encrpyt the request 
@@ -944,8 +936,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 self.responseinbytes = items.getResponse()
                 self.responseinst = self.helpers.bytesToString(self.responseinbytes)
                
-
-                self.decryptedrequest = DecryptRequest(self,items)
+                currentreq = items.getRequest()
+                self.decryptedrequest = DecryptRequest(self,currentreq,req)
                 rowss = self.logTable.getRowCount()
                 self.sr2 = str((rowss + 1))
                 httpservice = items.getHttpService()
