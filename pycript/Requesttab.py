@@ -1,10 +1,6 @@
 from burp import IMessageEditorTab
-import json
-from .decryption import Parameterdecrypt,Customrequestdecrypt
-from .encryption import Parameterencrypt,Customrequestencrypt
-from collections import OrderedDict
-from requestvalidator import decrypt,encrypt
-from .Reqcheck import DecryptRequest
+from pycript.Reqcheck import DecryptRequest,EncryptRequest
+
 
 class CriptInputTab(IMessageEditorTab):
     def __init__(self, extender, controller, editable):
@@ -56,10 +52,10 @@ class CriptInputTab(IMessageEditorTab):
         
         else:
             if isRequest:
-
-
-
-                output = decrypt(self._extender,content)
+                request = self._extender.helpers.analyzeRequest(content)
+                output = DecryptRequest(self._extender,content,request)
+                
+                #output = decrypt(self._extender,content)
                 self._txtInput.setText(output)
                 self._txtInput.setEditable(True)
 
@@ -74,7 +70,13 @@ class CriptInputTab(IMessageEditorTab):
         if self._txtInput.isTextModified():
             # reserialize the data
             editabedbyte = self._txtInput.getText()
-            output = encrypt(self._extender,editabedbyte)
+
+            req = self._extender.helpers.analyzeRequest(editabedbyte)
+            output = EncryptRequest(self._extender,editabedbyte,req)
+
+
+
+            #output = encrypt(self._extender,editabedbyte)
             return output
 
 
