@@ -32,7 +32,7 @@ def execute_command(selectedlang, path, data, headervalue=None):
             logerrors(error.strip())
         else:
             logerrors(output.strip())
-
+        output = output.strip()
     except Exception as e:
         logerrors(str(e))
         output = data  # Return data if an exception occurs
