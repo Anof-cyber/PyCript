@@ -22,8 +22,6 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.callbacks = callbacks
         self.helpers = callbacks.getHelpers()
         self.tooltypelist = []
-        
-        
 
         # Allowing debugging
         sys.stdout = callbacks.getStdout()

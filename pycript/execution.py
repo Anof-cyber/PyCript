@@ -1,3 +1,4 @@
+
 import subprocess
 
 def execute_command(selectedlang, path, *args):
@@ -10,7 +11,8 @@ def execute_command(selectedlang, path, *args):
         elif selectedlang == "Java Jar":
             command.extend(["java", "-jar", path])
         command.extend(args)
-        output = subprocess.check_output(command).rstrip()
+        output = subprocess.check_output(command, shell=True).rstrip()
     except subprocess.CalledProcessError:
         output = args[0]
     return output
+
