@@ -1,5 +1,4 @@
-import os
-import sys
+import subprocess
 from .gui import logerrors
 
 def execute_command(selectedlang, path, data, headervalue=None):
@@ -19,9 +18,22 @@ def execute_command(selectedlang, path, data, headervalue=None):
 
         command_str = ' '.join(command)
         logerrors("$ " + command_str)
-        output = os.popen(command_str).read().rstrip()
-        logerrors(output)
+
+        process = subprocess.Popen(
+            command_str,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        )
+        output, error = process.communicate()
+
+        if process.returncode != 0:
+            logerrors(error.strip())
+        else:
+            logerrors(output.strip())
+
     except Exception as e:
-        logerrors(e)
+        logerrors(str(e))
         output = data  # Return data if an exception occurs
     return output
