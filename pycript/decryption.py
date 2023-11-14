@@ -6,12 +6,12 @@ from .execution import execute_command
 
 def Parameterdecrypt(selectedlang, path, data):
     data2 = encoding.encode_base64(data)
-    output = execute_command(selectedlang, path, "-d", data2).decode('utf-8')
+    output = execute_command(selectedlang, path, data2).decode('utf-8')
     return output
 
 def Customrequestdecrypt(selectedlang, path, header, body):
     body2 = encoding.encode_base64(body)
-    output = execute_command(selectedlang, path, "-d", body2, "-h", header).decode('utf-8')
+    output = execute_command(selectedlang, path, body2, header).decode('utf-8')
     return output
 
 
@@ -19,7 +19,7 @@ def Customeditrequestdecrypt(selectedlang, path, header, body):
     body2 = encoding.encode_base64(body)
     header2 = encoding.encode_base64(header)
     
-    output = execute_command(selectedlang, path, "-d", body2, "-h", header2)
+    output = execute_command(selectedlang, path, body2, header2)
 
     lines = output.splitlines()
     headerbase64, bodybase64 = lines[0], lines[1]
