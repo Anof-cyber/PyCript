@@ -1,10 +1,11 @@
 from burp import (IBurpExtender, ITab,IMessageEditorTabFactory,IMessageEditorTab,IContextMenuFactory, IContextMenuInvocation,IMessageEditorController,IHttpListener)
-from java.awt import (BorderLayout,Font,Color)
+from java.awt import (BorderLayout,Font,Color,Dimension)
 from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,
-JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu)
+JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu, BoxLayout, JTextArea,ScrollPaneConstants)
 from javax.swing.table import AbstractTableModel;
 from javax.swing.filechooser import FileNameExtensionFilter
 from java.lang import Short
+from javax.swing.border import EmptyBorder
 import sys
 from threading import Thread,Lock
 
@@ -12,7 +13,10 @@ from pycript.Requesttab import CriptInputTab
 from pycript.Responsetab import ResponeCriptInputTab
 from pycript.Reqcheck import DecryptRequest,EncryptRequest
 from pycript.stringcrypto import StringCrypto
+from pycript.gui import create_third_tab_elements
 
+errorlogtextbox = None
+errorlogcheckbox = None
 
 
 class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener):
@@ -62,12 +66,40 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         #self.firstTab.layout = BorderLayout()
         self.tabbedPane.addTab("Decrypted Request", self.secondTab)
 
+        self.thirdTab = JPanel()
+        #self.thirdTab.setLayout(BoxLayout(self.thirdTab, BoxLayout.Y_AXIS))
+        self.thirdTab.layout = BorderLayout()
+        self.tabbedPane.addTab("Log",self.thirdTab)
+
         
         self._log = list()
         self._lock = Lock()
         
+        global errorlogtextbox, errorlogcheckbox
+
+        errorlogcheckbox, scroll_pane, errorlogtextbox = create_third_tab_elements() 
+
+        self.errorclear_button = JButton("Clear",actionPerformed=self.clearerrortext)
+
+        self.newlogpanel = JPanel()
+        self.newlogpanel.add(errorlogcheckbox)
+        self.newlogpanel.add(self.errorclear_button)
+
+        self.thirdTab.add(self.newlogpanel, BorderLayout.PAGE_START)
+
+
+        self.thirdTab.add(scroll_pane, BorderLayout.CENTER)
+
+
+
+
+
+
         
+
         
+
+
 
         popupMenu = JPopupMenu()
         sendscannerItem = JMenuItem("Send to Active Scanner", actionPerformed=self.sendtoscanner)
@@ -1080,7 +1112,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         else:
             self.callbacks.printError("Table is empty")
 
-    
+    def clearerrortext(self,event):
+        errorlogtextbox.setText("")
 
     # Send the Decrypted request to the scanner
     def sendtoscanner(self,event):
@@ -1193,3 +1226,5 @@ class ResponseTabFactory(IMessageEditorTabFactory):
         self.callbacks = self.extender.callbacks
     def createNewInstance(self, controller, editable):
         return ResponeCriptInputTab(self.extender, controller, editable)
+
+
