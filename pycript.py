@@ -1,7 +1,7 @@
 from burp import (IBurpExtender, ITab,IMessageEditorTabFactory,IMessageEditorTab,IContextMenuFactory, IContextMenuInvocation,IMessageEditorController,IHttpListener)
 from java.awt import (BorderLayout,Font,Color,Dimension)
 from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,
-JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu, BoxLayout, JTextArea,ScrollPaneConstants)
+JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu, BoxLayout, JTextArea,ScrollPaneConstants,JTextField)
 from javax.swing.table import AbstractTableModel;
 from javax.swing.filechooser import FileNameExtensionFilter
 from java.lang import Short
@@ -40,67 +40,52 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         callbacks.printOutput("Documentation - https://pycript.souravkalal.tech/")
         
         callbacks.registerContextMenuFactory(self)
-        
 
-        
-
-
-
-        
-        
-
-
+        #Some Config and data related variables
+        self._log = list()
+        self._lock = Lock()
+        global errorlogtextbox, errorlogcheckbox
         self.selectedrequesttpye = None
         self.selectedresponsetpye = None
+        
+
+        # Mlutiple tab UI
         self.tab = JPanel()
         self.tabbedPane = JTabbedPane()
         self.tab.add("Center", self.tabbedPane) 
 
+        # Creating First Tab as Config Tab
         self.firstTab = JPanel()
         self.firstTab.layout = BorderLayout()
-        #self.firstTab.layout = BorderLayout()
         self.tabbedPane.addTab("Config", self.firstTab)
 
+        # Creating Second Tab as Decrypted Request Tab
         self.secondTab = JPanel()
         self.secondTab.layout = BorderLayout()
-        #self.firstTab.layout = BorderLayout()
         self.tabbedPane.addTab("Decrypted Request", self.secondTab)
 
+        # Creating Third Tab as Logger Tab
         self.thirdTab = JPanel()
-        #self.thirdTab.setLayout(BoxLayout(self.thirdTab, BoxLayout.Y_AXIS))
         self.thirdTab.layout = BorderLayout()
         self.tabbedPane.addTab("Log",self.thirdTab)
 
-        
-        self._log = list()
-        self._lock = Lock()
-        
-        global errorlogtextbox, errorlogcheckbox
 
+        #Creating UI for Third Log Tab  
+
+        # Loading Few UI Component for Log Tab from another function 
         errorlogcheckbox, scroll_pane, errorlogtextbox = create_third_tab_elements() 
 
         self.errorclear_button = JButton("Clear",actionPerformed=self.clearerrortext)
-
         self.newlogpanel = JPanel()
         self.newlogpanel.add(errorlogcheckbox)
         self.newlogpanel.add(self.errorclear_button)
-
         self.thirdTab.add(self.newlogpanel, BorderLayout.PAGE_START)
-
-
         self.thirdTab.add(scroll_pane, BorderLayout.CENTER)
 
 
+        # UI Component for Second Decrypted Tab
 
-
-
-
-        
-
-        
-
-
-
+        # Creating Right click menu Table in Second Decrypted Tab
         popupMenu = JPopupMenu()
         sendscannerItem = JMenuItem("Send to Active Scanner", actionPerformed=self.sendtoscanner)
         sendRepeaterItem = JMenuItem("Send to Repeater", actionPerformed=self.sendtorepeater)
@@ -111,12 +96,11 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         popupMenu.add(sendIntruderItem)
         popupMenu.add(repeatrequest)
 
-        
+        # Creating table for Second Decryted request tab
         self.logTable = Table(self)
         self.logTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF)
         self.logTable.getTableHeader().setReorderingAllowed(False)
         self.logTable.getColumnModel().getColumn(0).setPreferredWidth(30)
-        
         self.logTable.getColumnModel().getColumn(1).setPreferredWidth(600)
         self.logTable.getColumnModel().getColumn(2).setPreferredWidth(80)
        
@@ -125,6 +109,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.logTable.setComponentPopupMenu(popupMenu)
         self.scrollPane2.getViewport().setView((self.logTable))
 
+        # Creating Request and Response Text BOX UI for decrypted request tab
         self.requestViewer = callbacks.createMessageEditor(self, True)
         self.responseViewer = callbacks.createMessageEditor(self, True)
         self.editor_view = JTabbedPane()
@@ -140,16 +125,11 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.callbacks.customizeUiComponent(self.scrollPane2)
         self.callbacks.customizeUiComponent(self.editor_view)
 
-    
-
-
-
+        # Register our extension for ITab in burp suite
         callbacks.addSuiteTab(self)
 
-        
 
-
-
+        # Creating UI for First Config Tab (Created using Java NetBeans)        
 
         # Request Type UI
         self.requestlayerpane = JLayeredPane();
@@ -250,9 +230,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.reqresponsecombobox = JComboBox(self.reqresponsedata);
 
         
-        
-        
-
+        # Additional Settings UI
         self.autoencryptlayerpane = JLayeredPane();
         self.AutoEncryptLabel = JLabel();
         self.AutoEncryptLabel.setFont(Font("Segoe UI", 1, 14));
@@ -301,7 +279,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.AutoencryptTooltypeIntruder.setText("Intruder");
         
         
-        
+        # Request Encryption Decryption File Selection UI
         self.requestscriptfilelayerpane = JLayeredPane();
         self.FileChooserLabel = JLabel();
         self.FileChooserLabel.setFont(Font("Segoe UI", 1, 14));
@@ -328,8 +306,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.requestdecryptionpath.setText("");
 
 
+        # Response encryption decryption file selection UI
         self.responescriptfilelayerpane = JLayeredPane();
-
         self.responseFileChooserLabel = JLabel();
         self.responseFileChooserLabel.setFont(Font("Segoe UI", 1, 14));
         self.responseFileChooserLabel.setText("Response Encryption Deryption Files");
@@ -356,6 +334,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.responsedecryptionpath = JLabel();
         self.responsedecryptionpath.setText("");
 
+
+        # Trying to load Request encryption decryption file path from previously slected location
         self.reqencpath = callbacks.loadExtensionSetting('requestencryptionfilesave')
         self.reqdecpath = callbacks.loadExtensionSetting('requestdecryptionfilesave')
         
@@ -371,6 +351,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self.decryptionfilepath = self.reqdecpath
             self.requestdecryptionpath.setText(self.decryptionfilepath)
 
+
+        # # Trying to load Response encryption decryption file path from previously slected location
         self.respencpath = callbacks.loadExtensionSetting('responseencryptionfilesave')
         self.respdecpath = callbacks.loadExtensionSetting('responsedecryptionfilesave')
 
@@ -387,12 +369,167 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self.responsedecryptionpath.setText(self.responsedecryptionfilepath)
         
 
-        ## Request/ Response need to be loaded afterr all UI 
+        ## Request/ Response need to be loaded after all UI 
+        ## Creating a seperate request and response message editor tab to show decrypted messages
         request_tab_factory = RequestTabFactory(self)
         response_tab_factory = ResponseTabFactory(self)
         callbacks.registerMessageEditorTabFactory(request_tab_factory)
         callbacks.registerMessageEditorTabFactory(response_tab_factory)
 
+
+        self.Reuestparameterbuttongroup = ButtonGroup()
+        self.Responseparambuttongroup = ButtonGroup()
+        Requestparamlist = JLayeredPane();
+        Requestparamlabel = JLabel();
+        requestparamignorebutton = JRadioButton();
+        requestparamconsiderbutton = JRadioButton();
+        requestparamlist = JTextField();
+        Requestparamlabel3 = JLabel();
+        Requestparamnonebutton = JRadioButton();
+
+
+        
+        Responseparamlist = JLayeredPane();
+        Responseparamlabel1 = JLabel();
+        responseparamignorebutton1 = JRadioButton();
+        responseparamconsiderbutton1 = JRadioButton();
+        responseparamlist1 = JTextField();
+        Responseparamlabel4 = JLabel();
+        responseparamnonebutton = JRadioButton();
+
+
+
+        Requestparamlist.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)))
+
+        Requestparamlabel.setText("Request parameters to ignore or to be considered only");
+
+        self.Reuestparameterbuttongroup.add(requestparamignorebutton);
+        requestparamignorebutton.setText("Ignore Parameters");
+
+        self.Reuestparameterbuttongroup.add(requestparamconsiderbutton);
+        requestparamconsiderbutton.setText("Only Conider Parameters");
+
+        requestparamlist.setColumns(5);
+        requestparamlist.setText("Password,current_password");
+
+        Requestparamlabel3.setText("Seperated by , Coma [Case Sensitive]");
+
+        self.Reuestparameterbuttongroup.add(Requestparamnonebutton);
+        Requestparamnonebutton.setSelected(True);
+        Requestparamnonebutton.setText("None");
+
+        Requestparamlist.setLayer(Requestparamlabel, JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(requestparamignorebutton, JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(requestparamconsiderbutton, JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(requestparamlist, JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(Requestparamlabel3, JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(Requestparamnonebutton,JLayeredPane.DEFAULT_LAYER);
+
+        RequestparamlistLayout = GroupLayout(Requestparamlist);
+        Requestparamlist.setLayout(RequestparamlistLayout);
+        RequestparamlistLayout.setHorizontalGroup(
+            RequestparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(RequestparamlistLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(RequestparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(Requestparamlabel)
+                    .addGroup(RequestparamlistLayout.createSequentialGroup()
+                        .addComponent(requestparamignorebutton)
+                        .addGap(18, 18, 18)
+                        .addComponent(requestparamconsiderbutton)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(Requestparamnonebutton))
+                    .addComponent(requestparamlist, GroupLayout.PREFERRED_SIZE, 331, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(Requestparamlabel3))
+                .addContainerGap(267, Short.MAX_VALUE))
+        );
+        RequestparamlistLayout.setVerticalGroup(
+            RequestparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(RequestparamlistLayout.createSequentialGroup()
+                .addComponent(Requestparamlabel)
+                .addGap(18, 18, 18)
+                .addGroup(RequestparamlistLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(requestparamignorebutton)
+                    .addComponent(requestparamconsiderbutton)
+                    .addComponent(Requestparamnonebutton))
+                .addGap(17, 17, 17)
+                .addComponent(Requestparamlabel3)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(requestparamlist, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
+        Responseparamlist.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
+
+        Responseparamlabel1.setText("Response parameters to ignore or to be considered only");
+
+        self.Responseparambuttongroup.add(responseparamignorebutton1);
+        responseparamignorebutton1.setText("Ignore Parameters");
+
+        self.Responseparambuttongroup.add(responseparamconsiderbutton1);
+        responseparamconsiderbutton1.setText("Only Conider Parameters");
+
+        responseparamlist1.setColumns(5);
+        responseparamlist1.setText("Password,current_password");
+
+        Responseparamlabel4.setText("Seperated by , Coma [Case Sensitive]");
+
+        self.Responseparambuttongroup.add(responseparamnonebutton);
+        responseparamnonebutton.setSelected(True);
+        responseparamnonebutton.setText("None");
+
+        Responseparamlist.setLayer(Responseparamlabel1, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(responseparamignorebutton1, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(responseparamconsiderbutton1, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(responseparamlist1, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(Responseparamlabel4, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(responseparamnonebutton, JLayeredPane.DEFAULT_LAYER);
+
+        ResponseparamlistLayout = GroupLayout(Responseparamlist);
+        Responseparamlist.setLayout(ResponseparamlistLayout);
+        ResponseparamlistLayout.setHorizontalGroup(
+            ResponseparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(ResponseparamlistLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(ResponseparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(Responseparamlabel1)
+                    .addGroup(ResponseparamlistLayout.createSequentialGroup()
+                        .addComponent(responseparamignorebutton1)
+                        .addGap(18, 18, 18)
+                        .addComponent(responseparamconsiderbutton1)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(responseparamnonebutton))
+                    .addComponent(responseparamlist1, GroupLayout.PREFERRED_SIZE, 331, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(Responseparamlabel4))
+                .addContainerGap(261, Short.MAX_VALUE))
+        );
+        ResponseparamlistLayout.setVerticalGroup(
+            ResponseparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(ResponseparamlistLayout.createSequentialGroup()
+                .addComponent(Responseparamlabel1)
+                .addGap(18, 18, 18)
+                .addGroup(ResponseparamlistLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(responseparamignorebutton1)
+                    .addComponent(responseparamconsiderbutton1)
+                    .addComponent(responseparamnonebutton))
+                .addGap(17, 17, 17)
+                .addComponent(Responseparamlabel4)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(responseparamlist1, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 42, Short.MAX_VALUE))
+        );
+
+
+
+
+
+
+
+
+
+
+
+        # Config Tab UI Placement options
         self.requestlayerpane.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
         self.requestlayerpane.setLayer(self.Requestypelabel, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.CustomBodyRadio, JLayeredPane.DEFAULT_LAYER);
@@ -735,18 +872,23 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(self.autoencryptlayerpane)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
-                            .addComponent(self.requestscriptfilelayerpane)
-                            .addComponent(self.responescriptfilelayerpane)))
                     .addGroup(GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(self.requestlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(self.additionallayerpane)))
+                        .addComponent(self.additionallayerpane))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(self.autoencryptlayerpane)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
+                            .addComponent(self.requestscriptfilelayerpane)
+                            .addComponent(self.responescriptfilelayerpane)))
+                    .addGroup(GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(Requestparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(Responseparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addGap(18, 18, 18))
         );
         layout.setVerticalGroup(
@@ -765,8 +907,13 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                         .addComponent(self.requestscriptfilelayerpane)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(self.responescriptfilelayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(843, Short.MAX_VALUE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
+                    .addComponent(Requestparamlist)
+                    .addComponent(Responseparamlist))
+                .addContainerGap(657, Short.MAX_VALUE))
         );
+
 
         
     
@@ -841,7 +988,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self.callbacks.saveExtensionSetting("responsedecryptionfilesave", self.responsedecryptionfilepath)
 
 
-    # Handles Import for the Encryption File
+    # Handles Import for the Encryption File for request
     def importencryptionjsfile(self,e):
         chooseFile = JFileChooser()
         filter = FileNameExtensionFilter("js files", ["js"])
@@ -855,7 +1002,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             
 
 
-    # Handle Import for Decryption File
+    # Handle Import for Decryption File for request
     def importdecryptionjsfile(self,e):
         chooseFile = JFileChooser()
         filter = FileNameExtensionFilter("js files", ["js"])
@@ -869,7 +1016,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             
 
 
-    # Returning the Extension Tab name to burp
+    # Returning the Extension Tab name to burp ITAB
     def getTabCaption(self):
         return "PyCript"
 
@@ -880,7 +1027,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
   
     
-    # Auto Encrypt the request and modify the request
+    # Auto Encrypt the request with IHttprequest listner
     def processHttpMessage(self, toolFlag, messageIsRequest, messageInfo):
         if messageIsRequest:
             toolname = self.callbacks.getToolName(toolFlag)
@@ -1213,6 +1360,7 @@ class LogEntry:
         self._response = response
         self._service = service
        
+
 class RequestTabFactory(IMessageEditorTabFactory):
     def __init__(self, extender):
         self.extender = extender
