@@ -997,6 +997,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 if self.requestparamlist.getText().strip() == "":
                     self.responseparamnonebutton.setSelected(True);
                     JOptionPane.showMessageDialog(None, "Parameter list cannot be empty", "Error", JOptionPane.ERROR_MESSAGE)
+                else:
+                    self.selectedreq_incexctype = selected.getText()
 
 
     # Listener for Response Ignore or exclude parameters radio button
@@ -1011,6 +1013,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 if self.responseparamlist1.getText().strip() == "":
                     self.responseparamnonebutton.setSelected(True);
                     JOptionPane.showMessageDialog(None, "Parameter list cannot be empty", "Error", JOptionPane.ERROR_MESSAGE)
+                else:
+                    self.selectedresp_incexctype = selected.getText()
 
 
 
