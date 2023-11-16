@@ -377,53 +377,93 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         callbacks.registerMessageEditorTabFactory(response_tab_factory)
 
 
-        self.Reuestparameterbuttongroup = ButtonGroup()
-        self.Responseparambuttongroup = ButtonGroup()
-        Requestparamlist = JLayeredPane();
-        Requestparamlabel = JLabel();
-        requestparamignorebutton = JRadioButton();
-        requestparamconsiderbutton = JRadioButton();
-        requestparamlist = JTextField();
-        Requestparamlabel3 = JLabel();
-        Requestparamnonebutton = JRadioButton();
-
-
         
-        Responseparamlist = JLayeredPane();
-        Responseparamlabel1 = JLabel();
-        responseparamignorebutton1 = JRadioButton();
-        responseparamconsiderbutton1 = JRadioButton();
-        responseparamlist1 = JTextField();
-        Responseparamlabel4 = JLabel();
-        responseparamnonebutton = JRadioButton();
+        # Request include exclude parameters UI settings
 
-
-
+        Requestparamlist = JLayeredPane();
         Requestparamlist.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)))
 
-        Requestparamlabel.setText("Request parameters to ignore or to be considered only");
+        Requestparamlabel = JLabel();
+        Requestparamlabel.setText("Request parameters to Include or Exclude");
+        Requestparamlabel.setFont(Font("Segoe UI", 1, 14));
 
-        self.Reuestparameterbuttongroup.add(requestparamignorebutton);
-        requestparamignorebutton.setText("Ignore Parameters");
-
-        self.Reuestparameterbuttongroup.add(requestparamconsiderbutton);
-        requestparamconsiderbutton.setText("Only Conider Parameters");
-
-        requestparamlist.setColumns(5);
-        requestparamlist.setText("Password,current_password");
-
+        Requestparamlabel3 = JLabel();
         Requestparamlabel3.setText("Seperated by , Coma [Case Sensitive]");
+        Requestparamlabel3.setForeground(Color(237, 121, 5));
 
-        self.Reuestparameterbuttongroup.add(Requestparamnonebutton);
-        Requestparamnonebutton.setSelected(True);
-        Requestparamnonebutton.setText("None");
+        self.Reuestparameterbuttongroup = ButtonGroup()
+
+        requestparamignorebutton = JRadioButton();
+        self.Reuestparameterbuttongroup.add(requestparamignorebutton);
+        requestparamignorebutton.setText("Exclude Parameters");
+        requestparamignorebutton.addActionListener(self.requestparamlistener)
+
+        requestparamconsiderbutton = JRadioButton();
+        self.Reuestparameterbuttongroup.add(requestparamconsiderbutton);
+        requestparamconsiderbutton.setText("Include Parameters");
+        requestparamconsiderbutton.addActionListener(self.requestparamlistener)
+
+        self.Requestparamnonebutton = JRadioButton();
+        self.Reuestparameterbuttongroup.add(self.Requestparamnonebutton);
+        self.Requestparamnonebutton.setSelected(True);
+        self.Requestparamnonebutton.setText("None");
+        self.Requestparamnonebutton.addActionListener(self.requestparamlistener)
+
+        self.requestparamlist = JTextField();
+        self.requestparamlist.setColumns(5);
+        self.requestparamlist.setText("Password,current_password");
+
+        
+        
+
+
+        # Response exclude include Parameters UI
+
+
+        Responseparamlist = JLayeredPane();
+        Responseparamlist.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
+
+        self.Responseparambuttongroup = ButtonGroup()
+
+        self.responseparamnonebutton = JRadioButton();
+        self.Responseparambuttongroup.add(self.responseparamnonebutton);
+        self.responseparamnonebutton.setSelected(True);
+        self.responseparamnonebutton.setText("None");
+        self.responseparamnonebutton.addActionListener(self.responseparamlistener)
+
+        responseparamignorebutton1 = JRadioButton();
+        responseparamignorebutton1.setText("Exclude Parameters");
+        self.Responseparambuttongroup.add(responseparamignorebutton1);
+        responseparamignorebutton1.addActionListener(self.responseparamlistener)
+
+        responseparamconsiderbutton1 = JRadioButton();
+        self.Responseparambuttongroup.add(responseparamconsiderbutton1);
+        responseparamconsiderbutton1.setText("Include Parameters");
+        responseparamconsiderbutton1.addActionListener(self.responseparamlistener)
+
+        
+        Responseparamlabel1 = JLabel();
+        Responseparamlabel1.setText("Response parameters to Include or Exclude");
+        Responseparamlabel1.setFont(Font("Segoe UI", 1, 14));
+
+
+
+        self.responseparamlist1 = JTextField();
+        self.responseparamlist1.setColumns(5);
+        self.responseparamlist1.setText("Password,current_password");
+
+
+        Responseparamlabel4 = JLabel();
+        Responseparamlabel4.setText("Seperated by , Coma [Case Sensitive]");
+        Responseparamlabel4.setForeground(Color(237, 121, 5));
+
 
         Requestparamlist.setLayer(Requestparamlabel, JLayeredPane.DEFAULT_LAYER);
         Requestparamlist.setLayer(requestparamignorebutton, JLayeredPane.DEFAULT_LAYER);
         Requestparamlist.setLayer(requestparamconsiderbutton, JLayeredPane.DEFAULT_LAYER);
-        Requestparamlist.setLayer(requestparamlist, JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(self.requestparamlist, JLayeredPane.DEFAULT_LAYER);
         Requestparamlist.setLayer(Requestparamlabel3, JLayeredPane.DEFAULT_LAYER);
-        Requestparamlist.setLayer(Requestparamnonebutton,JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(self.Requestparamnonebutton,JLayeredPane.DEFAULT_LAYER);
 
         RequestparamlistLayout = GroupLayout(Requestparamlist);
         Requestparamlist.setLayout(RequestparamlistLayout);
@@ -438,8 +478,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                         .addGap(18, 18, 18)
                         .addComponent(requestparamconsiderbutton)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(Requestparamnonebutton))
-                    .addComponent(requestparamlist, GroupLayout.PREFERRED_SIZE, 331, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(self.Requestparamnonebutton))
+                    .addComponent(self.requestparamlist, GroupLayout.PREFERRED_SIZE, 331, GroupLayout.PREFERRED_SIZE)
                     .addComponent(Requestparamlabel3))
                 .addContainerGap(267, Short.MAX_VALUE))
         );
@@ -451,39 +491,22 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 .addGroup(RequestparamlistLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(requestparamignorebutton)
                     .addComponent(requestparamconsiderbutton)
-                    .addComponent(Requestparamnonebutton))
+                    .addComponent(self.Requestparamnonebutton))
                 .addGap(17, 17, 17)
                 .addComponent(Requestparamlabel3)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(requestparamlist, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
+                .addComponent(self.requestparamlist, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
-        Responseparamlist.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
-
-        Responseparamlabel1.setText("Response parameters to ignore or to be considered only");
-
-        self.Responseparambuttongroup.add(responseparamignorebutton1);
-        responseparamignorebutton1.setText("Ignore Parameters");
-
-        self.Responseparambuttongroup.add(responseparamconsiderbutton1);
-        responseparamconsiderbutton1.setText("Only Conider Parameters");
-
-        responseparamlist1.setColumns(5);
-        responseparamlist1.setText("Password,current_password");
-
-        Responseparamlabel4.setText("Seperated by , Coma [Case Sensitive]");
-
-        self.Responseparambuttongroup.add(responseparamnonebutton);
-        responseparamnonebutton.setSelected(True);
-        responseparamnonebutton.setText("None");
+        
 
         Responseparamlist.setLayer(Responseparamlabel1, JLayeredPane.DEFAULT_LAYER);
         Responseparamlist.setLayer(responseparamignorebutton1, JLayeredPane.DEFAULT_LAYER);
         Responseparamlist.setLayer(responseparamconsiderbutton1, JLayeredPane.DEFAULT_LAYER);
-        Responseparamlist.setLayer(responseparamlist1, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(self.responseparamlist1, JLayeredPane.DEFAULT_LAYER);
         Responseparamlist.setLayer(Responseparamlabel4, JLayeredPane.DEFAULT_LAYER);
-        Responseparamlist.setLayer(responseparamnonebutton, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(self.responseparamnonebutton, JLayeredPane.DEFAULT_LAYER);
 
         ResponseparamlistLayout = GroupLayout(Responseparamlist);
         Responseparamlist.setLayout(ResponseparamlistLayout);
@@ -498,8 +521,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                         .addGap(18, 18, 18)
                         .addComponent(responseparamconsiderbutton1)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(responseparamnonebutton))
-                    .addComponent(responseparamlist1, GroupLayout.PREFERRED_SIZE, 331, GroupLayout.PREFERRED_SIZE)
+                        .addComponent(self.responseparamnonebutton))
+                    .addComponent(self.responseparamlist1, GroupLayout.PREFERRED_SIZE, 331, GroupLayout.PREFERRED_SIZE)
                     .addComponent(Responseparamlabel4))
                 .addContainerGap(261, Short.MAX_VALUE))
         );
@@ -511,21 +534,13 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 .addGroup(ResponseparamlistLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(responseparamignorebutton1)
                     .addComponent(responseparamconsiderbutton1)
-                    .addComponent(responseparamnonebutton))
+                    .addComponent(self.responseparamnonebutton))
                 .addGap(17, 17, 17)
                 .addComponent(Responseparamlabel4)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(responseparamlist1, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
+                .addComponent(self.responseparamlist1, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 42, Short.MAX_VALUE))
         );
-
-
-
-
-
-
-
-
 
 
 
@@ -934,6 +949,9 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self.selectedresponsetpye = "None"
             self.ResponseTypeNoneRadio.setSelected(True)
 
+        if selected.getText() not in ["JSON Value", "JSON Key and Value"]:
+            self.responseparamnonebutton.setSelected(True);
+
 
 
     # Listeners for Request type radio buttons
@@ -959,6 +977,41 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self.selectedrequesttpye = "None"
             self.Autoencryptonoffbutton.setEnabled(False)
             self.Autoencryptonoffbutton.setSelected(False)
+
+        if selected.getText() not in ["Parameter Value", "Parameter Key and Value"]:
+            self.Requestparamnonebutton.setSelected(True);
+        
+
+
+
+
+    # Listener for Request Ignore or exclude parameters radio button
+    def requestparamlistener(self,e):
+        selected = e.getSource()
+        if not selected.getText() == "None":
+            if self.selectedrequesttpye not in ["Parameter Value", "Parameter Key and Value"]:
+                self.Requestparamnonebutton.setSelected(True);
+                JOptionPane.showMessageDialog(None, "Selected Request type should be Parameter Value or Parameter Key and Value", "Error", JOptionPane.ERROR_MESSAGE)
+
+            else:
+                if self.requestparamlist.getText().strip() == "":
+                    self.responseparamnonebutton.setSelected(True);
+                    JOptionPane.showMessageDialog(None, "Parameter list cannot be empty", "Error", JOptionPane.ERROR_MESSAGE)
+
+
+    # Listener for Response Ignore or exclude parameters radio button
+    def responseparamlistener(self,e):
+        selected = e.getSource()
+        if not selected.getText() == "None":
+            if self.selectedresponsetpye  not in ["JSON Value", "JSON Key and Value"]:
+                self.responseparamnonebutton.setSelected(True);
+                JOptionPane.showMessageDialog(None, "Selected Response type should be JSON Value or JSON Key and Value", "Error", JOptionPane.ERROR_MESSAGE)
+
+            else:
+                if self.responseparamlist1.getText().strip() == "":
+                    self.responseparamnonebutton.setSelected(True);
+                    JOptionPane.showMessageDialog(None, "Parameter list cannot be empty", "Error", JOptionPane.ERROR_MESSAGE)
+
 
 
 
