@@ -26,7 +26,7 @@ class ResponeCriptInputTab(IMessageEditorTab):
    
 
     def isEnabled(self, content, isRequest):
-        if content and not isRequest:
+        if content is not None and not isRequest:
             if str(self._extender.selectedresponsetpye) == "None":
                 return False
             
@@ -40,8 +40,8 @@ class ResponeCriptInputTab(IMessageEditorTab):
                 self.getInferredMimeType = self.currentresponse.getInferredMimeType()
 
                 if self._extender.callbacks.isInScope(request.getUrl()):
-                    if self.statedminetype == "JSON" or self.getInferredMimeType == "JSON":
-                        return True
+                    #if self.statedminetype == "JSON" or self.getInferredMimeType == "JSON":
+                    return True
                 else:
                     return False
         else:

@@ -25,19 +25,22 @@ class CriptInputTab(IMessageEditorTab):
 
     def isEnabled(self, content, isRequest):
         
-        if content and isRequest:
-            if str(self._extender.selectedrequesttpye) == "None":
-                return False
-
-            elif str(self._extender.reqresponsecombobox.getSelectedItem()) == "Response":
-                return False
-
-            else:
-                request = self._extender.helpers.analyzeRequest(self.controller.getHttpService(),self.controller.getRequest())
-                if self._extender.callbacks.isInScope(request.getUrl()):
-                    return True
-                else:
+        if content is not None:
+            if isRequest:
+                if str(self._extender.selectedrequesttpye) == "None":
                     return False
+
+                elif str(self._extender.reqresponsecombobox.getSelectedItem()) == "Response":
+                    return False
+
+                else:
+                    request = self._extender.helpers.analyzeRequest(self.controller.getHttpService(),self.controller.getRequest())
+                    if self._extender.callbacks.isInScope(request.getUrl()):
+                        return True
+                    else:
+                        return False
+        else:
+            return False
 
         
 

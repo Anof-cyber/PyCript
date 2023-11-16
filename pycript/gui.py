@@ -1,8 +1,5 @@
-from javax.swing import JCheckBox, JButton, JTextArea, JScrollPane
+from javax.swing import JCheckBox, JTextArea, JScrollPane
 from javax.swing import ScrollPaneConstants
-from java.awt import (BorderLayout)
-
-
 from java.awt import Color, Font, Dimension
 from javax.swing import BorderFactory
 
