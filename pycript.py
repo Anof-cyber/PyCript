@@ -47,6 +47,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         global errorlogtextbox, errorlogcheckbox
         self.selectedrequesttpye = None
         self.selectedresponsetpye = None
+        self.selected_request_inc_ex_ctype = None
         
 
         # Mlutiple tab UI
@@ -998,7 +999,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                     self.responseparamnonebutton.setSelected(True);
                     JOptionPane.showMessageDialog(None, "Parameter list cannot be empty", "Error", JOptionPane.ERROR_MESSAGE)
                 else:
-                    self.selectedreq_incexctype = selected.getText()
+                    self.selected_request_inc_ex_ctype = selected.getText()
 
 
     # Listener for Response Ignore or exclude parameters radio button
@@ -1150,7 +1151,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         menu_list.append(JMenuItem("Decrypt String", None,actionPerformed=lambda x, inv=invocation: self.decryptstring(inv)))
         menu_list.append(JMenuItem("Encrypt String", None,actionPerformed=lambda x, inv=invocation: self.encryptstring(inv)))
         #menu_list.append(JMenuItem("Decrypt Request", None,actionPerformed=lambda x, inv=invocation: self.decryptrequest(inv)))
-        menu_list.append(JMenuItem("Decrypt Request", None,actionPerformed=lambda x, inv=invocation: Thread(target=self.decryptrequest, args=(inv,)).start()))
+        menu_list.append(JMenuItem("Decrypt Request", None,actionPerformed=lambda x, inv=invocation: Thread(target=self.decrypt_request_from_menu, args=(inv,)).start()))
 
        
       
@@ -1158,7 +1159,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
 
     # Decrypt the selected Request from Menu and Store the Decrypted Request in the Decrypted Request Table
-    def decryptrequest(self,invocation):
+    def decrypt_request_from_menu(self,invocation):
         if not str(self.selectedrequesttpye) == "None":
             reqRes = invocation.getSelectedMessages()
             for items in reqRes:

@@ -28,7 +28,7 @@ def update_json_key_value(json_obj, selectedlang, decryptionpath,enc_dec):
                 del json_obj[key]
     return json_obj
 
-
+'''
 # Update json body with decrypted json value (Burp default Parameter API doesn't work as expected for JSON)
 def update_json_value(json_obj, selectedlang, decryptionpath,enc_dec):
     for key, value in json_obj.items():
@@ -45,6 +45,70 @@ def update_json_value(json_obj, selectedlang, decryptionpath,enc_dec):
         else:
             json_obj[key] = enc_dec(selectedlang, decryptionpath, value)
     return json_obj
+'''
+
+
+def update_json_value(json_obj, selectedlang, decryptionpath, enc_dec, selected_request_inc_ex_ctype,listofparam):
+    # Check if selectedreq_incexctype is None
+    if selected_request_inc_ex_ctype is None:
+        # Process all parameters in the JSON object
+        for key, value in json_obj.items():
+            if isinstance(value, dict):
+                for inner_key, inner_value in value.items():
+                    value[inner_key] = enc_dec(selectedlang, decryptionpath, inner_value)
+            elif isinstance(value, list):
+                for i in range(len(value)):
+                    if isinstance(value[i], dict):
+                        for inner_key, inner_value in value[i].items():
+                            value[i][inner_key] = enc_dec(selectedlang, decryptionpath, inner_value)
+                    else:
+                        value[i] = enc_dec(selectedlang, decryptionpath, value[i])
+            else:
+                value = enc_dec(selectedlang, decryptionpath, value)
+                json_obj[key] = value
+
+    else:
+        # Process parameters based on selectedparamtertype
+        if selected_request_inc_ex_ctype == "Include Parameters":
+            for key, value in json_obj.items():
+                if isinstance(value, dict):
+                    for inner_key, inner_value in value.items():
+                        if inner_key in listofparam:
+                            value[inner_key] = enc_dec(selectedlang, decryptionpath, inner_value)
+                elif isinstance(value, list):
+                    for i in range(len(value)):
+                        if isinstance(value[i], dict):
+                            for inner_key, inner_value in value[i].items():
+                                if inner_key in listofparam:
+                                    value[i][inner_key] = enc_dec(selectedlang, decryptionpath, inner_value)
+                        else:
+                            if i in listofparam:
+                                value[i] = enc_dec(selectedlang, decryptionpath, value[i])
+                else:
+                    if key in listofparam:
+                        value = enc_dec(selectedlang, decryptionpath, value)
+                        json_obj[key] = value
+        elif selected_request_inc_ex_ctype == "Exclude Parameters":
+            for key, value in json_obj.items():
+                if isinstance(value, dict):
+                    for inner_key, inner_value in value.items():
+                        if inner_key not in listofparam:
+                            value[inner_key] = enc_dec(selectedlang, decryptionpath, inner_value)
+                elif isinstance(value, list):
+                    for i in range(len(value)):
+                        if isinstance(value[i], dict):
+                            for inner_key, inner_value in value[i].items():
+                                if inner_key not in listofparam:
+                                    value[i][inner_key] = enc_dec(selectedlang, decryptionpath, inner_value)
+                        else:
+                            if i not in listofparam:
+                                value[i] = enc_dec(selectedlang, decryptionpath, value[i])
+                else:
+                    if key not in listofparam:
+                        value = enc_dec(selectedlang, decryptionpath, value)
+                        json_obj[key] = value
+    return json_obj
+
 
 
 
