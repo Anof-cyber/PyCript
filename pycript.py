@@ -48,6 +48,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.selectedrequesttpye = None
         self.selectedresponsetpye = None
         self.selected_request_inc_ex_ctype = None
+        self.selected_response_inc_ex_ctype = None
         
 
         # Mlutiple tab UI
@@ -1015,7 +1016,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                     self.responseparamnonebutton.setSelected(True);
                     JOptionPane.showMessageDialog(None, "Parameter list cannot be empty", "Error", JOptionPane.ERROR_MESSAGE)
                 else:
-                    self.selectedresp_incexctype = selected.getText()
+                    self.selected_response_inc_ex_ctype = selected.getText()
 
 
 

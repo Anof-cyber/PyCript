@@ -4,7 +4,7 @@ from .decryption import Parameterdecrypt, Customrequestdecrypt,Customeditrequest
 from .encryption import Parameterencrypt, Customrequestencrypt,Customeditrequestencrypt
 from json import loads, dumps
 from burp import IParameter
-from .utils import update_json_value, update_json_key_value,process_custom_headers, analyze_request, extract_body_and_headers
+from .utils import update_json_value, update_json_key_value,process_custom_headers, extract_body_and_headers
 
 
 def EncryptRequest(extender, currentreq,req):
@@ -88,7 +88,7 @@ def DecryptRequest(extender, currentreq,req):
 
 
 # Decrypt parameters
-def decrypt_and_update_parameters(extender, currentreq, decryptionpath, selected_method, selectedlang, body, parameters,selected_request_inc_ex_ctype,listofparam):
+def decrypt_and_update_parameters(extender, currentreq, decryptionpath, selected_method, selectedlang, body, parameters,header,selected_request_inc_ex_ctype,listofparam):
     
     # Go through all parameters
     for param in parameters:
