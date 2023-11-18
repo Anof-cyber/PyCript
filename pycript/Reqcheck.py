@@ -31,9 +31,9 @@ def EncryptRequest(extender, currentreq,req):
         return encrypt_and_update_parameter_keys_and_values(extender, currentreq, encryptionpath, selected_method, selectedlang, body, parameters, header,selected_request_inc_ex_ctype,listofparam)
     
     elif str(extender.selectedrequesttpye) == "Custom Request":
-        extender.callbacks.printOutput(str(headers_str))
+        extender.callbacks.printOutput(str(header))
         output = Customrequestencrypt(selectedlang, encryptionpath, str(header), body)
-        return extender.helpers.buildHttpMessage(headers_str, output)
+        return extender.helpers.buildHttpMessage(header, output)
     
     elif str(extender.selectedrequesttpye) == "Custom Request (Edit Header)":
         updatedheader, body = Customeditrequestencrypt(selectedlang, encryptionpath, str(headers_str), body)

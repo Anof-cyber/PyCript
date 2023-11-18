@@ -381,7 +381,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         if self.respencpath == None:
             self.responseencryptionfilepath = None;
         else:
-            self.responseencryptionfilepath = self.reqencpath
+            self.responseencryptionfilepath = self.respencpath
             self.responseencryptionpath.setText(self.responseencryptionfilepath);
         
         if self.respdecpath == None:

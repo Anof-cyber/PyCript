@@ -11,7 +11,7 @@ def Parameterdecrypt(selectedlang, path, data):
 
 def Customrequestdecrypt(selectedlang, path, header, body):
     body2 = encoding.encode_base64(body)
-    output = execute_command(selectedlang, path, body2, header).decode('utf-8')
+    output = execute_command(selectedlang, path, body2, encoding.encode_base64(header)).decode('utf-8')
     return output
 
 

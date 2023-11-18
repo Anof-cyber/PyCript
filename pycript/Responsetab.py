@@ -40,6 +40,10 @@ class ResponeCriptInputTab(IMessageEditorTab):
                     if self._extender.callbacks.isInScope(request.getUrl()):
                         if self.statedminetype == "JSON" or self.getInferredMimeType == "JSON":
                             return True
+                        else:
+                            return False
+                    else:
+                        return False
                 else:
                     return False
         else:

@@ -12,7 +12,7 @@ def Parameterencrypt(selectedlang, path, data):
 
 def Customrequestencrypt(selectedlang, path, header, body):
     body = encoding.encode_base64(body)
-    output = execute_command(selectedlang, path, body, header).decode('utf-8')
+    output = execute_command(selectedlang, path, body, encoding.encode_base64(header)).decode('utf-8')
     return output
     
 
