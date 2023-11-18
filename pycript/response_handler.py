@@ -34,24 +34,6 @@ def encrypt_decrypt_response(extender,currentresp,response,enc_dec,enc_dec_type)
 
 
 
-'''
-def encrypt_response(extender,currentresp,response):
-    selectedlang = extender.languagecombobox.getSelectedItem()
-    decryptionresponsepath = extender.responsedecryptionfilepath
-    stringbody = get_response_body(extender,currentresp,response)
-    header = response.getHeaders()
-    selected_response_inc_ex_ctype = extender.selected_response_inc_ex_ctype
-    listofparam = extender.responseparamlist1.getText().split(',')
-
-    
-    if str(extender.selectedresponsetpye) == "Complete Body":
-        decryptedvalue = Parameterencrypt(selectedlang, decryptionresponsepath, stringbody)
-        output = extender.helpers.stringToBytes(decryptedvalue)
-        return extender.helpers.buildHttpMessage(header, output)
-
-
-'''
-
 
 def get_response_body(extender,currentresp,response):
     bodyoffset = response.getBodyOffset()
@@ -59,25 +41,4 @@ def get_response_body(extender,currentresp,response):
     bytebody = currentresponsestring[bodyoffset:len(currentresponsestring)]
     stringbody = extender.helpers.bytesToString(bytebody).decode("utf-8")
     return stringbody
-
-
-
-
-
-def DecryptRequest(extender, currentreq,req):
-    decryptionpath = extender.decryptionfilepath
-    selectedlang = extender.languagecombobox.getSelectedItem()
-    selected_method = extender.reqmethodcombobox.getSelectedItem()
-    selected_request_inc_ex_ctype = extender.selected_request_inc_ex_ctype
-    listofparam = extender.requestparamlist.getText().split(',')
-    
-
-    parameters = req.getParameters()
-    header = req.getHeaders()  # Get Array/last format header from burp header api (used for Custom Request)
-    
-    request_inst = extender.helpers.bytesToString(currentreq)
-    
-    body, headers_str = extract_body_and_headers(request_inst, req)
-
-
 

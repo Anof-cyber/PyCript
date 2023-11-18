@@ -1,13 +1,18 @@
 from burp import (IBurpExtender, ITab,IMessageEditorTabFactory,IMessageEditorTab,IContextMenuFactory, IContextMenuInvocation,IMessageEditorController,IHttpListener)
 from java.awt import (BorderLayout,Font,Color,Dimension)
 from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,
-JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu, BoxLayout, JTextArea,ScrollPaneConstants,JTextField)
+JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu,JTextField,JEditorPane)
 from javax.swing.table import AbstractTableModel;
 from javax.swing.filechooser import FileNameExtensionFilter
 from java.lang import Short
-from javax.swing.border import EmptyBorder
 import sys
 from threading import Thread,Lock
+from java.awt.event import MouseAdapter
+from java.awt import Desktop
+from java.net import URI
+from java.io import IOException
+from javax.swing.event import HyperlinkListener
+
 
 from pycript.Requesttab import CriptInputTab
 from pycript.Responsetab import ResponeCriptInputTab
@@ -17,7 +22,7 @@ from pycript.gui import create_third_tab_elements
 
 errorlogtextbox = None
 errorlogcheckbox = None
-
+VERSION = "Version 0.3"
 
 class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener):
 
@@ -34,7 +39,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         # Informing Burp suite the name of the extension
         callbacks.setExtensionName("PyCript")
         callbacks.printOutput("Author: Sourav Kalal")
-        callbacks.printOutput("Version: 0.2")
+        callbacks.printOutput(VERSION)
         callbacks.printOutput("GitHub - https://github.com/Anof-cyber/PyCript")
         callbacks.printOutput("Website - https://souravkalal.tech/")
         callbacks.printOutput("Documentation - https://pycript.souravkalal.tech/")
@@ -70,6 +75,19 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.thirdTab = JPanel()
         self.thirdTab.layout = BorderLayout()
         self.tabbedPane.addTab("Log",self.thirdTab)
+
+
+        # Creating Fourth Tab as Resource Tab
+        self.Fourth = JPanel()
+        self.Fourth.layout = BorderLayout()
+        self.tabbedPane.addTab("Resource", self.Fourth)
+        
+        editor_pane = JEditorPane("text/html", self.getHTMLContent())
+        editor_pane.setEditable(False)
+        editor_pane.addHyperlinkListener(MyHyperlinkListener())
+
+        scroll_pane = JScrollPane(editor_pane)
+        self.Fourth.add(scroll_pane)
 
 
         #Creating UI for Third Log Tab  
@@ -1385,6 +1403,54 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
     def getResponse(self):
         return self._currentlyDisplayedresponse
+    
+
+    def getHTMLContent(self):
+        html_content = '''
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+            <meta charset="UTF-8">
+            
+            </head>
+            <body>
+            <h1 style="color: rgb(237, 121, 5)">Documentation for PyCript</h1>
+
+            <h2>Articles</h2>
+            <ul>
+                <li><a href="https://medium.com/bugbountywriteup/manipulating-encrypted-traffic-using-pycript-b637612528bb">Manipulating Encrypted Traffic using PyCript</a></li>
+                <li><a href="https://medium.com/bugbountywriteup/bypassing-asymmetric-client-side-encryption-without-private-key-822ed0d8aeb6">Bypassing Asymmetric Client Side Encryption Without Private Key</a></li>
+               
+            </ul>
+
+             <h2>Youtube</h2>
+            <ul>
+                <li><a href="https://youtu.be/J8KE5VR8yDk?si=gxw3jDre7a9RMqS6">PyCript Burp Suite Extension: Bypassing Client-Side Encryption For Bug Bounty And Pentesting</a></li>
+                
+            </ul>
+
+            <h2>Documentation</h2>
+            <ul>
+                <li><a href="https://pycript.souravkalal.tech/0.2/">PyCript Documentation</a></li>
+                
+            </ul>
+
+            <h2>Repository</h2>
+            <ul>
+            <li><a href="https://github.com/Anof-cyber/PyCript-Template">PyCript Template Repository with common encryption decrpytion script for PyCript</a></li>
+            <li><a href="https://github.com/Anof-cyber/PyCript">GitHub Repository</a></li>
+            </ul>
+
+
+            <h2>Social Media</h2>
+            <ul>
+            <li><a href="https://twitter.com/ano_f_">Twitter Profile</a></li>
+            <ul>
+            </body>
+            </html>
+        '''
+        return html_content
+
 
 #
 # extend JTable to handle cell selection
@@ -1435,3 +1501,13 @@ class ResponseTabFactory(IMessageEditorTabFactory):
         return ResponeCriptInputTab(self.extender, controller, editable)
 
 
+class MyHyperlinkListener(HyperlinkListener):
+    def hyperlinkUpdate(self, e):
+        if e.getEventType() == e.EventType.ACTIVATED:
+            try:
+                # Open the link in the default system browser
+                uri = URI(str(e.getURL()))
+                desktop = Desktop.getDesktop()
+                desktop.browse(uri)
+            except IOException as ex:
+                ex.printStackTrace()

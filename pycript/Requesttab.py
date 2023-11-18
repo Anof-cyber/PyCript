@@ -71,15 +71,9 @@ class CriptInputTab(IMessageEditorTab):
 
         # determine whether the user modified the  data
         if self._txtInput.isTextModified():
-            # reserialize the data
             editabedbyte = self._txtInput.getText()
-
             req = self._extender.helpers.analyzeRequest(editabedbyte)
             output = EncryptRequest(self._extender,editabedbyte,req)
-
-
-
-            #output = encrypt(self._extender,editabedbyte)
             return output
 
 

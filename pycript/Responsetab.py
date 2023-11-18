@@ -20,10 +20,7 @@ class ResponeCriptInputTab(IMessageEditorTab):
 
 
     def getUiComponent(self):
-        
         return self._txtInput.getComponent()
-
-   
 
     def isEnabled(self, content, isRequest):
         if content is not None and not isRequest:
@@ -76,7 +73,6 @@ class ResponeCriptInputTab(IMessageEditorTab):
 
         if self._txtInput.isTextModified():
             editabedbyte = self._txtInput.getText()
-
             self.currentresponse = self._extender.helpers.analyzeResponse(editabedbyte)
             return  encrypt_decrypt_response(self._extender,editabedbyte,self.currentresponse,Parameterencrypt,"Encrypt")
         else:
