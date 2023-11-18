@@ -31,14 +31,15 @@ class ResponeCriptInputTab(IMessageEditorTab):
                 return False
 
             else:
-                request = self._extender.helpers.analyzeRequest(self.controller.getHttpService(),self.controller.getRequest())
-                self.currentresponse = self._extender.helpers.analyzeResponse(self.controller.getResponse())
-                self.statedminetype = self.currentresponse.getStatedMimeType()
-                self.getInferredMimeType = self.currentresponse.getInferredMimeType()
+                if self.controller.getHttpService() is not None:
+                    request = self._extender.helpers.analyzeRequest(self.controller.getHttpService(),self.controller.getRequest())
+                    self.currentresponse = self._extender.helpers.analyzeResponse(self.controller.getResponse())
+                    self.statedminetype = self.currentresponse.getStatedMimeType()
+                    self.getInferredMimeType = self.currentresponse.getInferredMimeType()
 
-                if self._extender.callbacks.isInScope(request.getUrl()):
-                    if self.statedminetype == "JSON" or self.getInferredMimeType == "JSON":
-                        return True
+                    if self._extender.callbacks.isInScope(request.getUrl()):
+                        if self.statedminetype == "JSON" or self.getInferredMimeType == "JSON":
+                            return True
                 else:
                     return False
         else:

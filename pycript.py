@@ -111,10 +111,12 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         sendRepeaterItem = JMenuItem("Send to Repeater", actionPerformed=self.sendtorepeater)
         sendIntruderItem = JMenuItem("Send to Intruder", actionPerformed=self.sendtointruder)
         repeatrequest = JMenuItem("Resend HTTP Request", actionPerformed=self.resendrequest)
+        deleteselectedItem = JMenuItem("Delete Selected Items", actionPerformed=self.delete_selected_items_handler)
         popupMenu.add(sendscannerItem)
         popupMenu.add(sendRepeaterItem)
         popupMenu.add(sendIntruderItem)
         popupMenu.add(repeatrequest)
+        popupMenu.add(deleteselectedItem)
 
         # Creating table for Second Decryted request tab
         self.logTable = Table(self)
@@ -1181,31 +1183,35 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
     def decrypt_request_from_menu(self,invocation):
         if not str(self.selectedrequesttpye) == "None":
             reqRes = invocation.getSelectedMessages()
-            for items in reqRes:
+            if reqRes and reqRes != None:
+                for items in reqRes:
+                    
+                    req = self.helpers.analyzeRequest(items)
+                    self.method = req.getMethod()
+                    self.url = items.getUrl()
+                    
+                    self.responseinbytes = items.getResponse()
+                    if self.responseinbytes != None:
+                        self.responseinst = self.helpers.bytesToString(self.responseinbytes)
+                    else:
+                        self.responseinst = "Empty Response"
                 
-                req = self.helpers.analyzeRequest(items)
-                self.method = req.getMethod()
-                self.url = items.getUrl()
+                    currentreq = items.getRequest()
+                    self.decryptedrequest = DecryptRequest(self,currentreq,req)
+                    rowss = self.logTable.getRowCount()
+                    self.sr2 = str((rowss + 1))
+                    httpservice = items.getHttpService()
                 
-                self.responseinbytes = items.getResponse()
-                self.responseinst = self.helpers.bytesToString(self.responseinbytes)
-               
-                currentreq = items.getRequest()
-                self.decryptedrequest = DecryptRequest(self,currentreq,req)
-                rowss = self.logTable.getRowCount()
-                self.sr2 = str((rowss + 1))
-                httpservice = items.getHttpService()
-               
 
-                self._lock.acquire()
-                row = len(self._log)
+                    self._lock.acquire()
+                    row = len(self._log)
 
-                #self.url = self.helpers.analyzeRequest(self.decryptedrequest).getUrl()
-               
-                self._log.append(LogEntry(self.sr2,self.url, self.method,self.decryptedrequest, self.responseinst,httpservice))
-               
-                self.fireTableRowsInserted(row, row)
-                self._lock.release()
+                    #self.url = self.helpers.analyzeRequest(self.decryptedrequest).getUrl()
+                
+                    self._log.append(LogEntry(self.sr2,self.url, self.method,self.decryptedrequest, self.responseinst,httpservice))
+                
+                    self.fireTableRowsInserted(row, row)
+                    self._lock.release()
 
 
 
@@ -1393,6 +1399,13 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             thread.start()
             
 
+    def delete_selected_items_handler(self,event):
+        row = self.logTable.getSelectedRows()
+        for rows in sorted(row, reverse=True):
+            modelRowIndex = self.logTable.convertRowIndexToModel(rows)
+            self._log.pop(modelRowIndex)
+            self.fireTableDataChanged()
+
    
     #Message Editor Hanlder for Decrpyted Request Messages
     def getHttpService(self):
@@ -1411,7 +1424,18 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             <html lang="en">
             <head>
             <meta charset="UTF-8">
-            
+            <style>
+                    ul {
+                    font-size: 13px;
+                    
+                    padding-left: 0;
+                    }
+
+                    li {
+                    margin-bottom: 5px;
+                    }
+                </style>
+
             </head>
             <body>
             <h1 style="color: rgb(237, 121, 5)">Documentation for PyCript</h1>

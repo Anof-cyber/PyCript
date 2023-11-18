@@ -34,11 +34,14 @@ class CriptInputTab(IMessageEditorTab):
                     return False
 
                 else:
-                    request = self._extender.helpers.analyzeRequest(self.controller.getHttpService(),self.controller.getRequest())
-                    if self._extender.callbacks.isInScope(request.getUrl()):
-                        return True
+                    if self.controller.getHttpService() is not None:
+                        request = self._extender.helpers.analyzeRequest(self.controller.getHttpService(),self.controller.getRequest())
+                        if self._extender.callbacks.isInScope(request.getUrl()):
+                            return True
+                        else:
+                            return False
                     else:
-                        return False
+                         return False      
         else:
             return False
 
