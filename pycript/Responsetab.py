@@ -30,14 +30,9 @@ class ResponeCriptInputTab(IMessageEditorTab):
         if str(self._extender.selectedresponsetpye) == "None" or str(self._extender.reqresponsecombobox.getSelectedItem()) == "Request":
             return False
 
-        if self.controller.getHttpService() is None:
-            return False
+   
 
-        self.currentresponse = self._extender.helpers.analyzeResponse(self.controller.getResponse())
-        self.statedminetype = self.currentresponse.getStatedMimeType()
-        self.getInferredMimeType = self.currentresponse.getInferredMimeType()
-        url = self._extender.helpers.analyzeRequest(self.controller.getHttpService(), self.controller.getRequest()).getUrl()
-        return self._extender.callbacks.isInScope(url)
+        return True
 
 
         
@@ -51,15 +46,19 @@ class ResponeCriptInputTab(IMessageEditorTab):
         else:
             if not isRequest:
 
-                self.currentresponse = self._extender.helpers.analyzeResponse(content)
-                self.statedminetype = self.currentresponse.getStatedMimeType()
-                self.getInferredMimeType = self.currentresponse.getInferredMimeType()
-                if self.statedminetype == "JSON" or self.getInferredMimeType == "JSON":
-                    output = encrypt_decrypt_response(self._extender,content,self.currentresponse,Parameterdecrypt,"Decrypt")
-                    self._txtInput.setEditable(True)
+                if self.controller.getHttpService() is not None:
+                    url = self._extender.helpers.analyzeRequest(self.controller.getHttpService(), self.controller.getRequest()).getUrl()
+                    if self._extender.callbacks.isInScope(url):
+                        self.currentresponse = self._extender.helpers.analyzeResponse(content)
+                        output = encrypt_decrypt_response(self._extender,content,self.currentresponse,Parameterdecrypt,"Decrypt")
+                        self._txtInput.setEditable(True)
+                        
+                    else:
+                        output = "URL is not added in Scope"
+                        self._txtInput.setEditable(False)
                 else:
+                    output = "HTTP Request Service Missing"
                     self._txtInput.setEditable(False)
-                    output = "Only JSON Response Body or Response with JSON Content-Type is supported"
 
                 
 

@@ -51,6 +51,7 @@ class CriptInputTab(IMessageEditorTab):
                         output = DecryptRequest(self._extender,content,request)
                     else:
                         output = "URL is not added in Scope"
+                        self._txtInput.setEditable(False)
                     self._txtInput.setText(output)
                     self._txtInput.setEditable(True)
 

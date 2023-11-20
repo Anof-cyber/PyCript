@@ -1551,7 +1551,7 @@ class MyHyperlinkListener(HyperlinkListener):
 
 
 def showEditableDialog(message, title):
-    text_area = JTextArea(message, 10, 40)  # Initial text, rows, columns
+    text_area = JTextArea(message, 10, 40) 
     scroll_pane = JScrollPane(text_area)
 
     pane = JOptionPane(scroll_pane, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION)
