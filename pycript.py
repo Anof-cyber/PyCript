@@ -1,6 +1,6 @@
 from burp import (IBurpExtender, ITab,IMessageEditorTabFactory,IMessageEditorTab,IContextMenuFactory, IContextMenuInvocation,IMessageEditorController,IHttpListener)
-from java.awt import (BorderLayout,Font,Color,Dimension)
-from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,JTextArea,JDialog,
+from java.awt import (BorderLayout,Font,Color)
+from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,JTextArea,
 JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu,JTextField,JEditorPane)
 from javax.swing.table import AbstractTableModel;
 from javax.swing.filechooser import FileNameExtensionFilter
