@@ -22,31 +22,16 @@ class CriptInputTab(IMessageEditorTab):
         
         return self._txtInput.getComponent()
 
-
     def isEnabled(self, content, isRequest):
-        
-        if content is not None:
-            if isRequest:
-                if str(self._extender.selectedrequesttpye) == "None":
-                    return False
+        if isRequest:
+            if content is None:
+                return False
 
-                elif str(self._extender.reqresponsecombobox.getSelectedItem()) == "Response":
-                    return False
+            if str(self._extender.selectedrequesttpye) == "None" or str(self._extender.reqresponsecombobox.getSelectedItem()) == "Response":
+                return False
 
-                else:
-                    if self.controller.getHttpService() is not None:
-                        request = self._extender.helpers.analyzeRequest(self.controller.getHttpService(),self.controller.getRequest())
-                        if self._extender.callbacks.isInScope(request.getUrl()):
-                            return True
-                        else:
-                            return False
-                    else:
-                         return False      
-        else:
-            return False
-
-        
-
+            return True
+        return False 
 
 
     def setMessage(self, content, isRequest):
@@ -58,15 +43,20 @@ class CriptInputTab(IMessageEditorTab):
         
         else:
             if isRequest:
-                request = self._extender.helpers.analyzeRequest(content)
-                output = DecryptRequest(self._extender,content,request)
-                
-                #output = decrypt(self._extender,content)
-                self._txtInput.setText(output)
-                self._txtInput.setEditable(True)
+                if self.controller.getHttpService() is not None:
+               
+                    url = self._extender.helpers.analyzeRequest(self.controller.getHttpService(), self.controller.getRequest()).getUrl()
+                    if self._extender.callbacks.isInScope(url):
+                        request = self._extender.helpers.analyzeRequest(content)
+                        output = DecryptRequest(self._extender,content,request)
+                    else:
+                        output = "URL is not added in Scope"
+                    self._txtInput.setText(output)
+                    self._txtInput.setEditable(True)
 
 
         self._currentMessage = content     
+        return 
 
 
 

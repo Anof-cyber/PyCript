@@ -30,10 +30,11 @@ def execute_command(selectedlang, path, data, headervalue=None):
 
         if process.returncode != 0:
             logerrors(error.strip())
+            return False
         else:
             logerrors(output.strip())
-        output = output.strip()
+            output = output.strip()
+            return output if output else False
     except Exception as e:
         logerrors(str(e))
-        output = data  # Return data if an exception occurs
-    return output
+        return False

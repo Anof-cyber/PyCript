@@ -22,39 +22,29 @@ class ResponeCriptInputTab(IMessageEditorTab):
     def getUiComponent(self):
         return self._txtInput.getComponent()
 
+
     def isEnabled(self, content, isRequest):
-        if content is not None and not isRequest:
-            if str(self._extender.selectedresponsetpye) == "None":
-                return False
-            
-            elif str(self._extender.reqresponsecombobox.getSelectedItem()) == "Request":
-                return False
-
-            else:
-                if self.controller.getHttpService() is not None:
-                    request = self._extender.helpers.analyzeRequest(self.controller.getHttpService(),self.controller.getRequest())
-                    self.currentresponse = self._extender.helpers.analyzeResponse(self.controller.getResponse())
-                    self.statedminetype = self.currentresponse.getStatedMimeType()
-                    self.getInferredMimeType = self.currentresponse.getInferredMimeType()
-
-                    if self._extender.callbacks.isInScope(request.getUrl()):
-                        if self.statedminetype == "JSON" or self.getInferredMimeType == "JSON":
-                            return True
-                        else:
-                            return False
-                    else:
-                        return False
-                else:
-                    return False
-        else:
+        if content is None or isRequest:
             return False
+
+        if str(self._extender.selectedresponsetpye) == "None" or str(self._extender.reqresponsecombobox.getSelectedItem()) == "Request":
+            return False
+
+        if self.controller.getHttpService() is None:
+            return False
+
+        self.currentresponse = self._extender.helpers.analyzeResponse(self.controller.getResponse())
+        self.statedminetype = self.currentresponse.getStatedMimeType()
+        self.getInferredMimeType = self.currentresponse.getInferredMimeType()
+        url = self._extender.helpers.analyzeRequest(self.controller.getHttpService(), self.controller.getRequest()).getUrl()
+        return self._extender.callbacks.isInScope(url)
+
+
+        
         
 
     def setMessage(self, content, isRequest):
-
         if content is None:
-            # clear our display
-            
             self._txtInput.setText(None)
             self._txtInput.setEditable(False)
         
@@ -62,12 +52,19 @@ class ResponeCriptInputTab(IMessageEditorTab):
             if not isRequest:
 
                 self.currentresponse = self._extender.helpers.analyzeResponse(content)
+                self.statedminetype = self.currentresponse.getStatedMimeType()
+                self.getInferredMimeType = self.currentresponse.getInferredMimeType()
+                if self.statedminetype == "JSON" or self.getInferredMimeType == "JSON":
+                    output = encrypt_decrypt_response(self._extender,content,self.currentresponse,Parameterdecrypt,"Decrypt")
+                    self._txtInput.setEditable(True)
+                else:
+                    self._txtInput.setEditable(False)
+                    output = "Only JSON Response Body or Response with JSON Content-Type is supported"
 
-                output = encrypt_decrypt_response(self._extender,content,self.currentresponse,Parameterdecrypt,"Decrypt")
                 
 
                 self._txtInput.setText(output)
-                self._txtInput.setEditable(True)
+                
 
 
         self._currentMessage = content
