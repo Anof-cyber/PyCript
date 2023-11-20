@@ -1,10 +1,11 @@
 from burp import (IBurpExtender, ITab,IMessageEditorTabFactory,IMessageEditorTab,IContextMenuFactory, IContextMenuInvocation,IMessageEditorController,IHttpListener)
 from java.awt import (BorderLayout,Font,Color,Dimension)
-from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,
+from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,JTextArea,JDialog,
 JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu,JTextField,JEditorPane)
 from javax.swing.table import AbstractTableModel;
 from javax.swing.filechooser import FileNameExtensionFilter
 from java.lang import Short
+
 import sys
 from threading import Thread,Lock
 from java.awt.event import MouseAdapter
@@ -13,7 +14,8 @@ from java.net import URI
 from java.io import IOException
 from javax.swing.event import HyperlinkListener
 
-
+from pycript.encryption import Parameterencrypt
+from pycript.decryption import Parameterdecrypt
 from pycript.Requesttab import CriptInputTab
 from pycript.Responsetab import ResponeCriptInputTab
 from pycript.Reqcheck import DecryptRequest,EncryptRequest
@@ -1217,85 +1219,94 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
     # Show the Encrypted String
     def encryptstring(self,invocation):
-        if not str(self.selectedrequesttpye) == "None":
-            http_request_response = invocation.getSelectedMessages()[0]
-            context = invocation.getInvocationContext()
-            self.selection = invocation.getSelectionBounds()
-            if (context == invocation.CONTEXT_MESSAGE_EDITOR_REQUEST or
+        http_request_response = invocation.getSelectedMessages()[0]
+        context = invocation.getInvocationContext()
+        self.selection = invocation.getSelectionBounds()
+        if (context == invocation.CONTEXT_MESSAGE_EDITOR_REQUEST or
                     context == invocation.CONTEXT_MESSAGE_VIEWER_REQUEST
                 ):
-                self.selectedrequst = True
-                message_bytes = http_request_response.getRequest()
+            self.selectedrequst = True
+            message_bytes = http_request_response.getRequest()
+        else:
+            self.selectedrequst = False
+            message_bytes = http_request_response.getResponse()
+
+        text = self.helpers.bytesToString(message_bytes)
+        query = text[self.selection[0]:self.selection[1]]
+
+        if self.selectedrequst:
+            if not str(self.selectedrequesttpye) == "None":
+                encpath = self.encryptionfilepath
             else:
-                self.selectedrequst = False
-                message_bytes = http_request_response.getResponse()
-
-            if self.selectedrequst:
-                if not self.encryptionfilepath == "None":
-                    encpath = self.encryptionfilepath
-                elif not self.responseencryptionfilepath == "None":
-                    encpath = self.responseencryptionfilepath
-            else:
-                if not self.responseencryptionfilepath == "None":
-                    encpath = self.responseencryptionfilepath
-                elif not self.encryptionfilepath == "None":
-                    encpath = self.encryptionfilepath
-
-
-
-            text = self.helpers.bytesToString(message_bytes)
-            query = text[self.selection[0]:self.selection[1]]
-            output = StringCrypto(self,encpath,query,http_request_response)
-            encryptedstring = output.encrypt_string()
+            #inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Request Type is not selected to encrypt Request String"))
+                JOptionPane.showMessageDialog(None, "Request Type is not selected to encrypt Request String", "Error", JOptionPane.ERROR_MESSAGE)
+                return
             
         
-        
-            inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str(encryptedstring))
-        
+        elif not self.selectedrequst:
+            if not str(self.selectedresponsetpye) == "None":
+                encpath = self.responseencryptionfilepath
+            else:
+            #inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Response Type is not selected to encrypt Response String"))
+                JOptionPane.showMessageDialog(None, "Response Type is not selected to encrypt Response String", "Error", JOptionPane.ERROR_MESSAGE)
+                return
+            
+
+        if self.selectedrequst:
+            output = StringCrypto(self,encpath,query,http_request_response)
+            encryptedstring = output.encrypt_string_request()
         else:
-            inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Request Type is not selected"))
+            encryptedstring = Parameterencrypt(self.languagecombobox.getSelectedItem(), encpath, query)
+        #JOptionPane.showInputDialog(None, "Encrypted String", "Decryption", JOptionPane.PLAIN_MESSAGE, None, None, encryptedstring)
+        #JOptionPane.showMessageDialog(None, encryptedstring, "String", JOptionPane.INFORMATION_MESSAGE)
+        showEditableDialog(encryptedstring, "Encrypted String")
         
-
-
+        
+        
     # Show Decrypted string Popup 
     def decryptstring(self,invocation):
-
-        if not str(self.selectedrequesttpye) == "None":
-            http_request_response = invocation.getSelectedMessages()[0]
-            context = invocation.getInvocationContext()
-            self.selection = invocation.getSelectionBounds()
-            if (context == invocation.CONTEXT_MESSAGE_EDITOR_REQUEST or
+        http_request_response = invocation.getSelectedMessages()[0]
+        context = invocation.getInvocationContext()
+        self.selection = invocation.getSelectionBounds()
+        if (context == invocation.CONTEXT_MESSAGE_EDITOR_REQUEST or
                     context == invocation.CONTEXT_MESSAGE_VIEWER_REQUEST
                 ):
-                self.selectedrequst = True
-                message_bytes = http_request_response.getRequest()
-            else:
-                self.selectedrequst = False
-                message_bytes = http_request_response.getResponse()
-
-
-            if self.selectedrequst:
-                if not self.decryptionfilepath == "None":
-                    encpath = self.decryptionfilepath
-                elif not self.responsedecryptionfilepath == "None":
-                    encpath = self.responsedecryptionfilepath
-            else:
-                if not self.responsedecryptionfilepath == "None":
-                    encpath = self.responsedecryptionfilepath
-                elif not self.decryptionfilepath == "None":
-                    encpath = self.decryptionfilepath
-
-            text = self.helpers.bytesToString(message_bytes)
-            query = text[self.selection[0]:self.selection[1]]
-            output = StringCrypto(self,encpath,query,http_request_response)
-            decryptedstring = output.decrypt_string()
-           
-        
-        
-            inputText = JOptionPane.showInputDialog(None, "Decrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str(decryptedstring))
-        
+            self.selectedrequst = True
+            message_bytes = http_request_response.getRequest()
         else:
-            inputText = JOptionPane.showInputDialog(None, "Decrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Request Type is not selected"))
+            self.selectedrequst = False
+            message_bytes = http_request_response.getResponse()
+
+        text = self.helpers.bytesToString(message_bytes)
+        query = text[self.selection[0]:self.selection[1]]
+
+        if self.selectedrequst:
+            if not str(self.selectedrequesttpye) == "None":
+                encpath = self.decryptionfilepath 
+            else:
+            #inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Request Type is not selected to encrypt Request String"))
+                JOptionPane.showMessageDialog(None, "Request Type is not selected to decrypt Request String", "Error", JOptionPane.ERROR_MESSAGE)
+                return
+            
+        
+        elif not self.selectedrequst:
+            if not str(self.selectedresponsetpye) == "None":
+                encpath = self.responsedecryptionfilepath 
+            else:
+            #inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Response Type is not selected to encrypt Response String"))
+                JOptionPane.showMessageDialog(None, "Response Type is not selected to decrypt Response String", "Error", JOptionPane.ERROR_MESSAGE)
+                return
+        
+        if self.selectedrequst:
+            output = StringCrypto(self,encpath,query,http_request_response)
+            decryptedstring = output.decrypt_string_request()
+        else:
+            decryptedstring = Parameterdecrypt(self.languagecombobox.getSelectedItem(), encpath, query)
+
+        showEditableDialog(decryptedstring, "Decryted String")
+
+        #JOptionPane.showInputDialog(None, "Encrypted String", "Decryption", JOptionPane.PLAIN_MESSAGE, None, None, decryptedstring)
+        #JOptionPane.showMessageDialog(None, encryptedstring, "String", JOptionPane.INFORMATION_MESSAGE)
         
 
 
@@ -1535,3 +1546,14 @@ class MyHyperlinkListener(HyperlinkListener):
                 desktop.browse(uri)
             except IOException as ex:
                 ex.printStackTrace()
+
+
+
+
+def showEditableDialog(message, title):
+    text_area = JTextArea(message, 10, 40)  # Initial text, rows, columns
+    scroll_pane = JScrollPane(text_area)
+
+    pane = JOptionPane(scroll_pane, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION)
+    dialog = pane.createDialog(None, title)
+    dialog.setVisible(True)

@@ -27,7 +27,7 @@ class StringCrypto:
         headers_str = request_str[:body_offset].strip()
         return headers_str
 
-    def encrypt_string(self):
+    def encrypt_string_request(self):
  
 
         if self._extender.selectedrequesttpye == "Custom Request":
@@ -42,7 +42,7 @@ class StringCrypto:
             encrypted = Parameterencrypt(self.selectedlang, self.encpath, self._selectedmessage)
             return encrypted
 
-    def decrypt_string(self):
+    def decrypt_string_request(self):
         
 
         if self._extender.selectedrequesttpye == "Custom Request":
