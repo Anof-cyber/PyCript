@@ -1,61 +1,40 @@
-import subprocess
-from base64 import b64encode,b64decode
+from . import encoding, decoding
+from .execution import execute_command
 
 
+#Jsonvalueencrypt     -->   Parameterencrypt 
+
+def Parameterencrypt(selectedlang, path, data):
+    output = execute_command(selectedlang, path, str(encoding.encode_base64(data)))
+
+    if output is not False:
+        return output.decode('utf-8')
+    else:
+        return data
 
 
-def Jsonvalueencrypt(selectedlang, path,data):
-    try:
-        data = b64encode(data)
-        if selectedlang == "JavaScript":
-            output = subprocess.check_output(["node", path,"-d",str(data)]).rstrip()
-        elif selectedlang == "Python":
-            output = subprocess.check_output(["python", path,"-d",str(data)]).rstrip()
-        elif selectedlang == "Java Jar":
-            output = subprocess.check_output(["java", "-jar",path,"-d",str(data)]).rstrip()
-    except subprocess.CalledProcessError:
+def Customrequestencrypt(selectedlang, path, header, body):
+    output = execute_command(selectedlang, path, encoding.encode_base64(body), encoding.encode_base64(header))
     
-        output = data
-    return output 
-
-
-
-
-def Customrequestencrypt(selectedlang, path,header,body):
-    try:
-        body = b64encode(body)
-        if selectedlang == "JavaScript":
-            output = subprocess.check_output(["node", path,"-d",body,"-h",header]).rstrip()
-        elif selectedlang == "Python":
-            output = subprocess.check_output(["python", path,"-d",body,"-h",header]).rstrip()
-        elif selectedlang == "Java Jar":
-            output = subprocess.check_output(["java", "-jar",path,"-d",body,"-h",header]).rstrip()
-    except subprocess.CalledProcessError:
+    if output is not False:
+        return output.decode('utf-8')
+    else:
+        return body
     
-        output = body
-    return output        
+    
 
-
-
-
-def Customeditrequestencrypt(selectedlang, path,header,body):
-    try:
-        body2 = b64encode(body)
-        header2 = b64encode(header)
-        if selectedlang == "JavaScript":
-            output = subprocess.check_output(["node", path, "-d", body2, "-h", header2])
-        elif selectedlang == "Python":
-            output = subprocess.check_output(["python", path, "-d", body2, "-h", header2])
-        elif selectedlang == "Java Jar":
-            output = subprocess.check_output(["java","-jar",path, "-d", body2, "-h", header2])
-
+def Customeditrequestencrypt(selectedlang, path, header, body):
+    body2 = encoding.encode_base64(body)
+    header2 = encoding.encode_base64(header)
+    
+    output = execute_command(selectedlang, path, body2, header2)
+    if output is not False:
         lines = output.splitlines()
-        headerbase64 = lines[0]
-        bodybase64 = lines[1]
-        header = b64decode(headerbase64).decode('utf-8')
-        body = b64decode(bodybase64).decode('utf-8')
-    except subprocess.CalledProcessError:
-    
-        header = header
-        body = body
-    return (header,body)    
+        headerbase64, bodybase64 = lines[0], lines[1]
+        header = decoding.decode_base64(headerbase64).decode('utf-8')
+        body = decoding.decode_base64(bodybase64).decode('utf-8')
+        return (header, body)
+    else:
+        return (header, body)
+
+   
