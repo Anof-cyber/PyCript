@@ -1,18 +1,30 @@
 from burp import (IBurpExtender, ITab,IMessageEditorTabFactory,IMessageEditorTab,IContextMenuFactory, IContextMenuInvocation,IMessageEditorController,IHttpListener)
 from java.awt import (BorderLayout,Font,Color)
-from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,
-JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu)
+from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,JTextArea,
+JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu,JTextField,JEditorPane)
 from javax.swing.table import AbstractTableModel;
 from javax.swing.filechooser import FileNameExtensionFilter
 from java.lang import Short
+
 import sys
 from threading import Thread,Lock
+from java.awt.event import MouseAdapter
+from java.awt import Desktop
+from java.net import URI
+from java.io import IOException
+from javax.swing.event import HyperlinkListener
 
+from pycript.encryption import Parameterencrypt
+from pycript.decryption import Parameterdecrypt
 from pycript.Requesttab import CriptInputTab
 from pycript.Responsetab import ResponeCriptInputTab
-from pycript.Reqcheck import Requestchecker,DecryptRequest,EncryptRequest
+from pycript.Reqcheck import DecryptRequest,EncryptRequest
+from pycript.stringcrypto import StringCrypto
+from pycript.gui import create_third_tab_elements
 
-
+errorlogtextbox = None
+errorlogcheckbox = None
+VERSION = "Version 0.3"
 
 class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener):
 
@@ -21,8 +33,6 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.callbacks = callbacks
         self.helpers = callbacks.getHelpers()
         self.tooltypelist = []
-        
-        
 
         # Allowing debugging
         sys.stdout = callbacks.getStdout()
@@ -31,61 +41,90 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         # Informing Burp suite the name of the extension
         callbacks.setExtensionName("PyCript")
         callbacks.printOutput("Author: Sourav Kalal")
-        callbacks.printOutput("Version: 0.2")
+        callbacks.printOutput(VERSION)
         callbacks.printOutput("GitHub - https://github.com/Anof-cyber/PyCript")
         callbacks.printOutput("Website - https://souravkalal.tech/")
         callbacks.printOutput("Documentation - https://pycript.souravkalal.tech/")
         
         callbacks.registerContextMenuFactory(self)
-        
 
-        
-
-
-
-        
-        
-
-
+        #Some Config and data related variables
+        self._log = list()
+        self._lock = Lock()
+        global errorlogtextbox, errorlogcheckbox
         self.selectedrequesttpye = None
         self.selectedresponsetpye = None
+        self.selected_request_inc_ex_ctype = None
+        self.selected_response_inc_ex_ctype = None
+        
+
+        # Mlutiple tab UI
         self.tab = JPanel()
         self.tabbedPane = JTabbedPane()
         self.tab.add("Center", self.tabbedPane) 
 
+        # Creating First Tab as Config Tab
         self.firstTab = JPanel()
         self.firstTab.layout = BorderLayout()
-        #self.firstTab.layout = BorderLayout()
         self.tabbedPane.addTab("Config", self.firstTab)
 
+        # Creating Second Tab as Decrypted Request Tab
         self.secondTab = JPanel()
         self.secondTab.layout = BorderLayout()
-        #self.firstTab.layout = BorderLayout()
         self.tabbedPane.addTab("Decrypted Request", self.secondTab)
 
-        
-        self._log = list()
-        self._lock = Lock()
-        
-        
-        
+        # Creating Third Tab as Logger Tab
+        self.thirdTab = JPanel()
+        self.thirdTab.layout = BorderLayout()
+        self.tabbedPane.addTab("Log",self.thirdTab)
 
+
+        # Creating Fourth Tab as Resource Tab
+        self.Fourth = JPanel()
+        self.Fourth.layout = BorderLayout()
+        self.tabbedPane.addTab("Resource", self.Fourth)
+        
+        editor_pane = JEditorPane("text/html", self.getHTMLContent())
+        editor_pane.setEditable(False)
+        editor_pane.addHyperlinkListener(MyHyperlinkListener())
+
+        scroll_pane = JScrollPane(editor_pane)
+        self.Fourth.add(scroll_pane)
+
+
+        #Creating UI for Third Log Tab  
+
+        # Loading Few UI Component for Log Tab from another function 
+        errorlogcheckbox, scroll_pane, errorlogtextbox = create_third_tab_elements() 
+
+        self.errorclear_button = JButton("Clear",actionPerformed=self.clearerrortext)
+        self.newlogpanel = JPanel()
+        self.newlogpanel.add(errorlogcheckbox)
+        self.newlogpanel.add(self.errorclear_button)
+        self.thirdTab.add(self.newlogpanel, BorderLayout.PAGE_START)
+        self.thirdTab.add(scroll_pane, BorderLayout.CENTER)
+
+
+        # UI Component for Second Decrypted Tab
+
+        # Creating Right click menu Table in Second Decrypted Tab
         popupMenu = JPopupMenu()
         sendscannerItem = JMenuItem("Send to Active Scanner", actionPerformed=self.sendtoscanner)
         sendRepeaterItem = JMenuItem("Send to Repeater", actionPerformed=self.sendtorepeater)
         sendIntruderItem = JMenuItem("Send to Intruder", actionPerformed=self.sendtointruder)
         repeatrequest = JMenuItem("Resend HTTP Request", actionPerformed=self.resendrequest)
+        deleteselectedItem = JMenuItem("Delete Selected Items", actionPerformed=self.delete_selected_items_handler)
         popupMenu.add(sendscannerItem)
         popupMenu.add(sendRepeaterItem)
         popupMenu.add(sendIntruderItem)
         popupMenu.add(repeatrequest)
+        popupMenu.add(deleteselectedItem)
 
-        
+        # Creating table for Second Decryted request tab
         self.logTable = Table(self)
         self.logTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF)
         self.logTable.getTableHeader().setReorderingAllowed(False)
         self.logTable.getColumnModel().getColumn(0).setPreferredWidth(30)
-        
         self.logTable.getColumnModel().getColumn(1).setPreferredWidth(600)
         self.logTable.getColumnModel().getColumn(2).setPreferredWidth(80)
        
@@ -94,6 +133,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.logTable.setComponentPopupMenu(popupMenu)
         self.scrollPane2.getViewport().setView((self.logTable))
 
+        # Creating Request and Response Text BOX UI for decrypted request tab
         self.requestViewer = callbacks.createMessageEditor(self, True)
         self.responseViewer = callbacks.createMessageEditor(self, True)
         self.editor_view = JTabbedPane()
@@ -109,16 +149,11 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.callbacks.customizeUiComponent(self.scrollPane2)
         self.callbacks.customizeUiComponent(self.editor_view)
 
-    
-
-
-
+        # Register our extension for ITab in burp suite
         callbacks.addSuiteTab(self)
 
-        
 
-
-
+        # Creating UI for First Config Tab (Created using Java NetBeans)        
 
         # Request Type UI
         self.requestlayerpane = JLayeredPane();
@@ -219,9 +254,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.reqresponsecombobox = JComboBox(self.reqresponsedata);
 
         
-        
-        
-
+        # Additional Settings UI
         self.autoencryptlayerpane = JLayeredPane();
         self.AutoEncryptLabel = JLabel();
         self.AutoEncryptLabel.setFont(Font("Segoe UI", 1, 14));
@@ -270,7 +303,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.AutoencryptTooltypeIntruder.setText("Intruder");
         
         
-        
+        # Request Encryption Decryption File Selection UI
         self.requestscriptfilelayerpane = JLayeredPane();
         self.FileChooserLabel = JLabel();
         self.FileChooserLabel.setFont(Font("Segoe UI", 1, 14));
@@ -297,8 +330,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.requestdecryptionpath.setText("");
 
 
+        # Response encryption decryption file selection UI
         self.responescriptfilelayerpane = JLayeredPane();
-
         self.responseFileChooserLabel = JLabel();
         self.responseFileChooserLabel.setFont(Font("Segoe UI", 1, 14));
         self.responseFileChooserLabel.setText("Response Encryption Deryption Files");
@@ -325,6 +358,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.responsedecryptionpath = JLabel();
         self.responsedecryptionpath.setText("");
 
+
+        # Trying to load Request encryption decryption file path from previously slected location
         self.reqencpath = callbacks.loadExtensionSetting('requestencryptionfilesave')
         self.reqdecpath = callbacks.loadExtensionSetting('requestdecryptionfilesave')
         
@@ -340,13 +375,15 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self.decryptionfilepath = self.reqdecpath
             self.requestdecryptionpath.setText(self.decryptionfilepath)
 
+
+        # # Trying to load Response encryption decryption file path from previously slected location
         self.respencpath = callbacks.loadExtensionSetting('responseencryptionfilesave')
         self.respdecpath = callbacks.loadExtensionSetting('responsedecryptionfilesave')
 
         if self.respencpath == None:
             self.responseencryptionfilepath = None;
         else:
-            self.responseencryptionfilepath = self.reqencpath
+            self.responseencryptionfilepath = self.respencpath
             self.responseencryptionpath.setText(self.responseencryptionfilepath);
         
         if self.respdecpath == None:
@@ -356,12 +393,182 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self.responsedecryptionpath.setText(self.responsedecryptionfilepath)
         
 
-        ## Request/ Response need to be loaded afterr all UI 
+        ## Request/ Response need to be loaded after all UI 
+        ## Creating a seperate request and response message editor tab to show decrypted messages
         request_tab_factory = RequestTabFactory(self)
         response_tab_factory = ResponseTabFactory(self)
         callbacks.registerMessageEditorTabFactory(request_tab_factory)
         callbacks.registerMessageEditorTabFactory(response_tab_factory)
 
+
+        
+        # Request include exclude parameters UI settings
+
+        Requestparamlist = JLayeredPane();
+        Requestparamlist.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)))
+
+        Requestparamlabel = JLabel();
+        Requestparamlabel.setText("Request parameters to Include or Exclude");
+        Requestparamlabel.setFont(Font("Segoe UI", 1, 14));
+
+        Requestparamlabel3 = JLabel();
+        Requestparamlabel3.setText("Seperated by , Coma [Case Sensitive]");
+        Requestparamlabel3.setForeground(Color(237, 121, 5));
+
+        self.Reuestparameterbuttongroup = ButtonGroup()
+
+        requestparamignorebutton = JRadioButton();
+        self.Reuestparameterbuttongroup.add(requestparamignorebutton);
+        requestparamignorebutton.setText("Exclude Parameters");
+        requestparamignorebutton.addActionListener(self.requestparamlistener)
+
+        requestparamconsiderbutton = JRadioButton();
+        self.Reuestparameterbuttongroup.add(requestparamconsiderbutton);
+        requestparamconsiderbutton.setText("Include Parameters");
+        requestparamconsiderbutton.addActionListener(self.requestparamlistener)
+
+        self.Requestparamnonebutton = JRadioButton();
+        self.Reuestparameterbuttongroup.add(self.Requestparamnonebutton);
+        self.Requestparamnonebutton.setSelected(True);
+        self.Requestparamnonebutton.setText("None");
+        self.Requestparamnonebutton.addActionListener(self.requestparamlistener)
+
+        self.requestparamlist = JTextField();
+        self.requestparamlist.setColumns(5);
+        self.requestparamlist.setText("Password,current_password");
+
+        
+        
+
+
+        # Response exclude include Parameters UI
+
+
+        Responseparamlist = JLayeredPane();
+        Responseparamlist.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
+
+        self.Responseparambuttongroup = ButtonGroup()
+
+        self.responseparamnonebutton = JRadioButton();
+        self.Responseparambuttongroup.add(self.responseparamnonebutton);
+        self.responseparamnonebutton.setSelected(True);
+        self.responseparamnonebutton.setText("None");
+        self.responseparamnonebutton.addActionListener(self.responseparamlistener)
+
+        responseparamignorebutton1 = JRadioButton();
+        responseparamignorebutton1.setText("Exclude Parameters");
+        self.Responseparambuttongroup.add(responseparamignorebutton1);
+        responseparamignorebutton1.addActionListener(self.responseparamlistener)
+
+        responseparamconsiderbutton1 = JRadioButton();
+        self.Responseparambuttongroup.add(responseparamconsiderbutton1);
+        responseparamconsiderbutton1.setText("Include Parameters");
+        responseparamconsiderbutton1.addActionListener(self.responseparamlistener)
+
+        
+        Responseparamlabel1 = JLabel();
+        Responseparamlabel1.setText("Response parameters to Include or Exclude");
+        Responseparamlabel1.setFont(Font("Segoe UI", 1, 14));
+
+
+
+        self.responseparamlist1 = JTextField();
+        self.responseparamlist1.setColumns(5);
+        self.responseparamlist1.setText("Password,current_password");
+
+
+        Responseparamlabel4 = JLabel();
+        Responseparamlabel4.setText("Seperated by , Coma [Case Sensitive]");
+        Responseparamlabel4.setForeground(Color(237, 121, 5));
+
+
+        Requestparamlist.setLayer(Requestparamlabel, JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(requestparamignorebutton, JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(requestparamconsiderbutton, JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(self.requestparamlist, JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(Requestparamlabel3, JLayeredPane.DEFAULT_LAYER);
+        Requestparamlist.setLayer(self.Requestparamnonebutton,JLayeredPane.DEFAULT_LAYER);
+
+        RequestparamlistLayout = GroupLayout(Requestparamlist);
+        Requestparamlist.setLayout(RequestparamlistLayout);
+        RequestparamlistLayout.setHorizontalGroup(
+            RequestparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(RequestparamlistLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(RequestparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(Requestparamlabel)
+                    .addGroup(RequestparamlistLayout.createSequentialGroup()
+                        .addComponent(requestparamignorebutton)
+                        .addGap(18, 18, 18)
+                        .addComponent(requestparamconsiderbutton)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(self.Requestparamnonebutton))
+                    .addComponent(self.requestparamlist, GroupLayout.PREFERRED_SIZE, 331, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(Requestparamlabel3))
+                .addContainerGap(267, Short.MAX_VALUE))
+        );
+        RequestparamlistLayout.setVerticalGroup(
+            RequestparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(RequestparamlistLayout.createSequentialGroup()
+                .addComponent(Requestparamlabel)
+                .addGap(18, 18, 18)
+                .addGroup(RequestparamlistLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(requestparamignorebutton)
+                    .addComponent(requestparamconsiderbutton)
+                    .addComponent(self.Requestparamnonebutton))
+                .addGap(17, 17, 17)
+                .addComponent(Requestparamlabel3)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.requestparamlist, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
+        
+
+        Responseparamlist.setLayer(Responseparamlabel1, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(responseparamignorebutton1, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(responseparamconsiderbutton1, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(self.responseparamlist1, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(Responseparamlabel4, JLayeredPane.DEFAULT_LAYER);
+        Responseparamlist.setLayer(self.responseparamnonebutton, JLayeredPane.DEFAULT_LAYER);
+
+        ResponseparamlistLayout = GroupLayout(Responseparamlist);
+        Responseparamlist.setLayout(ResponseparamlistLayout);
+        ResponseparamlistLayout.setHorizontalGroup(
+            ResponseparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(ResponseparamlistLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(ResponseparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(Responseparamlabel1)
+                    .addGroup(ResponseparamlistLayout.createSequentialGroup()
+                        .addComponent(responseparamignorebutton1)
+                        .addGap(18, 18, 18)
+                        .addComponent(responseparamconsiderbutton1)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(self.responseparamnonebutton))
+                    .addComponent(self.responseparamlist1, GroupLayout.PREFERRED_SIZE, 331, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(Responseparamlabel4))
+                .addContainerGap(261, Short.MAX_VALUE))
+        );
+        ResponseparamlistLayout.setVerticalGroup(
+            ResponseparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(ResponseparamlistLayout.createSequentialGroup()
+                .addComponent(Responseparamlabel1)
+                .addGap(18, 18, 18)
+                .addGroup(ResponseparamlistLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(responseparamignorebutton1)
+                    .addComponent(responseparamconsiderbutton1)
+                    .addComponent(self.responseparamnonebutton))
+                .addGap(17, 17, 17)
+                .addComponent(Responseparamlabel4)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.responseparamlist1, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 42, Short.MAX_VALUE))
+        );
+
+
+
+        # Config Tab UI Placement options
         self.requestlayerpane.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
         self.requestlayerpane.setLayer(self.Requestypelabel, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.CustomBodyRadio, JLayeredPane.DEFAULT_LAYER);
@@ -704,18 +911,23 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(self.autoencryptlayerpane)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
-                            .addComponent(self.requestscriptfilelayerpane)
-                            .addComponent(self.responescriptfilelayerpane)))
                     .addGroup(GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(self.requestlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(self.additionallayerpane)))
+                        .addComponent(self.additionallayerpane))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(self.autoencryptlayerpane)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
+                            .addComponent(self.requestscriptfilelayerpane)
+                            .addComponent(self.responescriptfilelayerpane)))
+                    .addGroup(GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(Requestparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(Responseparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addGap(18, 18, 18))
         );
         layout.setVerticalGroup(
@@ -734,8 +946,13 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                         .addComponent(self.requestscriptfilelayerpane)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(self.responescriptfilelayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(843, Short.MAX_VALUE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
+                    .addComponent(Requestparamlist)
+                    .addComponent(Responseparamlist))
+                .addContainerGap(657, Short.MAX_VALUE))
         );
+
 
         
     
@@ -755,6 +972,9 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         elif selected.getText() == "None":
             self.selectedresponsetpye = "None"
             self.ResponseTypeNoneRadio.setSelected(True)
+
+        if selected.getText() not in ["JSON Value", "JSON Key and Value"]:
+            self.responseparamnonebutton.setSelected(True);
 
 
 
@@ -781,6 +1001,45 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self.selectedrequesttpye = "None"
             self.Autoencryptonoffbutton.setEnabled(False)
             self.Autoencryptonoffbutton.setSelected(False)
+
+        if selected.getText() not in ["Parameter Value", "Parameter Key and Value"]:
+            self.Requestparamnonebutton.setSelected(True);
+        
+
+
+
+
+    # Listener for Request Ignore or exclude parameters radio button
+    def requestparamlistener(self,e):
+        selected = e.getSource()
+        if not selected.getText() == "None":
+            if self.selectedrequesttpye not in ["Parameter Value", "Parameter Key and Value"]:
+                self.Requestparamnonebutton.setSelected(True);
+                JOptionPane.showMessageDialog(None, "Selected Request type should be Parameter Value or Parameter Key and Value", "Error", JOptionPane.ERROR_MESSAGE)
+
+            else:
+                if self.requestparamlist.getText().strip() == "":
+                    self.responseparamnonebutton.setSelected(True);
+                    JOptionPane.showMessageDialog(None, "Parameter list cannot be empty", "Error", JOptionPane.ERROR_MESSAGE)
+                else:
+                    self.selected_request_inc_ex_ctype = selected.getText()
+
+
+    # Listener for Response Ignore or exclude parameters radio button
+    def responseparamlistener(self,e):
+        selected = e.getSource()
+        if not selected.getText() == "None":
+            if self.selectedresponsetpye  not in ["JSON Value", "JSON Key and Value"]:
+                self.responseparamnonebutton.setSelected(True);
+                JOptionPane.showMessageDialog(None, "Selected Response type should be JSON Value or JSON Key and Value", "Error", JOptionPane.ERROR_MESSAGE)
+
+            else:
+                if self.responseparamlist1.getText().strip() == "":
+                    self.responseparamnonebutton.setSelected(True);
+                    JOptionPane.showMessageDialog(None, "Parameter list cannot be empty", "Error", JOptionPane.ERROR_MESSAGE)
+                else:
+                    self.selected_response_inc_ex_ctype = selected.getText()
+
 
 
 
@@ -810,7 +1069,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self.callbacks.saveExtensionSetting("responsedecryptionfilesave", self.responsedecryptionfilepath)
 
 
-    # Handles Import for the Encryption File
+    # Handles Import for the Encryption File for request
     def importencryptionjsfile(self,e):
         chooseFile = JFileChooser()
         filter = FileNameExtensionFilter("js files", ["js"])
@@ -824,7 +1083,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             
 
 
-    # Handle Import for Decryption File
+    # Handle Import for Decryption File for request
     def importdecryptionjsfile(self,e):
         chooseFile = JFileChooser()
         filter = FileNameExtensionFilter("js files", ["js"])
@@ -838,7 +1097,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             
 
 
-    # Returning the Extension Tab name to burp
+    # Returning the Extension Tab name to burp ITAB
     def getTabCaption(self):
         return "PyCript"
 
@@ -849,22 +1108,14 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
   
     
-    # Auto Encrypt the request and modify the request
+    # Auto Encrypt the request with IHttprequest listner
     def processHttpMessage(self, toolFlag, messageIsRequest, messageInfo):
         if messageIsRequest:
             toolname = self.callbacks.getToolName(toolFlag)
-            
-            
             if toolname in self.tooltypelist and self.callbacks.isInScope(self.helpers.analyzeRequest(messageInfo).getUrl()):
-
                 request = self.helpers.analyzeRequest(messageInfo)
-                bodyoffset = request.getBodyOffset()
-                self.header = request.getHeaders()
-                self.stringrequest = self.helpers.bytesToString(messageInfo.getRequest())
-                self.body = self.stringrequest[bodyoffset:len(self.stringrequest)]
-
-                
-                messageInfo.setRequest(EncryptRequest(self,messageInfo))
+                currentreq = messageInfo.getRequest()
+                messageInfo.setRequest(EncryptRequest(self,currentreq,request))
 
 
     # Listener for Auto Encrpyt the request 
@@ -923,7 +1174,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         menu_list.append(JMenuItem("Decrypt String", None,actionPerformed=lambda x, inv=invocation: self.decryptstring(inv)))
         menu_list.append(JMenuItem("Encrypt String", None,actionPerformed=lambda x, inv=invocation: self.encryptstring(inv)))
         #menu_list.append(JMenuItem("Decrypt Request", None,actionPerformed=lambda x, inv=invocation: self.decryptrequest(inv)))
-        menu_list.append(JMenuItem("Decrypt Request", None,actionPerformed=lambda x, inv=invocation: Thread(target=self.decryptrequest, args=(inv,)).start()))
+        menu_list.append(JMenuItem("Decrypt Request", None,actionPerformed=lambda x, inv=invocation: Thread(target=self.decrypt_request_from_menu, args=(inv,)).start()))
 
        
       
@@ -931,118 +1182,131 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
 
     # Decrypt the selected Request from Menu and Store the Decrypted Request in the Decrypted Request Table
-    def decryptrequest(self,invocation):
+    def decrypt_request_from_menu(self,invocation):
         if not str(self.selectedrequesttpye) == "None":
             reqRes = invocation.getSelectedMessages()
-            for items in reqRes:
+            if reqRes and reqRes != None:
+                for items in reqRes:
+                    
+                    req = self.helpers.analyzeRequest(items)
+                    self.method = req.getMethod()
+                    self.url = items.getUrl()
+                    
+                    self.responseinbytes = items.getResponse()
+                    if self.responseinbytes != None:
+                        self.responseinst = self.helpers.bytesToString(self.responseinbytes)
+                    else:
+                        self.responseinst = "Empty Response"
                 
-                req = self.helpers.analyzeRequest(items)
-                self.method = req.getMethod()
-                self.url = items.getUrl()
+                    currentreq = items.getRequest()
+                    self.decryptedrequest = DecryptRequest(self,currentreq,req)
+                    rowss = self.logTable.getRowCount()
+                    self.sr2 = str((rowss + 1))
+                    httpservice = items.getHttpService()
                 
-                self.responseinbytes = items.getResponse()
-                self.responseinst = self.helpers.bytesToString(self.responseinbytes)
-               
 
-                self.decryptedrequest = DecryptRequest(self,items)
-                rowss = self.logTable.getRowCount()
-                self.sr2 = str((rowss + 1))
-                httpservice = items.getHttpService()
-               
+                    self._lock.acquire()
+                    row = len(self._log)
 
-                self._lock.acquire()
-                row = len(self._log)
-
-                #self.url = self.helpers.analyzeRequest(self.decryptedrequest).getUrl()
-               
-                self._log.append(LogEntry(self.sr2,self.url, self.method,self.decryptedrequest, self.responseinst,httpservice))
-               
-                self.fireTableRowsInserted(row, row)
-                self._lock.release()
+                    #self.url = self.helpers.analyzeRequest(self.decryptedrequest).getUrl()
+                
+                    self._log.append(LogEntry(self.sr2,self.url, self.method,self.decryptedrequest, self.responseinst,httpservice))
+                
+                    self.fireTableRowsInserted(row, row)
+                    self._lock.release()
 
 
 
     # Show the Encrypted String
     def encryptstring(self,invocation):
-        if not str(self.selectedrequesttpye) == "None":
-            http_request_response = invocation.getSelectedMessages()[0]
-            context = invocation.getInvocationContext()
-            self.selection = invocation.getSelectionBounds()
-            if (context == invocation.CONTEXT_MESSAGE_EDITOR_REQUEST or
+        http_request_response = invocation.getSelectedMessages()[0]
+        context = invocation.getInvocationContext()
+        self.selection = invocation.getSelectionBounds()
+        if (context == invocation.CONTEXT_MESSAGE_EDITOR_REQUEST or
                     context == invocation.CONTEXT_MESSAGE_VIEWER_REQUEST
                 ):
-                self.selectedrequst = True
-                message_bytes = http_request_response.getRequest()
+            self.selectedrequst = True
+            message_bytes = http_request_response.getRequest()
+        else:
+            self.selectedrequst = False
+            message_bytes = http_request_response.getResponse()
+
+        text = self.helpers.bytesToString(message_bytes)
+        query = text[self.selection[0]:self.selection[1]]
+
+        if self.selectedrequst:
+            if not str(self.selectedrequesttpye) == "None":
+                encpath = self.encryptionfilepath
             else:
-                self.selectedrequst = False
-                message_bytes = http_request_response.getResponse()
-
-            if self.selectedrequst:
-                if not self.encryptionfilepath == "None":
-                    encpath = self.encryptionfilepath
-                elif not self.responseencryptionfilepath == "None":
-                    encpath = self.responseencryptionfilepath
-            else:
-                if not self.responseencryptionfilepath == "None":
-                    encpath = self.responseencryptionfilepath
-                elif not self.encryptionfilepath == "None":
-                    encpath = self.encryptionfilepath
-
-
-
-            text = self.helpers.bytesToString(message_bytes)
-            query = text[self.selection[0]:self.selection[1]]
-            output = Requestchecker(self,encpath,query,http_request_response)
-            encryptedstring = output.encryptstring()
+            #inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Request Type is not selected to encrypt Request String"))
+                JOptionPane.showMessageDialog(None, "Request Type is not selected to encrypt Request String", "Error", JOptionPane.ERROR_MESSAGE)
+                return
             
         
-        
-            inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str(encryptedstring))
-        
+        elif not self.selectedrequst:
+            if not str(self.selectedresponsetpye) == "None":
+                encpath = self.responseencryptionfilepath
+            else:
+            #inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Response Type is not selected to encrypt Response String"))
+                JOptionPane.showMessageDialog(None, "Response Type is not selected to encrypt Response String", "Error", JOptionPane.ERROR_MESSAGE)
+                return
+            
+
+        if self.selectedrequst:
+            output = StringCrypto(self,encpath,query,http_request_response)
+            encryptedstring = output.encrypt_string_request()
         else:
-            inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Request Type is not selected"))
+            encryptedstring = Parameterencrypt(self.languagecombobox.getSelectedItem(), encpath, query)
+        #JOptionPane.showInputDialog(None, "Encrypted String", "Decryption", JOptionPane.PLAIN_MESSAGE, None, None, encryptedstring)
+        #JOptionPane.showMessageDialog(None, encryptedstring, "String", JOptionPane.INFORMATION_MESSAGE)
+        showEditableDialog(encryptedstring, "Encrypted String")
         
-
-
+        
+        
     # Show Decrypted string Popup 
     def decryptstring(self,invocation):
-
-        if not str(self.selectedrequesttpye) == "None":
-            http_request_response = invocation.getSelectedMessages()[0]
-            context = invocation.getInvocationContext()
-            self.selection = invocation.getSelectionBounds()
-            if (context == invocation.CONTEXT_MESSAGE_EDITOR_REQUEST or
+        http_request_response = invocation.getSelectedMessages()[0]
+        context = invocation.getInvocationContext()
+        self.selection = invocation.getSelectionBounds()
+        if (context == invocation.CONTEXT_MESSAGE_EDITOR_REQUEST or
                     context == invocation.CONTEXT_MESSAGE_VIEWER_REQUEST
                 ):
-                self.selectedrequst = True
-                message_bytes = http_request_response.getRequest()
-            else:
-                self.selectedrequst = False
-                message_bytes = http_request_response.getResponse()
-
-
-            if self.selectedrequst:
-                if not self.decryptionfilepath == "None":
-                    encpath = self.decryptionfilepath
-                elif not self.responsedecryptionfilepath == "None":
-                    encpath = self.responsedecryptionfilepath
-            else:
-                if not self.responsedecryptionfilepath == "None":
-                    encpath = self.responsedecryptionfilepath
-                elif not self.decryptionfilepath == "None":
-                    encpath = self.decryptionfilepath
-
-            text = self.helpers.bytesToString(message_bytes)
-            query = text[self.selection[0]:self.selection[1]]
-            output = Requestchecker(self,encpath,query,http_request_response)
-            decryptedstring = output.decryptstring()
-           
-        
-        
-            inputText = JOptionPane.showInputDialog(None, "Decrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str(decryptedstring))
-        
+            self.selectedrequst = True
+            message_bytes = http_request_response.getRequest()
         else:
-            inputText = JOptionPane.showInputDialog(None, "Decrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Request Type is not selected"))
+            self.selectedrequst = False
+            message_bytes = http_request_response.getResponse()
+
+        text = self.helpers.bytesToString(message_bytes)
+        query = text[self.selection[0]:self.selection[1]]
+
+        if self.selectedrequst:
+            if not str(self.selectedrequesttpye) == "None":
+                encpath = self.decryptionfilepath 
+            else:
+            #inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Request Type is not selected to encrypt Request String"))
+                JOptionPane.showMessageDialog(None, "Request Type is not selected to decrypt Request String", "Error", JOptionPane.ERROR_MESSAGE)
+                return
+            
+        
+        elif not self.selectedrequst:
+            if not str(self.selectedresponsetpye) == "None":
+                encpath = self.responsedecryptionfilepath 
+            else:
+            #inputText = JOptionPane.showInputDialog(None, "Encrypted String", "Encrpytion", JOptionPane.PLAIN_MESSAGE, None, None, str("Response Type is not selected to encrypt Response String"))
+                JOptionPane.showMessageDialog(None, "Response Type is not selected to decrypt Response String", "Error", JOptionPane.ERROR_MESSAGE)
+                return
+        
+        if self.selectedrequst:
+            output = StringCrypto(self,encpath,query,http_request_response)
+            decryptedstring = output.decrypt_string_request()
+        else:
+            decryptedstring = Parameterdecrypt(self.languagecombobox.getSelectedItem(), encpath, query)
+
+        showEditableDialog(decryptedstring, "Decryted String")
+
+        #JOptionPane.showInputDialog(None, "Encrypted String", "Decryption", JOptionPane.PLAIN_MESSAGE, None, None, decryptedstring)
+        #JOptionPane.showMessageDialog(None, encryptedstring, "String", JOptionPane.INFORMATION_MESSAGE)
         
 
 
@@ -1089,7 +1353,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         else:
             self.callbacks.printError("Table is empty")
 
-    
+    def clearerrortext(self,event):
+        errorlogtextbox.setText("")
 
     # Send the Decrypted request to the scanner
     def sendtoscanner(self,event):
@@ -1145,6 +1410,13 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             thread.start()
             
 
+    def delete_selected_items_handler(self,event):
+        row = self.logTable.getSelectedRows()
+        for rows in sorted(row, reverse=True):
+            modelRowIndex = self.logTable.convertRowIndexToModel(rows)
+            self._log.pop(modelRowIndex)
+            self.fireTableDataChanged()
+
    
     #Message Editor Hanlder for Decrpyted Request Messages
     def getHttpService(self):
@@ -1155,6 +1427,65 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
     def getResponse(self):
         return self._currentlyDisplayedresponse
+    
+
+    def getHTMLContent(self):
+        html_content = '''
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+            <meta charset="UTF-8">
+            <style>
+                    ul {
+                    font-size: 13px;
+                    
+                    padding-left: 0;
+                    }
+
+                    li {
+                    margin-bottom: 5px;
+                    }
+                </style>
+
+            </head>
+            <body>
+            <h1 style="color: rgb(237, 121, 5)">Documentation for PyCript</h1>
+
+            <h2>Articles</h2>
+            <ul>
+                <li><a href="https://medium.com/bugbountywriteup/manipulating-encrypted-traffic-using-pycript-b637612528bb">Manipulating Encrypted Traffic using PyCript</a></li>
+                <li><a href="https://medium.com/bugbountywriteup/bypassing-asymmetric-client-side-encryption-without-private-key-822ed0d8aeb6">Bypassing Asymmetric Client Side Encryption Without Private Key</a></li>
+               
+            </ul>
+
+             <h2>Youtube</h2>
+            <ul>
+                <li><a href="https://youtu.be/J8KE5VR8yDk?si=gxw3jDre7a9RMqS6">PyCript Burp Suite Extension: Bypassing Client-Side Encryption For Bug Bounty And Pentesting</a></li>
+                
+            </ul>
+
+            <h2>Documentation</h2>
+            <ul>
+                <li><a href="https://pycript.souravkalal.tech/0.2/">PyCript Documentation</a></li>
+                
+            </ul>
+
+            <h2>Repository</h2>
+            <ul>
+            <li><a href="https://github.com/Anof-cyber/PyCript-Template">PyCript Template Repository with common encryption decrpytion script for PyCript</a></li>
+            <li><a href="https://github.com/Anof-cyber/PyCript">GitHub Repository</a></li>
+            </ul>
+
+
+            <h2>Social Media</h2>
+            <ul>
+            <li><a href="https://twitter.com/ano_f_">Twitter Profile</a></li>
+            <ul>
+            </body>
+            </html>
+        '''
+        return html_content
+
 
 #
 # extend JTable to handle cell selection
@@ -1189,6 +1520,7 @@ class LogEntry:
         self._response = response
         self._service = service
        
+
 class RequestTabFactory(IMessageEditorTabFactory):
     def __init__(self, extender):
         self.extender = extender
@@ -1202,3 +1534,26 @@ class ResponseTabFactory(IMessageEditorTabFactory):
         self.callbacks = self.extender.callbacks
     def createNewInstance(self, controller, editable):
         return ResponeCriptInputTab(self.extender, controller, editable)
+
+
+class MyHyperlinkListener(HyperlinkListener):
+    def hyperlinkUpdate(self, e):
+        if e.getEventType() == e.EventType.ACTIVATED:
+            try:
+                # Open the link in the default system browser
+                uri = URI(str(e.getURL()))
+                desktop = Desktop.getDesktop()
+                desktop.browse(uri)
+            except IOException as ex:
+                ex.printStackTrace()
+
+
+
+
+def showEditableDialog(message, title):
+    text_area = JTextArea(message, 10, 40) 
+    scroll_pane = JScrollPane(text_area)
+
+    pane = JOptionPane(scroll_pane, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_OPTION)
+    dialog = pane.createDialog(None, title)
+    dialog.setVisible(True)

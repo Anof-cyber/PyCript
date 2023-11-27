@@ -1,10 +1,6 @@
 from burp import IMessageEditorTab
-import json
-from .decryption import Jsonvaluedecrypt,Customrequestdecrypt
-from .encryption import Jsonvalueencrypt,Customrequestencrypt
-from collections import OrderedDict
-from requestvalidator import decrypt,encrypt
-from .Reqcheck import DecryptRequest
+from pycript.Reqcheck import DecryptRequest,EncryptRequest
+
 
 class CriptInputTab(IMessageEditorTab):
     def __init__(self, extender, controller, editable):
@@ -26,25 +22,16 @@ class CriptInputTab(IMessageEditorTab):
         
         return self._txtInput.getComponent()
 
-
     def isEnabled(self, content, isRequest):
-        
-        if content and isRequest:
-            if str(self._extender.selectedrequesttpye) == "None":
+        if isRequest:
+            if content is None:
                 return False
 
-            elif str(self._extender.reqresponsecombobox.getSelectedItem()) == "Response":
+            if str(self._extender.selectedrequesttpye) == "None" or str(self._extender.reqresponsecombobox.getSelectedItem()) == "Response":
                 return False
 
-            else:
-                request = self._extender.helpers.analyzeRequest(self.controller.getHttpService(),self.controller.getRequest())
-                if self._extender.callbacks.isInScope(request.getUrl()):
-                    return True
-                else:
-                    return False
-
-        
-
+            return True
+        return False 
 
 
     def setMessage(self, content, isRequest):
@@ -56,15 +43,21 @@ class CriptInputTab(IMessageEditorTab):
         
         else:
             if isRequest:
-
-
-
-                output = decrypt(self._extender,content)
-                self._txtInput.setText(output)
-                self._txtInput.setEditable(True)
+                if self.controller.getHttpService() is not None:
+               
+                    url = self._extender.helpers.analyzeRequest(self.controller.getHttpService(), self.controller.getRequest()).getUrl()
+                    if self._extender.callbacks.isInScope(url):
+                        request = self._extender.helpers.analyzeRequest(content)
+                        output = DecryptRequest(self._extender,content,request)
+                    else:
+                        output = "URL is not added in Scope"
+                        self._txtInput.setEditable(False)
+                    self._txtInput.setText(output)
+                    self._txtInput.setEditable(True)
 
 
         self._currentMessage = content     
+        return 
 
 
 
@@ -72,9 +65,9 @@ class CriptInputTab(IMessageEditorTab):
 
         # determine whether the user modified the  data
         if self._txtInput.isTextModified():
-            # reserialize the data
             editabedbyte = self._txtInput.getText()
-            output = encrypt(self._extender,editabedbyte)
+            req = self._extender.helpers.analyzeRequest(editabedbyte)
+            output = EncryptRequest(self._extender,editabedbyte,req)
             return output
 
 
