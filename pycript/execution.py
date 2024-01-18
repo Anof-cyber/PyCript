@@ -11,8 +11,6 @@ def execute_command(selectedlang, path, data, headervalue=None):
         elif selectedlang == "Java Jar":
             command.extend(["java", "-jar", '"' + path + '"'])  # Surround path with double quotes
 
-        command.extend(["-d", data])
-
         if headervalue is not None:
             command.extend(["-h", headervalue])
 
@@ -22,10 +20,14 @@ def execute_command(selectedlang, path, data, headervalue=None):
         process = subprocess.Popen(
             command_str,
             shell=True,
+            stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True
         )
+
+        stdin_output = process.stdin.write(data.encode())
+        process.stdin.close()
         output, error = process.communicate()
 
         if process.returncode != 0:
