@@ -21,10 +21,13 @@ from pycript.Responsetab import ResponeCriptInputTab
 from pycript.Reqcheck import DecryptRequest,EncryptRequest
 from pycript.stringcrypto import StringCrypto
 from pycript.gui import create_third_tab_elements
+import pycript.buildmessage
 
 errorlogtextbox = None
 errorlogcheckbox = None
 VERSION = "Version 0.3"
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener):
 
@@ -1501,7 +1504,7 @@ class Table(JTable):
         # show the log entry for the selected row
         logEntry = self._extender._log[row]
         self._extender.requestViewer.setMessage(logEntry._request, True)
-        self._extender.responseViewer.setMessage(self._extender.helpers.stringToBytes(logEntry._response), False)
+        self._extender.responseViewer.setMessage(pycript.buildmessage.stringToBytes(logEntry._response), False)
         self._extender._currentlyDisplayedrequest = logEntry._request
         self._extender._currentlyDisplayedresponse = logEntry._response
         self._extender._currentlyDisplayedservice = logEntry._service

@@ -19,11 +19,9 @@ def execute_command(selectedlang, path, data, headervalue=None):
 
         process = subprocess.Popen(
             command_str,
-            shell=True,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True
         )
 
         stdin_output = process.stdin.write(data.encode())
@@ -36,7 +34,7 @@ def execute_command(selectedlang, path, data, headervalue=None):
         else:
             logerrors(output.strip())
             output = output.strip()
-            return output if output else False
+            return output.decode('GBK').encode('utf-8') if output else False
     except Exception as e:
         logerrors(str(e))
         return False
