@@ -1,24 +1,31 @@
 import subprocess
-from .gui import logerrors
 import os
+import sys
+from .gui import logerrors
 def get_login_shell_env():
-    # Determine the user's login shell
-    shell = os.environ.get('SHELL', '/bin/sh')
+    if sys.platform == "win32":
+        return os.environ.copy()
+    try:
+        # Determine the user's login shell
+        shell = os.environ.get('SHELL', '/bin/sh')
 
-    # Run the login shell and echo the environment
-    cmd = [shell, '-l', '-c', 'env']
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        # Run the login shell and echo the environment
+        cmd = [shell, '-l', '-c', 'env']
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
-    # Parse the output into a dictionary
-    env = {}
-    for line in proc.stdout:
-        line = line.decode('utf-8').strip()
-        if '=' in line:
-            key, value = line.split('=', 1)
-            env[key] = value
+        # Parse the output into a dictionary
+        env = {}
+        for line in proc.stdout:
+            line = line.decode('utf-8').strip()
+            if '=' in line:
+                key, value = line.split('=', 1)
+                env[key] = value
 
-    proc.wait()
-    return env
+        proc.wait()
+        return env
+    except Exception as e:
+        logerrors(str(e))
+        return os.environ.copy()
 
 login_env = get_login_shell_env()
 
