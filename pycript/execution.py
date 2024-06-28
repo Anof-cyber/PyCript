@@ -1,5 +1,26 @@
 import subprocess
 from .gui import logerrors
+import os
+def get_login_shell_env():
+    # Determine the user's login shell
+    shell = os.environ.get('SHELL', '/bin/sh')
+
+    # Run the login shell and echo the environment
+    cmd = [shell, '-l', '-c', 'env']
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+
+    # Parse the output into a dictionary
+    env = {}
+    for line in proc.stdout:
+        line = line.decode('utf-8').strip()
+        if '=' in line:
+            key, value = line.split('=', 1)
+            env[key] = value
+
+    proc.wait()
+    return env
+
+login_env = get_login_shell_env()
 
 def execute_command(selectedlang, path, data, headervalue=None):
     try:
@@ -22,6 +43,7 @@ def execute_command(selectedlang, path, data, headervalue=None):
         process = subprocess.Popen(
             command_str,
             shell=True,
+            env=login_env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True
