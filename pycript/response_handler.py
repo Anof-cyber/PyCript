@@ -5,7 +5,7 @@ from .utils import update_json_value, update_json_key_value
 
 
 def encrypt_decrypt_response(extender,currentresp,response,enc_dec,enc_dec_type):
-    selectedlang = extender.languagecombobox.getSelectedItem()
+    selectedlang = extender.languagepath.getText()
     if enc_dec_type== "Decrypt":
         enc_dec_file_path = extender.responsedecryptionfilepath
     else:

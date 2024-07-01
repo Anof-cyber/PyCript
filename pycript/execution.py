@@ -1,17 +1,13 @@
 import subprocess
 from .gui import logerrors
-
+import os 
 def execute_command(selectedlang, path, data, headervalue=None):
     try:
         command = []
-        if selectedlang == "JavaScript":
-            command.extend(["node", '"' + path + '"'])  # Surround path with double quotes
-        elif selectedlang == "Python":
-            command.extend(["python", '"' + path + '"'])  # Surround path with double quotes
-        elif selectedlang == "Java Jar":
-            command.extend(["java", "-jar", '"' + path + '"'])  # Surround path with double quotes
+        if selectedlang:
+            command.append('"' + selectedlang + '"')
 
-        command.extend(["-d", data])
+        command.extend(['"' + path + '"',"-d", data])
 
         if headervalue is not None:
             command.extend(["-h", headervalue])

@@ -9,7 +9,7 @@ from .utils import update_json_value, update_json_key_value,process_custom_heade
 
 def EncryptRequest(extender, currentreq,req):
     encryptionpath = extender.encryptionfilepath
-    selectedlang = extender.languagecombobox.getSelectedItem()
+    selectedlang = extender.languagepath.getText()
     selected_method = extender.reqmethodcombobox.getSelectedItem()
     parameters = req.getParameters()
     header = req.getHeaders()  # Get Array/last format header from burp header api (used for Custom Request)
@@ -44,7 +44,7 @@ def EncryptRequest(extender, currentreq,req):
 ## Function to decrypt request when Burp Menu to decrypt request is triggered
 def DecryptRequest(extender, currentreq,req):
     decryptionpath = extender.decryptionfilepath
-    selectedlang = extender.languagecombobox.getSelectedItem()
+    selectedlang = extender.languagepath.getText()
     selected_method = extender.reqmethodcombobox.getSelectedItem()
     selected_request_inc_ex_ctype = extender.selected_request_inc_ex_ctype
     listofparam = extender.requestparamlist.getText().split(',')
