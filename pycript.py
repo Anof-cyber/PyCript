@@ -24,7 +24,7 @@ from pycript.gui import create_third_tab_elements
 
 errorlogtextbox = None
 errorlogcheckbox = None
-VERSION = "Version 0.3"
+VERSION = "Version 0.4"
 
 class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener):
 
