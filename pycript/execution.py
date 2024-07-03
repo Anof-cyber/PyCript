@@ -1,8 +1,23 @@
 import subprocess
 from .gui import logerrors
-import os 
+import tempfile
+from os import remove
+import json
+
 def execute_command(selectedlang, path, data, headervalue=None):
     try:
+
+        content = {
+            "data": data
+        }
+        if headervalue is not None:
+            content["header"] = headervalue
+
+        with tempfile.NamedTemporaryFile(delete=False, mode='w') as temp_file:
+            json.dump(content, temp_file)
+            temp_file_path = temp_file.name
+
+
         command = []
         if selectedlang:
             command.append('"' + selectedlang + '"')
@@ -11,10 +26,10 @@ def execute_command(selectedlang, path, data, headervalue=None):
             command.extend(["-jar"])
 
 
-        command.extend(['"' + path + '"',"-d", data])
+        command.extend(['"' + path + '"',"-d", temp_file_path])
 
-        if headervalue is not None:
-            command.extend(["-h", headervalue])
+        #if headervalue is not None:
+        #    command.extend(["-h", headervalue])
 
         command_str = ' '.join(command)
         logerrors("$ " + command_str)
@@ -27,6 +42,7 @@ def execute_command(selectedlang, path, data, headervalue=None):
             universal_newlines=True
         )
         output, error = process.communicate()
+        remove(temp_file_path)
 
         if process.returncode != 0:
             logerrors(error.strip())
