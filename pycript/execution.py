@@ -25,11 +25,7 @@ def execute_command(selectedlang, path, data, headervalue=None):
         if path.endswith(".jar"):
             command.extend(["-jar"])
 
-
         command.extend(['"' + path + '"',"-d", temp_file_path])
-
-        #if headervalue is not None:
-        #    command.extend(["-h", headervalue])
 
         command_str = ' '.join(command)
         logerrors("$ " + command_str)
