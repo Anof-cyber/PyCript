@@ -107,7 +107,7 @@ def decrypt_and_update_parameters(extender, currentreq, decryptionpath, selected
             elif param.getType() == IParameter.PARAM_JSON:
                 json_object = loads(body)
                 json_object = update_json_value(json_object, selectedlang, decryptionpath,Parameterdecrypt,selected_request_inc_ex_ctype,listofparam)
-                output = extender.helpers.stringToBytes(dumps(json_object))
+                output = extender.helpers.stringToBytes(dumps(json_object,separators=(',', ':')))
                 currentreq = extender.helpers.buildHttpMessage(header, output)
                 break
 
@@ -129,7 +129,7 @@ def decrypt_and_update_parameters(extender, currentreq, decryptionpath, selected
         if selected_method == "BOTH" and param.getType() == IParameter.PARAM_JSON:
                 json_object = loads(body)
                 json_object = update_json_value(json_object, selectedlang, decryptionpath,Parameterdecrypt,selected_request_inc_ex_ctype,listofparam)
-                output = extender.helpers.stringToBytes(dumps(json_object))
+                output = extender.helpers.stringToBytes(dumps(json_object,separators=(',', ':')))
                 currentreq = extender.helpers.buildHttpMessage(header, output)
                 break
     return currentreq
@@ -153,7 +153,7 @@ def decrypt_and_update_parameter_keys_and_values(extender, currentreq, decryptio
             elif param.getType() == IParameter.PARAM_JSON:
                 json_object = loads(body)
                 json_object = update_json_key_value(json_object, selectedlang, decryptionpath,Parameterdecrypt,selected_request_inc_ex_ctype,listofparam)
-                output = extender.helpers.stringToBytes(dumps(json_object))
+                output = extender.helpers.stringToBytes(dumps(json_object,separators=(',', ':')))
                 currentreq = extender.helpers.buildHttpMessage(header, output)
                 break
 
@@ -179,7 +179,7 @@ def decrypt_and_update_parameter_keys_and_values(extender, currentreq, decryptio
         if selected_method == "BOTH" and param.getType() == IParameter.PARAM_JSON:
             json_object = loads(body)
             json_object = update_json_key_value(json_object, selectedlang, decryptionpath,Parameterdecrypt,selected_request_inc_ex_ctype,listofparam)
-            output = extender.helpers.stringToBytes(dumps(json_object))
+            output = extender.helpers.stringToBytes(dumps(json_object,separators=(',', ':')))
             currentreq = extender.helpers.buildHttpMessage(header, output)
             break
 
@@ -199,7 +199,7 @@ def encrypt_and_update_parameters(extender, currentreq, encryptionpath, selected
             elif param.getType() == IParameter.PARAM_JSON:
                 json_object = loads(body)
                 json_object = update_json_value(json_object, selectedlang, encryptionpath, Parameterencrypt,selected_request_inc_ex_ctype,listofparam)
-                output = extender.helpers.stringToBytes(dumps(json_object))
+                output = extender.helpers.stringToBytes(dumps(json_object,separators=(',', ':')))
                 currentreq = extender.helpers.buildHttpMessage(header, output)
                 break
         
@@ -219,7 +219,7 @@ def encrypt_and_update_parameters(extender, currentreq, encryptionpath, selected
         if selected_method == "BOTH" and param.getType() == IParameter.PARAM_JSON:
             json_object = loads(body)
             json_object = update_json_value(json_object, selectedlang, encryptionpath, Parameterencrypt,selected_request_inc_ex_ctype,listofparam)
-            output = extender.helpers.stringToBytes(dumps(json_object))
+            output = extender.helpers.stringToBytes(dumps(json_object,separators=(',', ':')))
             currentreq = extender.helpers.buildHttpMessage(header, output)
             break
 
@@ -245,7 +245,7 @@ def encrypt_and_update_parameter_keys_and_values(extender, currentreq, encryptio
             elif param.getType() == IParameter.PARAM_JSON:
                 json_object = loads(body)
                 json_object = update_json_key_value(json_object, selectedlang, encryptionpath,Parameterencrypt,selected_request_inc_ex_ctype,listofparam)
-                output = extender.helpers.stringToBytes(dumps(json_object))
+                output = extender.helpers.stringToBytes(dumps(json_object,separators=(',', ':')))
                 currentreq = extender.helpers.buildHttpMessage(header, output)
                 break
 
@@ -271,7 +271,7 @@ def encrypt_and_update_parameter_keys_and_values(extender, currentreq, encryptio
         if selected_method == "BOTH" and param.getType() == IParameter.PARAM_JSON:
             json_object = loads(body)
             json_object = update_json_key_value(json_object, selectedlang, encryptionpath,Parameterencrypt,selected_request_inc_ex_ctype,listofparam)
-            output = extender.helpers.stringToBytes(dumps(json_object))
+            output = extender.helpers.stringToBytes(dumps(json_object,separators=(',', ':')))
             currentreq = extender.helpers.buildHttpMessage(header, output)
             break
 
