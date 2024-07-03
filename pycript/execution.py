@@ -7,6 +7,10 @@ def execute_command(selectedlang, path, data, headervalue=None):
         if selectedlang:
             command.append('"' + selectedlang + '"')
 
+        if path.endswith(".jar"):
+            command.extend(["-jar"])
+
+
         command.extend(['"' + path + '"',"-d", data])
 
         if headervalue is not None:
