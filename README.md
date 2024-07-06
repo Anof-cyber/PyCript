@@ -5,7 +5,7 @@
 
 
 
-Pycript is a Burp Suite extension that enables users to encrypt and decrypt requests and response for manual and automated application penetration testing. It also allows users to create custom encryption and decryption logic using JavaScript, Python and Java, allowing for a tailored encryption/decryption process for specific needs.
+Pycript is a Burp Suite extension that enables users to encrypt and decrypt requests and responses for manual and automated application penetration testing. It also allows users to create custom encryption and decryption logic using any language like Python, Go, Nodeja, C, Bash etc allowing for a tailored encryption/decryption process for specific needs.
 
 
 [![Deploy](https://github.com/Anof-cyber/PyCript-Docs/actions/workflows/static.yml/badge.svg)](https://github.com/Anof-cyber/PyCript-Docs/actions/workflows/static.yml)
@@ -37,7 +37,6 @@ Pycript is a Burp Suite extension that enables users to encrypt and decrypt requ
 
 ## Requirements
 
-- Node JS / Python / Java
 - Burp Suite with Jython
     
 ## Features
@@ -76,9 +75,3 @@ Pycript is a Burp Suite extension that enables users to encrypt and decrypt requ
 
 ![PyCript](https://github.com/Anof-cyber/PyCript-Docs/blob/gh-pages/0.2/assets/Custom%20Request%20-%20Example%201.gif?raw=true)
 
-
-![PyCript](https://github.com/Anof-cyber/PyCript-Docs/blob/gh-pages/0.2/assets/Edit%20Header%20-%20Example%201.gif?raw=true)
-
-![PyCript](https://github.com/Anof-cyber/PyCript-Docs/blob/gh-pages/0.2/assets/Paramter%20Value%20-%20Example%201.gif?raw=true)
-
-![PyCript](https://github.com/Anof-cyber/PyCript-Docs/blob/gh-pages/0.2/assets/Paramter%20Key%20and%20value%20-%20Example%201.gif?raw=true)
