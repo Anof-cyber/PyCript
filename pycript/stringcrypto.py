@@ -6,7 +6,7 @@ class StringCrypto:
         self._extender = extender
         self._selectedmessage = query
         self.message = http_request_response
-        self.selectedlang = extender.languagecombobox.getSelectedItem()
+        self.selectedlang = extender.languagepath.getText()
         self.encpath = encpath
         self.header = self.get_headers()
         self.headers_str = self.get_headers_str()

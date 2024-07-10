@@ -24,7 +24,7 @@ from pycript.gui import create_third_tab_elements
 
 errorlogtextbox = None
 errorlogcheckbox = None
-VERSION = "Version 0.3"
+VERSION = "Version 0.4"
 
 class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener):
 
@@ -235,10 +235,21 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.AdditionalSettinglabel.setFont(Font("Segoe UI", 1, 14))
         
         self.languagelabel = JLabel();
-        self.languagelabel.setText("Language");
+        self.languagelabel.setText("Language Binary(ie python.exe emptydirect executable for enc/dec)");
         
-        self.langdata = ("JavaScript", "Python", "Java Jar")
-        self.languagecombobox = JComboBox(self.langdata)
+        
+        #self.langdata = ("JavaScript", "Python", "Java Jar")
+        self.languagejpanel =  JPanel() #JComboBox(self.langdata)
+        self.language_select_button = JButton("Select Language Binary Path")
+        self.language_select_button.addActionListener(self.select_language_file_path)
+
+    
+
+        self.languagepath = JTextField(20)
+        self.languagepath.setText("C:/Program Files/nodejs/node.exe")
+        self.languagejpanel.add(self.languagepath,BorderLayout.NORTH)
+        self.languagejpanel.add(self.language_select_button,BorderLayout.NORTH)
+  
 		
         
         self.reqmethodlabel = JLabel();
@@ -675,7 +686,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.additionallayerpane.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
         self.additionallayerpane.setLayer(self.AdditionalSettinglabel, JLayeredPane.DEFAULT_LAYER);
         self.additionallayerpane.setLayer(self.languagelabel, JLayeredPane.DEFAULT_LAYER);
-        self.additionallayerpane.setLayer(self.languagecombobox, JLayeredPane.DEFAULT_LAYER);
+        self.additionallayerpane.setLayer(self.languagejpanel, JLayeredPane.DEFAULT_LAYER);
         self.additionallayerpane.setLayer(self.reqmethodlabel, JLayeredPane.DEFAULT_LAYER);
         self.additionallayerpane.setLayer(self.reqmethodcombobox, JLayeredPane.DEFAULT_LAYER);
         self.additionallayerpane.setLayer(self.reqresponselabel, JLayeredPane.DEFAULT_LAYER);
@@ -695,7 +706,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                             .addGroup(self.additionallayerpaneLayout.createSequentialGroup()
                                 .addComponent(self.languagelabel)
                                 .addGap(18, 18, 18)
-                                .addComponent(self.languagecombobox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(self.languagejpanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(self.reqmethodcombobox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                     .addGroup(self.additionallayerpaneLayout.createSequentialGroup()
@@ -712,7 +723,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(self.languagelabel)
-                    .addComponent(self.languagecombobox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                    .addComponent(self.languagejpanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 40, 40))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(self.reqmethodlabel)
@@ -1095,8 +1107,15 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self.requestdecryptionpath.setText(self.decryptionfilepath)
             self.callbacks.saveExtensionSetting("requestdecryptionfilesave", self.decryptionfilepath)
             
-
-
+    # handle language binrary path 
+    def select_language_file_path(self,e):
+        chooseFile = JFileChooser()
+        ret = chooseFile.showDialog(self.tab, "Choose file")
+        if ret == JFileChooser.APPROVE_OPTION:
+            fileLoad = chooseFile.getSelectedFile()
+            self.languagefullpath = fileLoad.getAbsolutePath()
+            self.languagepath.setText(self.languagefullpath)
+            
     # Returning the Extension Tab name to burp ITAB
     def getTabCaption(self):
         return "PyCript"
@@ -1256,7 +1275,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             output = StringCrypto(self,encpath,query,http_request_response)
             encryptedstring = output.encrypt_string_request()
         else:
-            encryptedstring = Parameterencrypt(self.languagecombobox.getSelectedItem(), encpath, query)
+            encryptedstring = Parameterencrypt(self.languagepath.getText(), encpath, query)
         #JOptionPane.showInputDialog(None, "Encrypted String", "Decryption", JOptionPane.PLAIN_MESSAGE, None, None, encryptedstring)
         #JOptionPane.showMessageDialog(None, encryptedstring, "String", JOptionPane.INFORMATION_MESSAGE)
         showEditableDialog(encryptedstring, "Encrypted String")
@@ -1301,7 +1320,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             output = StringCrypto(self,encpath,query,http_request_response)
             decryptedstring = output.decrypt_string_request()
         else:
-            decryptedstring = Parameterdecrypt(self.languagecombobox.getSelectedItem(), encpath, query)
+            decryptedstring = Parameterdecrypt(self.languagepath.getText(), encpath, query)
 
         showEditableDialog(decryptedstring, "Decryted String")
 
