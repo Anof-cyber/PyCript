@@ -88,6 +88,69 @@ def update_json_key_value(json_obj, selectedlang, decryptionpath,enc_dec ,select
 
     return json_obj
 
+def update_raw_value(parameter_value, selectedlang, encryptionpath, enc_dec, selected_request_response_inc_ex_ctype,listofparam):
+    # Check if selectedreq_incexctype is None
+    param_name = parameter_value.getName()
+    param_value = parameter_value.getValue()
+    
+    if selected_request_response_inc_ex_ctype is None:
+        # Process all parameters in the parameter_valueect
+        new_value = enc_dec(selectedlang, encryptionpath, param_value)
+
+    else:
+        # Process parameters based on selectedparamtertype
+        if selected_request_response_inc_ex_ctype == "Include Parameters":
+            if isinstance(str(param_name), str):
+                    if param_name in listofparam:
+                            new_value = enc_dec(selectedlang, encryptionpath, param_value)
+                    else:
+                            new_value = param_value
+            else:
+                    if param_name in listofparam:
+                        new_value = enc_dec(selectedlang, encryptionpath, param_value)         
+               
+        elif selected_request_response_inc_ex_ctype == "Exclude Parameters":
+                if isinstance(str(param_name), str):
+                    if param_name not in listofparam:
+                            new_value = enc_dec(selectedlang, encryptionpath, param_value)
+                    else:
+                            new_value = param_value
+                else:
+                    if param_name not in listofparam:
+                        new_value = enc_dec(selectedlang, encryptionpath, param_value)
+    
+    return new_value
+
+def update_raw_key_value(param, selectedlang, encryptionpath, enc_dec ,selected_request_response_inc_ex_ctype,listofparam):
+    if selected_request_response_inc_ex_ctype is None:
+            new_param = param.getName()
+            new_value = param.getValue()
+            encrypted_param_name = enc_dec(selectedlang, encryptionpath, new_param)
+            encrypted_param_value = enc_dec(selectedlang, encryptionpath, new_value)
+           
+    elif selected_request_response_inc_ex_ctype == "Include Parameters":
+            if param.getName() in listofparam:
+                new_param = param.getName()
+                new_value = param.getValue()
+                encrypted_param_name = enc_dec(selectedlang, encryptionpath, new_param)
+                encrypted_param_value = enc_dec(selectedlang, encryptionpath, new_value)
+            else:
+                encrypted_param_name = param.getName()
+                encrypted_param_value = param.getValue()
+
+    elif selected_request_response_inc_ex_ctype == "Exclude Parameters":
+            if param.getName() not in listofparam:
+                new_param = param.getName()
+                new_value = param.getValue()
+                encrypted_param_name = enc_dec(selectedlang, encryptionpath, new_param)
+                encrypted_param_value = enc_dec(selectedlang, encryptionpath, new_value)
+            else:
+                encrypted_param_name = param.getName()
+                encrypted_param_value = param.getValue()
+    else:
+        encrypted_param_name = param.getName()
+        encrypted_param_value = param.getValue()
+    return encrypted_param_name, encrypted_param_value
 
 
 def update_json_value(json_obj, selectedlang, decryptionpath, enc_dec, selected_request_response_inc_ex_ctype,listofparam):
