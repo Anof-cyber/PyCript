@@ -41,7 +41,6 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         # Informing Burp suite the name of the extension
         callbacks.setExtensionName("PyCript")
         callbacks.printOutput("Author: Sourav Kalal")
-        callbacks.printOutput("Contributor: Parimal Shaw")
         callbacks.printOutput(VERSION)
         callbacks.printOutput("GitHub - https://github.com/Anof-cyber/PyCript")
         callbacks.printOutput("Website - https://souravkalal.tech/")
@@ -247,8 +246,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
     
 
         self.languagepath = JTextField(20)
-        #Setting the default value as "node.exe" due to windows Unquoted Path Issue
-        self.languagepath.setText("node.exe")
+        self.languagepath.setText("C:/Program Files/nodejs/node.exe")
         self.languagejpanel.add(self.languagepath,BorderLayout.NORTH)
         self.languagejpanel.add(self.language_select_button,BorderLayout.NORTH)
   
