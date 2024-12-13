@@ -7,6 +7,7 @@ SerialVersion: 2
 MinPlatformVersion: 0
 ProOnly: False
 Author: Sourav Kalal/AnoF
+Contributor: Parimal Shaw
 ShortDescription: Bypass client-side encryption using custom logic for manual and automation testing
 EntryPoint: pycript.py
 BuildCommand: 
