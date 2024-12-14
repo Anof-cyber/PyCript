@@ -88,10 +88,10 @@ def update_json_key_value(json_obj, selectedlang, decryptionpath,enc_dec ,select
 
     return json_obj
 
-def update_raw_value(parameter_value, selectedlang, encryptionpath, enc_dec, selected_request_response_inc_ex_ctype,listofparam):
+def update_raw_value(param, selectedlang, encryptionpath, enc_dec, selected_request_response_inc_ex_ctype,listofparam):
     # Check if selectedreq_incexctype is None
-    param_name = parameter_value.getName()
-    param_value = parameter_value.getValue()
+    param_name = param.getName()
+    param_value = param.getValue()
     
     if selected_request_response_inc_ex_ctype is None:
         # Process all parameters in the parameter_valueect
@@ -150,6 +150,7 @@ def update_raw_key_value(param, selectedlang, encryptionpath, enc_dec ,selected_
     else:
         encrypted_param_name = param.getName()
         encrypted_param_value = param.getValue()
+    
     return encrypted_param_name, encrypted_param_value
 
 
