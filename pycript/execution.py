@@ -16,7 +16,6 @@ def execute_command(selectedlang, path, data, headervalue=None):
         with tempfile.NamedTemporaryFile(delete=False, mode='w') as temp_file:
             json.dump(content, temp_file)
             temp_file_path = temp_file.name
-            print(temp_file_path)
 
 
         command = []
