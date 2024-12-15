@@ -1,5 +1,5 @@
-from .decryption import Parameterdecrypt, Customrequestdecrypt,Customeditrequestdecrypt
-from .encryption import Parameterencrypt, Customrequestencrypt,Customeditrequestencrypt
+from .decryption import Parameterdecrypt
+from .encryption import Parameterencrypt
 
 class StringCrypto:
     def __init__(self, extender, encpath, query, http_request_response):
@@ -26,33 +26,15 @@ class StringCrypto:
         body_offset = request_info.getBodyOffset()
         headers_str = request_str[:body_offset].strip()
         return headers_str
-
+    ### String Encryption Decryption Cannot Modify the header, Can read headers only for string from request
     def encrypt_string_request(self):
  
 
-        if self._extender.selectedrequesttpye == "Custom Request":
-            encrypted = Customrequestencrypt(self.selectedlang, self.encpath, str(self.header), self._selectedmessage)
-            return encrypted
-
-        elif self._extender.selectedrequesttpye == "Custom Request (Edit Header)":
-            encrypted = Customeditrequestencrypt(self.selectedlang, self.encpath, str(self.headers_str), self._selectedmessage)
-            return encrypted
-
-        else:
-            encrypted = Parameterencrypt(self.selectedlang, self.encpath, self._selectedmessage)
-            return encrypted
+        encrypted, _ = Parameterencrypt(self.selectedlang, self.encpath, self._selectedmessage,self.headers_str)
+        return encrypted
 
     def decrypt_string_request(self):
         
 
-        if self._extender.selectedrequesttpye == "Custom Request":
-            decrypted = Customrequestdecrypt(self.selectedlang, self.encpath, str(self.header), self._selectedmessage)
-            return decrypted
-
-        elif self._extender.selectedrequesttpye == "Custom Request (Edit Header)":
-            decrypted = Customeditrequestdecrypt(self.selectedlang, self.encpath, str(self.headers_str), self._selectedmessage)
-            return decrypted
-
-        else:
-            decrypted = Parameterdecrypt(self.selectedlang, self.encpath, self._selectedmessage)
-            return decrypted
+        decrypted, _ = Parameterdecrypt(self.selectedlang, self.encpath, self._selectedmessage,self.headers_str)
+        return decrypted
