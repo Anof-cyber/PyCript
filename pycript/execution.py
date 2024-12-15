@@ -3,21 +3,19 @@ from .gui import logerrors
 import tempfile
 from os import remove
 import json
+from .temp_file import parse_temp_file_output
 
 def execute_command(selectedlang, path, data, headervalue=None):
     try:
-
-        content = {
-            "data": data
-        }
-        if headervalue is not None:
-            content["header"] = headervalue
-
-        with tempfile.NamedTemporaryFile(delete=False, mode='w') as temp_file:
-            json.dump(content, temp_file)
+        with tempfile.NamedTemporaryFile(delete=False, mode='wb') as temp_file:
+            temp_file.write(data)
+            temp_file.write(b'\n--BODY_END--\n')
+            if headervalue is not None:
+                temp_file.write(headervalue)
             temp_file_path = temp_file.name
+            
 
-
+        
         command = []
         if selectedlang:
             command.append('"' + selectedlang + '"')
@@ -38,15 +36,18 @@ def execute_command(selectedlang, path, data, headervalue=None):
             universal_newlines=True
         )
         output, error = process.communicate()
-        remove(temp_file_path)
+        #remove(temp_file_path)
 
         if process.returncode != 0:
             logerrors(error.strip())
             return False
         else:
             logerrors(output.strip())
-            output = output.strip()
-            return output if output else False
+            body, header = parse_temp_file_output(data,headervalue,temp_file_path)
+            if body:
+                return body, header  
+            else:
+                return False
     except Exception as e:
         logerrors(str(e))
         return False

@@ -179,22 +179,21 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.paramkeyvalueRadio.setText("Parameter Key and Value");
         self.paramkeyvalueRadio.addActionListener(self.requestypelistner)
 		
-        self.CustomRequestRadio = JRadioButton();
-        self.RequestTypeRadioGroup.add(self.CustomRequestRadio);
-        self.CustomRequestRadio.setText("Custom Request");
-        self.CustomRequestRadio.addActionListener(self.requestypelistner)
+        #self.CustomRequestRadio = JRadioButton();
+        #self.RequestTypeRadioGroup.add(self.CustomRequestRadio);
+        #self.CustomRequestRadio.setText("Custom Request");
+        #self.CustomRequestRadio.addActionListener(self.requestypelistner)
 		
-        self.CustomRequestheaderRadio = JRadioButton();
-        self.RequestTypeRadioGroup.add(self.CustomRequestheaderRadio);
-        self.CustomRequestheaderRadio.setText("Custom Request (Edit Header)");
-        self.CustomRequestheaderRadio.addActionListener(self.requestypelistner)
+        #self.CustomRequestheaderRadio = JRadioButton();
+        #self.RequestTypeRadioGroup.add(self.CustomRequestheaderRadio);
+        #self.CustomRequestheaderRadio.setText("Custom Request (Edit Header)");
+        #self.CustomRequestheaderRadio.addActionListener(self.requestypelistner)
 		
         self.RequestTypeNoneRadio = JRadioButton();
         self.RequestTypeRadioGroup.add(self.RequestTypeNoneRadio);
         self.RequestTypeNoneRadio.setText("None");
         self.RequestTypeNoneRadio.setSelected(True)
         self.RequestTypeNoneRadio.addActionListener(self.requestypelistner)
-		
 		
 		# Response Type UI
         self.responslayerpane = JLayeredPane();
@@ -585,8 +584,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.requestlayerpane.setLayer(self.CustomBodyRadio, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.parametervalueRadio, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.paramkeyvalueRadio, JLayeredPane.DEFAULT_LAYER);
-        self.requestlayerpane.setLayer(self.CustomRequestRadio, JLayeredPane.DEFAULT_LAYER);
-        self.requestlayerpane.setLayer(self.CustomRequestheaderRadio, JLayeredPane.DEFAULT_LAYER);
+        #self.requestlayerpane.setLayer(self.CustomRequestRadio, JLayeredPane.DEFAULT_LAYER);
+        #self.requestlayerpane.setLayer(self.CustomRequestheaderRadio, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.RequestTypeNoneRadio, JLayeredPane.DEFAULT_LAYER);
 
         self.requestlayerpaneLayout = GroupLayout(self.requestlayerpane);
@@ -601,11 +600,10 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                         .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                             .addComponent(self.CustomBodyRadio)
                             .addComponent(self.paramkeyvalueRadio)
-                            .addComponent(self.CustomRequestheaderRadio))
-                        .addGap(2, 2, 2)
+                            )
                         .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                             .addComponent(self.RequestTypeNoneRadio)
-                            .addComponent(self.CustomRequestRadio)
+                           
                             .addComponent(self.parametervalueRadio))))
                 .addContainerGap(53, Short.MAX_VALUE))
         );
@@ -621,11 +619,9 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(self.paramkeyvalueRadio)
-                    .addComponent(self.CustomRequestRadio))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(self.RequestTypeNoneRadio)
-                    .addComponent(self.CustomRequestheaderRadio))
+                   )
+               
                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -1277,9 +1273,9 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
         if self.selectedrequst:
             output = StringCrypto(self,encpath,query,http_request_response)
-            encryptedstring = output.encrypt_string_request()
+            encryptedstring, _ = output.encrypt_string_request()
         else:
-            encryptedstring = Parameterencrypt(self.languagepath.getText(), encpath, query)
+            encryptedstring, _ = Parameterencrypt(self.languagepath.getText(), encpath, query)
         #JOptionPane.showInputDialog(None, "Encrypted String", "Decryption", JOptionPane.PLAIN_MESSAGE, None, None, encryptedstring)
         #JOptionPane.showMessageDialog(None, encryptedstring, "String", JOptionPane.INFORMATION_MESSAGE)
         showEditableDialog(encryptedstring, "Encrypted String")
@@ -1322,9 +1318,10 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         
         if self.selectedrequst:
             output = StringCrypto(self,encpath,query,http_request_response)
-            decryptedstring = output.decrypt_string_request()
+            decryptedstring, _ = output.decrypt_string_request()
         else:
-            decryptedstring = Parameterdecrypt(self.languagepath.getText(), encpath, query)
+            ## response does not need header to be passed hence its always empty for response 
+            decryptedstring, _ = Parameterdecrypt(self.languagepath.getText(), encpath, query)
 
         showEditableDialog(decryptedstring, "Decryted String")
 
