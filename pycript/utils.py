@@ -169,7 +169,7 @@ def update_json_value(json_obj, selectedlang, decryptionpath, enc_dec, selected_
                     else:
                         value[i] , _ = enc_dec(selectedlang, decryptionpath, value[i],headers_str)
             else:
-                value , _ = enc_dec(selectedlang, decryptionpath, value),headers_str
+                value , _ = enc_dec(selectedlang, decryptionpath, value,headers_str)
                 json_obj[key] = value
 
     else:

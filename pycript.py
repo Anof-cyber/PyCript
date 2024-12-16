@@ -21,7 +21,7 @@ from pycript.Responsetab import ResponeCriptInputTab
 from pycript.Reqcheck import DecryptRequest,EncryptRequest
 from pycript.stringcrypto import StringCrypto
 from pycript.gui import create_third_tab_elements
-
+from pycript.gethelpers import set_helpers
 errorlogtextbox = None
 errorlogcheckbox = None
 VERSION = "Version 0.4"
@@ -32,6 +32,9 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
     def registerExtenderCallbacks(self, callbacks):
         self.callbacks = callbacks
         self.helpers = callbacks.getHelpers()
+
+        ## Passing Helper to set helper, To access it globally, all data passes through helper string <--> byte conversion method
+        set_helpers(self.helpers)
         self.tooltypelist = []
 
         # Allowing debugging
