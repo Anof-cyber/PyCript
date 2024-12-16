@@ -51,6 +51,7 @@ def DecryptRequest(extender, currentreq,req):
     body, headers_str = extract_body_and_headers(request_inst, req)
     
     if str(extender.selectedrequesttpye) == "Complete Body":
+        # Byte arrays will be passed for body instead of strings to allow non ascii and binary data 
         decrypted_value, updated_header = Parameterdecrypt(selectedlang, decryptionpath, body,headers_str)
         headerlist = process_custom_headers(updated_header)
         return extender.helpers.buildHttpMessage(headerlist, decrypted_value)
