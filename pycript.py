@@ -1,4 +1,4 @@
-from burp import (IBurpExtender, ITab,IMessageEditorTabFactory,IMessageEditorTab,IContextMenuFactory, IContextMenuInvocation,IMessageEditorController,IHttpListener)
+from burp import (IBurpExtender, ITab,IMessageEditorTabFactory,IMessageEditorTab,IContextMenuFactory, IContextMenuInvocation,IMessageEditorController,IHttpListener,IExtensionStateListener)
 from java.awt import (BorderLayout,Font,Color)
 from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,JTextArea,
 JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu,JTextField,JEditorPane)
@@ -9,7 +9,7 @@ from java.lang import Short
 import sys
 from threading import Thread,Lock
 from java.awt.event import MouseAdapter
-from java.awt import Desktop
+from java.awt import Desktop, ComponentOrientation
 from java.net import URI
 from java.io import IOException
 from javax.swing.event import HyperlinkListener
@@ -22,12 +22,12 @@ from pycript.Reqcheck import DecryptRequest,EncryptRequest
 from pycript.stringcrypto import StringCrypto
 from pycript.gui import create_third_tab_elements
 from pycript.gethelpers import set_helpers
-from pycript.temp_file import create_temp_dir
+from pycript.temp_file import create_temp_dir, delete_temp_folder
 errorlogtextbox = None
 errorlogcheckbox = None
 VERSION = "Version 0.4"
 
-class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener):
+class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener,IExtensionStateListener):
 
 
     def registerExtenderCallbacks(self, callbacks):
@@ -52,7 +52,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         callbacks.printOutput("Documentation - https://pycript.souravkalal.tech/")
         
         callbacks.registerContextMenuFactory(self)
-
+        callbacks.registerExtensionStateListener(self) # delete the temp folder when done 
         #Some Config and data related variables
         self._log = list()
         self._lock = Lock()
@@ -69,9 +69,11 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.tab.add("Center", self.tabbedPane) 
 
         # Creating First Tab as Config Tab
-        self.firstTab = JPanel()
-        self.firstTab.layout = BorderLayout()
-        self.tabbedPane.addTab("Config", self.firstTab)
+        self.firstTab_UI = JPanel()
+        layout = GroupLayout(self.firstTab_UI)
+        self.firstTab = JScrollPane(self.firstTab_UI)
+
+        self.tabbedPane.addTab("Config", self.firstTab_UI)
 
         # Creating Second Tab as Decrypted Request Tab
         self.secondTab = JPanel()
@@ -584,51 +586,60 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
 
         # Config Tab UI Placement options
+        # Set the border and layers for components in the requestlayerpane
+        # Set the border and layers for components in the requestlayerpane
         self.requestlayerpane.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
         self.requestlayerpane.setLayer(self.Requestypelabel, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.CustomBodyRadio, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.parametervalueRadio, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.paramkeyvalueRadio, JLayeredPane.DEFAULT_LAYER);
-        #self.requestlayerpane.setLayer(self.CustomRequestRadio, JLayeredPane.DEFAULT_LAYER);
-        #self.requestlayerpane.setLayer(self.CustomRequestheaderRadio, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.RequestTypeNoneRadio, JLayeredPane.DEFAULT_LAYER);
 
+        # Layout for the requestlayerpane
         self.requestlayerpaneLayout = GroupLayout(self.requestlayerpane);
         self.requestlayerpane.setLayout(self.requestlayerpaneLayout);
+
+        # Set the horizontal group for left-to-right arrangement
         self.requestlayerpaneLayout.setHorizontalGroup(
             self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(self.Requestypelabel)
-                    .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
-                        .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(self.CustomBodyRadio)
-                            .addComponent(self.paramkeyvalueRadio)
+                .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(self.Requestypelabel)
+                        .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
+                            .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addComponent(self.CustomBodyRadio)
+                                .addComponent(self.paramkeyvalueRadio)
                             )
-                        .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(self.RequestTypeNoneRadio)
-                           
-                            .addComponent(self.parametervalueRadio))))
-                .addContainerGap(53, Short.MAX_VALUE))
+                            .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addComponent(self.RequestTypeNoneRadio)
+                                .addComponent(self.parametervalueRadio)
+                            )
+                        )
+                    )
+                    .addContainerGap(53, Short.MAX_VALUE)
+                )
         );
+
+        # Set the vertical group for top-to-bottom arrangement
         self.requestlayerpaneLayout.setVerticalGroup(
-            self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
+            self.requestlayerpaneLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(self.Requestypelabel)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(self.CustomBodyRadio)
-                    .addComponent(self.parametervalueRadio))
+                    .addComponent(self.parametervalueRadio)
+                )
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(self.paramkeyvalueRadio)
                     .addComponent(self.RequestTypeNoneRadio)
-                   )
-               
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                )
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
+
+
 
 
 
@@ -917,55 +928,45 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
 
 
-        layout = GroupLayout(self.firstTab);
-        self.firstTab.setLayout(layout);
+        #layout = GroupLayout(self.firstTab);
+        #self.firstTab.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            layout.createSequentialGroup()  # This ensures components are placed horizontally (left to right)
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                    .addGroup(GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(self.requestlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(self.additionallayerpane))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(self.autoencryptlayerpane)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
-                            .addComponent(self.requestscriptfilelayerpane)
-                            .addComponent(self.responescriptfilelayerpane)))
-                    .addGroup(GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(Requestparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(Responseparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addGap(18, 18, 18))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)  # Align components to the left
+                    .addComponent(self.requestlayerpane)
                     .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
-                        .addComponent(self.additionallayerpane)
-                        .addComponent(self.requestlayerpane)))
-                .addGap(31, 31, 31)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
-                    .addComponent(self.autoencryptlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(self.requestscriptfilelayerpane)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(self.responescriptfilelayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
-                    .addComponent(Requestparamlist)
-                    .addComponent(Responseparamlist))
-                .addContainerGap(657, Short.MAX_VALUE))
-        );
+                    .addComponent(self.additionallayerpane)
+                    .addComponent(self.autoencryptlayerpane)
+                    .addComponent(self.requestscriptfilelayerpane)
+                    .addComponent(self.responescriptfilelayerpane)
+                    .addComponent(Requestparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(Responseparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                )
+                .addGap(18, 18, 18)  # Optional gap at the end of the horizontal layout
+        )
 
+        layout.setVerticalGroup(
+            layout.createSequentialGroup()  # Stack components vertically (top to bottom)
+                .addGap(18, 18, 18)  # Optional gap from the top
+                .addComponent(self.requestlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.additionallayerpane)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.autoencryptlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.requestscriptfilelayerpane)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.responescriptfilelayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)  # Align the next row (left to right)
+                    .addComponent(Requestparamlist)
+                    .addComponent(Responseparamlist)
+                )
+                .addContainerGap(657, Short.MAX_VALUE)  # Optional gap at the bottom
+        )
 
         
     
@@ -1442,6 +1443,9 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self._log.pop(modelRowIndex)
             self.fireTableDataChanged()
 
+    def extensionUnloaded(self):
+        # delete temp folders
+        delete_temp_folder()
    
     #Message Editor Hanlder for Decrpyted Request Messages
     def getHttpService(self):
