@@ -2,6 +2,8 @@ import os
 import tempfile
 import random
 import string
+import shutil
+
 from .gui import logerrors
 
 user_home = os.path.expanduser("~")
@@ -49,4 +51,12 @@ def create_temp_dir():
     if not os.path.exists(pycript_dir):
         os.makedirs(pycript_dir)
     temp_dir = tempfile.mkdtemp(dir=pycript_dir)
+    
+
+def delete_temp_folder():
+    if os.path.exists(pycript_dir):
+        shutil.rmtree(pycript_dir)  # Remove the directory and all its contents
+        print("Temporary directory and its contents have been deleted.")
+    else:
+        print("Directory does not exist.")
     
