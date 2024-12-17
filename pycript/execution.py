@@ -22,29 +22,20 @@ def execute_command(selectedlang, path, data, headervalue=None):
         command_str = ' '.join('"{0}"'.format(arg) if ' ' in arg else arg for arg in command)
         logerrors("$ " + command_str)
 
-        process = subprocess.Popen(
-            command_str,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True
-        )
-        output, error = process.communicate()
-        
-        if process.returncode != 0:
-            logerrors(error.strip())
-            remove(temp_file_path)
-            return False
-        else:
+        try:
+            output = subprocess.check_output(command, stderr=subprocess.PIPE)
             logerrors(output.strip())
-            body, header = parse_temp_file_output(data,headervalue,temp_file_path)
+            body, header = parse_temp_file_output(data, headervalue, temp_file_path)
             remove(temp_file_path)
-            body = "g"
-            header = 'h'
             if body:
                 return body, header  
             else:
                 return False
+        except subprocess.CalledProcessError as e:
+            logerrors("Command failed with return code: {}, Error: {}".format(e.returncode, e.output))
+            remove(temp_file_path)
+
+        
     except Exception as e:
         logerrors(str(e))
         #remove(temp_file_path)

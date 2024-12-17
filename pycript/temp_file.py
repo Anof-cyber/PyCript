@@ -2,6 +2,7 @@ import os
 import tempfile
 import random
 import string
+from .gui import logerrors
 
 user_home = os.path.expanduser("~")
 pycript_dir = os.path.join(user_home, ".pycript")
@@ -10,6 +11,9 @@ def parse_temp_file_output(original_data, original_header, temp_file_path):
     with open(temp_file_path, 'rb') as temp_file:
         file_content = temp_file.read()
     body_end_marker = b'\n--BODY_END--\n'
+
+    logerrors("User Script Created File Output:")
+    logerrors(file_content)
 
     # Split the file content using the marker
     parts = file_content.split(body_end_marker, 1)
