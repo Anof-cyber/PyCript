@@ -30,11 +30,11 @@ class StringCrypto:
     def encrypt_string_request(self):
  
 
-        encrypted, _ = Parameterencrypt(self.selectedlang, self.encpath, self._selectedmessage,self.headers_str)
-        return encrypted
+        encrypted, header = Parameterencrypt(self.selectedlang, self.encpath, self._selectedmessage,self.headers_str)
+        return encrypted,header
 
     def decrypt_string_request(self):
         
 
-        decrypted, _ = Parameterdecrypt(self.selectedlang, self.encpath, self._selectedmessage,self.headers_str)
-        return decrypted
+        decrypted, header = Parameterdecrypt(self.selectedlang, self.encpath, self._selectedmessage,self.headers_str)
+        return decrypted,header

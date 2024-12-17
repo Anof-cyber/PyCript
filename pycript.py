@@ -22,6 +22,7 @@ from pycript.Reqcheck import DecryptRequest,EncryptRequest
 from pycript.stringcrypto import StringCrypto
 from pycript.gui import create_third_tab_elements
 from pycript.gethelpers import set_helpers
+from pycript.temp_file import create_temp_dir
 errorlogtextbox = None
 errorlogcheckbox = None
 VERSION = "Version 0.4"
@@ -36,6 +37,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         ## Passing Helper to set helper, To access it globally, all data passes through helper string <--> byte conversion method
         set_helpers(self.helpers)
         self.tooltypelist = []
+        create_temp_dir()
 
         # Allowing debugging
         sys.stdout = callbacks.getStdout()
