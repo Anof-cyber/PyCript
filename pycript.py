@@ -201,6 +201,18 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.RequestTypeNoneRadio.setText("None");
         self.RequestTypeNoneRadio.setSelected(True)
         self.RequestTypeNoneRadio.addActionListener(self.requestypelistner)
+
+        self.selected_req_type = callbacks.loadExtensionSetting('selected_req_type')
+        if self.selected_req_type == "Complete Body":
+            self.CustomBodyRadio.setSelected(True)
+        elif self.selected_req_type == "Parameter Value":
+            self.parametervalueRadio.setSelected(True)
+        elif self.selected_req_type == "Parameter Key and Value":
+            self.paramkeyvalueRadio.setSelected(True)
+        elif self.selected_req_type == "None":
+            self.RequestTypeNoneRadio.setSelected(True)
+        self.selectedrequesttpye = self.selected_req_type
+
 		
 		# Response Type UI
         self.responslayerpane = JLayeredPane();
@@ -230,7 +242,17 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.ResponseTypeNoneRadio.setText("None");
         self.ResponseTypeNoneRadio.setSelected(True)
         self.ResponseTypeNoneRadio.addActionListener(self.responsetypelister)
-		
+
+        self.selected_resp_type_config = callbacks.loadExtensionSetting('selected_resp_type_config')
+        if self.selected_resp_type_config == "Complete Body":
+            self.responseCustomBodyRadio.setSelected(True)
+        elif self.selected_resp_type_config == "JSON Value":
+            self.responsejsonvalueradio.setSelected(True)
+        elif self.selected_resp_type_config == "JSON Key and Value":
+            self.responsejsonkeyvalueradio.setSelected(True)
+        elif self.selected_resp_type_config == "None":
+            self.ResponseTypeNoneRadio.setSelected(True)
+        self.selectedresponsetpye =self.selected_resp_type_config
 		
 		
 		#Additional Setting UI
@@ -255,9 +277,18 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.languagepath.setText("C:/Program Files/nodejs/node.exe")
         self.languagejpanel.add(self.languagepath,BorderLayout.NORTH)
         self.languagejpanel.add(self.language_select_button,BorderLayout.NORTH)
+
+        self.languagepath_config = callbacks.loadExtensionSetting('languagepath_config')
+
+        if not self.languagepath_config == None:
+            self.languagepath.setText(self.languagepath_config)
   
 		
-        
+        self.language_clear_button = JButton("Clear Language Selection")
+        self.language_clear_button.addActionListener(self.language_clear_button_listner)
+        self.languagejpanel.add(self.language_clear_button,BorderLayout.NORTH)
+
+
         self.reqmethodlabel = JLabel();
         self.reqmethodlabel.setText("Encryption and Decryption Method(Only for Request)");
 		
@@ -979,13 +1010,16 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             if None not in (self.responsedecryptionfilepath,self.responseencryptionfilepath):
                 self.ResponseTypeNoneRadio.setSelected(False)
                 self.selectedresponsetpye = selected.getText()
+                self.callbacks.saveExtensionSetting("selected_resp_type_config",selected.getText())
             else:
                 JOptionPane.showMessageDialog(None, "Response Encryption and Decryption File Required to Start")
                 self.ResponseTypeNoneRadio.setSelected(True)
                 self.selectedresponsetpye = "None"
+                self.callbacks.saveExtensionSetting("selected_resp_type_config","None")
         elif selected.getText() == "None":
             self.selectedresponsetpye = "None"
             self.ResponseTypeNoneRadio.setSelected(True)
+            self.callbacks.saveExtensionSetting("selected_resp_type_config","None")
 
         if selected.getText() not in ["JSON Value", "JSON Key and Value"]:
             self.responseparamnonebutton.setSelected(True);
@@ -1002,6 +1036,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 #self.Autoencryptonoffbutton.setEnabled(True)
                 self.RequestTypeNoneRadio.setSelected(False)
                 self.selectedrequesttpye = selected.getText()
+                self.callbacks.saveExtensionSetting('selected_req_type',selected.getText())
                 if self.AutoencryptTooltypeScanner.isSelected() or self.AutoencryptTooltypeExtender.isSelected() or self.AutoencryptTooltypeRepeater.isSelected() or self.AutoencryptTooltypeProxy.isSelected() or self.AutoencryptTooltypeIntruder.isSelected() == True:
                     self.Autoencryptonoffbutton.setEnabled(True)
             else:
@@ -1011,10 +1046,12 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 self.Autoencryptonoffbutton.setEnabled(False)
                 self.Autoencryptonoffbutton.setSelected(False)
                 self.selectedrequesttpye = "None"
+                self.callbacks.saveExtensionSetting('selected_req_type',"None")
         elif selected.getText() == "None":
             self.selectedrequesttpye = "None"
             self.Autoencryptonoffbutton.setEnabled(False)
             self.Autoencryptonoffbutton.setSelected(False)
+            elf.callbacks.saveExtensionSetting('selected_req_type',"None")
 
         if selected.getText() not in ["Parameter Value", "Parameter Key and Value"]:
             self.Requestparamnonebutton.setSelected(True);
@@ -1121,6 +1158,12 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             fileLoad = chooseFile.getSelectedFile()
             self.languagefullpath = fileLoad.getAbsolutePath()
             self.languagepath.setText(self.languagefullpath)
+            self.callbacks.saveExtensionSetting("languagepath_config",self.languagefullpath)
+
+    def language_clear_button_listner(self,e):
+        self.languagepath.setText("")
+        self.callbacks.saveExtensionSetting("languagepath_config","")
+
             
     # Returning the Extension Tab name to burp ITAB
     def getTabCaption(self):
