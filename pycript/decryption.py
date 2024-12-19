@@ -1,42 +1,19 @@
 from . import encoding, decoding
 from .execution import execute_command
-
+from .gethelpers import string_to_bytes, bytes_to_string
 
 #Parameterdecrypt     -->   Parameterdecrypt 
 
-def Parameterdecrypt(selectedlang, path, data):
-    data2 = encoding.encode_base64(data)
-    output = execute_command(selectedlang, path, data2)
-    if output is not False:
-        return output.decode('utf-8')
+def Parameterdecrypt(selectedlang, path, data,headers_str=None):
+    body_parameter_byte = list(string_to_bytes(data))
+    result = execute_command(selectedlang, path, body_parameter_byte,headers_str)
+    if result is not False:
+        body, header = result
+        string_body = bytes_to_string(body)
+        return string_body,header
     else:
-        return data
+        return data,headers_str
 
 
-def Customrequestdecrypt(selectedlang, path, header, body):
-    body2 = encoding.encode_base64(body)
-    output = execute_command(selectedlang, path, body2, encoding.encode_base64(header)).decode('utf-8')
-    if output is not False:
-        return output.decode('utf-8')
-    else:
-        return body
-
-
-def Customeditrequestdecrypt(selectedlang, path, header, body):
-    body2 = encoding.encode_base64(body)
-    header2 = encoding.encode_base64(header)
-    
-    output = execute_command(selectedlang, path, body2, header2)
-    if output is not False:
-        lines = output.splitlines()
-        headerbase64, bodybase64 = lines[0], lines[1]
-        
-        header = decoding.decode_base64(headerbase64).decode('utf-8')
-        body = decoding.decode_base64(bodybase64).decode('utf-8')
-
-        return (header, body)  
-    else:
-       
-        return (header, body)    
 
 
