@@ -25,7 +25,7 @@ from pycript.gethelpers import set_helpers
 from pycript.temp_file import create_temp_dir, delete_temp_folder
 errorlogtextbox = None
 errorlogcheckbox = None
-VERSION = "Version 0.4"
+VERSION = "Version 1.0"
 
 class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener,IExtensionStateListener):
 
