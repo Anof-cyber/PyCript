@@ -20,10 +20,10 @@ jobs:
         distribution: 'adopt'
         java-version: '17'
 
-    - name: Build with Maven
-      run: mvn clean package -DskipTests -Dmaven.test.skip=true
+    - name: Build with Gradle
+      run: ./gradlew build -x test
       env:
-        MAVEN_OPTS: -Dmaven.repo.local=${{ github.workspace }}/.m2/repository
+        GRADLE_OPTS: -Dorg.gradle.daemon=false
 
     - name: Exclude /bin directory
       run: rm -rf bin
