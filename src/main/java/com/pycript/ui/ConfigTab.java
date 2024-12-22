@@ -1,15 +1,47 @@
 package com.pycript.ui;
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+
+import javax.swing.JOptionPane;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+import javax.swing.LayoutStyle;
 import javax.swing.border.LineBorder;
-import java.awt.*;
+
+import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.logging.Logging;
 
 public class ConfigTab extends JPanel
 {
-    public ConfigTab()
+    private final MontoyaApi api;
+    private final Logging logging;
+    public static String selectedRequestType; 
+    public static String selectedResponseType;
+    public static String selectedRequestEncryptionFile;
+    public static String selectedRequestDecryptionFile;
+    public static String selectedResponseEncryptionFile;
+    public static String selectedResponseDecryptionFile;
+    public ConfigTab(MontoyaApi api)
     {
         super(new BorderLayout());
-
+        this.api = api;
+        this.logging = api.logging();
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
@@ -54,14 +86,87 @@ public class ConfigTab extends JPanel
         group.add(request_parameterKeyValueButton);
         group.add(request_noneButton);
 
+        // Add action listeners to update the selectedRequestType variable
+        ActionListener requestTypeListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (selectedRequestEncryptionFile != null && !selectedRequestEncryptionFile.isBlank() &&
+                selectedRequestDecryptionFile != null && !selectedRequestDecryptionFile.isBlank()) {
+                // Request Encryption and Decryption files are required for Request Type
+                selectedRequestType = e.getActionCommand(); 
+            }
+            else {
+                selectedRequestType = "None";
+                request_noneButton.setSelected(true);
+                JOptionPane.showMessageDialog(null, "Request Encryption Decryption file is missing", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            }
+        };
+
+        request_completeBodyButton.addActionListener(requestTypeListener);
+        request_parameterValueButton.addActionListener(requestTypeListener);
+        request_parameterKeyValueButton.addActionListener(requestTypeListener);
+        request_noneButton.addActionListener(requestTypeListener);
+
         JLabel encryptionDecryptionFileLabel = new JLabel("Encryption Decryption File for Request");
         JLabel encryptionFileLabel = new JLabel("Encryption File");
         JButton chooseEncryptionFileButton = new JButton("Choose File");
         JLabel encryptionFilePathLabel = new JLabel("/usr/temp");
 
+        ActionListener chooseEncryptionFileListener = new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JFileChooser fileChooser = new JFileChooser();
+                    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                    fileChooser.setDialogTitle("Select Request Encryption File");
+
+                    // Show the file chooser dialog and capture the user's action
+                    int userSelection = fileChooser.showDialog(null, "Select");
+
+                    if (userSelection == JFileChooser.APPROVE_OPTION) {
+                        // Get the selected file
+                        File selectedFile = fileChooser.getSelectedFile();
+                        if (selectedFile != null) {
+                            selectedRequestEncryptionFile = selectedFile.getAbsolutePath(); // Get the full file path
+                            encryptionFilePathLabel.setText(selectedRequestEncryptionFile); // Update the label with the file path
+                        }
+                    } else {
+                        // Handle the cancel action
+                        JOptionPane.showMessageDialog(null, "No file selected.", "Warning", JOptionPane.WARNING_MESSAGE);
+                    }
+                }
+            };
+            chooseEncryptionFileButton.addActionListener(chooseEncryptionFileListener);
+
+
         JLabel decryptionFileLabel = new JLabel("Decryption File");
         JButton chooseDecryptionFileButton = new JButton("Choose File");
         JLabel decryptionFilePathLabel = new JLabel("/usr/temp");
+
+        ActionListener chooseDecryptionFileListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fileChooser.setDialogTitle("Select Request Decryption File");
+
+                // Show the file chooser dialog and capture the user's action
+                int userSelection = fileChooser.showDialog(null, "Select");
+
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    // Get the selected file
+                    File selectedFile = fileChooser.getSelectedFile();
+                    if (selectedFile != null) {
+                        selectedRequestDecryptionFile = selectedFile.getAbsolutePath(); // Get the full file path
+                        decryptionFilePathLabel.setText(selectedRequestDecryptionFile); // Update the label with the file path
+                    }
+                } else {
+                    // Handle the cancel action
+                    JOptionPane.showMessageDialog(null, "No file selected.", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        };
+        chooseDecryptionFileButton.addActionListener(chooseDecryptionFileListener);
 
         requestTypePane.add(label, JLayeredPane.DEFAULT_LAYER);
         requestTypePane.add(request_completeBodyButton, JLayeredPane.DEFAULT_LAYER);
@@ -107,30 +212,30 @@ public class ConfigTab extends JPanel
                             .addComponent(chooseDecryptionFileButton)
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(decryptionFilePathLabel)))
-                    .addContainerGap(53, Short.MAX_VALUE))
+                    .addContainerGap(5, Short.MAX_VALUE))
         );
 
         layout.setVerticalGroup(
             layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(label)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(request_completeBodyButton)
                     .addComponent(request_parameterValueButton))
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(request_parameterKeyValueButton)
                     .addComponent(request_noneButton))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(encryptionDecryptionFileLabel)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(encryptionFileLabel)
                     .addComponent(chooseEncryptionFileButton)
                     .addComponent(encryptionFilePathLabel))
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(decryptionFileLabel)
                     .addComponent(chooseDecryptionFileButton)
                     .addComponent(decryptionFilePathLabel))
-                .addContainerGap(53, Short.MAX_VALUE)
+                .addContainerGap(5, Short.MAX_VALUE)
         );
 
         return requestTypePane;
@@ -152,6 +257,27 @@ public class ConfigTab extends JPanel
         group.add(response_parameterValueButton);
         group.add(response_parameterKeyValueButton);
         group.add(response_noneButton);
+
+        ActionListener responseTypeListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (selectedResponseEncryptionFile != null && !selectedResponseEncryptionFile.isBlank() &&
+                selectedResponseDecryptionFile != null && !selectedResponseDecryptionFile.isBlank()) {
+                selectedResponseType = e.getActionCommand();
+            }
+            else {
+                selectedResponseType = "None";
+                response_noneButton.setSelected(true);
+                JOptionPane.showMessageDialog(null, "Response Encryption Decryption file is missing", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            }
+        };
+
+
+        response_completeBodyButton.addActionListener(responseTypeListener);    
+        response_parameterValueButton.addActionListener(responseTypeListener);
+        response_parameterKeyValueButton.addActionListener(responseTypeListener);
+        response_noneButton.addActionListener(responseTypeListener);
 
         JLabel encryptionDecryptionFileLabel = new JLabel("Encryption Decryption File for Response");
         JLabel encryptionFileLabel = new JLabel("Encryption File");

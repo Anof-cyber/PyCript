@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class PyCript implements BurpExtension
+
 {
     @Override
     public void initialize(MontoyaApi api)
@@ -27,18 +28,21 @@ public class PyCript implements BurpExtension
         logging.logToOutput("Documentation - https://pycript.souravkalal.tech/");
 
         // Add a new tab to the Burp Suite UI
-        api.userInterface().registerSuiteTab("PyCript", new PyCriptTab());
+        api.userInterface().registerSuiteTab("PyCript", new PyCriptTab(api));
     }
 
     private static class PyCriptTab extends JPanel
     {
-        public PyCriptTab()
+        private final MontoyaApi api;
+
+        public PyCriptTab(MontoyaApi api)
         {
             super(new BorderLayout());
+            this.api = api;
             JTabbedPane tabbedPane = new JTabbedPane();
 
             // Add three tabs
-            tabbedPane.addTab("Config", new ConfigTab());
+            tabbedPane.addTab("Config", new ConfigTab(this.api));
             tabbedPane.addTab("Decrypted Request", new DecryptedRequestTab());
             tabbedPane.addTab("Log", new LogTab());
 
