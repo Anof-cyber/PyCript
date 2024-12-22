@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+group 'com.pycript'
+version '1.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'net.portswigger.burp.extensions:montoya-api:+' // Burp Suite API
+}
+
+test {
+    useJUnitPlatform()
+}
