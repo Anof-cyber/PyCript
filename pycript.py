@@ -1,4 +1,4 @@
-from burp import (IBurpExtender, ITab,IMessageEditorTabFactory,IMessageEditorTab,IContextMenuFactory, IContextMenuInvocation,IMessageEditorController,IHttpListener)
+from burp import (IBurpExtender, ITab,IMessageEditorTabFactory,IMessageEditorTab,IContextMenuFactory, IContextMenuInvocation,IMessageEditorController,IHttpListener,IExtensionStateListener)
 from java.awt import (BorderLayout,Font,Color)
 from javax.swing import (JTabbedPane,JPanel ,JRadioButton,ButtonGroup,JRadioButton,JLabel,BorderFactory,JLayeredPane,JComboBox,JTextArea,
 JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,JFileChooser,JMenuItem,JOptionPane,JTable,JSplitPane,JPopupMenu,JTextField,JEditorPane)
@@ -9,7 +9,7 @@ from java.lang import Short
 import sys
 from threading import Thread,Lock
 from java.awt.event import MouseAdapter
-from java.awt import Desktop
+from java.awt import Desktop, ComponentOrientation
 from java.net import URI
 from java.io import IOException
 from javax.swing.event import HyperlinkListener
@@ -21,18 +21,23 @@ from pycript.Responsetab import ResponeCriptInputTab
 from pycript.Reqcheck import DecryptRequest,EncryptRequest
 from pycript.stringcrypto import StringCrypto
 from pycript.gui import create_third_tab_elements
-
+from pycript.gethelpers import set_helpers
+from pycript.temp_file import create_temp_dir, delete_temp_folder
 errorlogtextbox = None
 errorlogcheckbox = None
-VERSION = "Version 0.4"
+VERSION = "Version 1.0"
 
-class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener):
+class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener,IExtensionStateListener):
 
 
     def registerExtenderCallbacks(self, callbacks):
         self.callbacks = callbacks
         self.helpers = callbacks.getHelpers()
+
+        ## Passing Helper to set helper, To access it globally, all data passes through helper string <--> byte conversion method
+        set_helpers(self.helpers)
         self.tooltypelist = []
+        create_temp_dir()
 
         # Allowing debugging
         sys.stdout = callbacks.getStdout()
@@ -47,7 +52,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         callbacks.printOutput("Documentation - https://pycript.souravkalal.tech/")
         
         callbacks.registerContextMenuFactory(self)
-
+        callbacks.registerExtensionStateListener(self) # delete the temp folder when done 
         #Some Config and data related variables
         self._log = list()
         self._lock = Lock()
@@ -64,9 +69,11 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.tab.add("Center", self.tabbedPane) 
 
         # Creating First Tab as Config Tab
-        self.firstTab = JPanel()
-        self.firstTab.layout = BorderLayout()
-        self.tabbedPane.addTab("Config", self.firstTab)
+        self.firstTab_UI = JPanel()
+        layout = GroupLayout(self.firstTab_UI)
+        self.firstTab = JScrollPane(self.firstTab_UI)
+
+        self.tabbedPane.addTab("Config", self.firstTab_UI)
 
         # Creating Second Tab as Decrypted Request Tab
         self.secondTab = JPanel()
@@ -179,22 +186,33 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.paramkeyvalueRadio.setText("Parameter Key and Value");
         self.paramkeyvalueRadio.addActionListener(self.requestypelistner)
 		
-        self.CustomRequestRadio = JRadioButton();
-        self.RequestTypeRadioGroup.add(self.CustomRequestRadio);
-        self.CustomRequestRadio.setText("Custom Request");
-        self.CustomRequestRadio.addActionListener(self.requestypelistner)
+        #self.CustomRequestRadio = JRadioButton();
+        #self.RequestTypeRadioGroup.add(self.CustomRequestRadio);
+        #self.CustomRequestRadio.setText("Custom Request");
+        #self.CustomRequestRadio.addActionListener(self.requestypelistner)
 		
-        self.CustomRequestheaderRadio = JRadioButton();
-        self.RequestTypeRadioGroup.add(self.CustomRequestheaderRadio);
-        self.CustomRequestheaderRadio.setText("Custom Request (Edit Header)");
-        self.CustomRequestheaderRadio.addActionListener(self.requestypelistner)
+        #self.CustomRequestheaderRadio = JRadioButton();
+        #self.RequestTypeRadioGroup.add(self.CustomRequestheaderRadio);
+        #self.CustomRequestheaderRadio.setText("Custom Request (Edit Header)");
+        #self.CustomRequestheaderRadio.addActionListener(self.requestypelistner)
 		
         self.RequestTypeNoneRadio = JRadioButton();
         self.RequestTypeRadioGroup.add(self.RequestTypeNoneRadio);
         self.RequestTypeNoneRadio.setText("None");
         self.RequestTypeNoneRadio.setSelected(True)
         self.RequestTypeNoneRadio.addActionListener(self.requestypelistner)
-		
+
+        self.selected_req_type = callbacks.loadExtensionSetting('selected_req_type')
+        if self.selected_req_type == "Complete Body":
+            self.CustomBodyRadio.setSelected(True)
+        elif self.selected_req_type == "Parameter Value":
+            self.parametervalueRadio.setSelected(True)
+        elif self.selected_req_type == "Parameter Key and Value":
+            self.paramkeyvalueRadio.setSelected(True)
+        elif self.selected_req_type == "None":
+            self.RequestTypeNoneRadio.setSelected(True)
+        self.selectedrequesttpye = self.selected_req_type
+
 		
 		# Response Type UI
         self.responslayerpane = JLayeredPane();
@@ -224,7 +242,17 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.ResponseTypeNoneRadio.setText("None");
         self.ResponseTypeNoneRadio.setSelected(True)
         self.ResponseTypeNoneRadio.addActionListener(self.responsetypelister)
-		
+
+        self.selected_resp_type_config = callbacks.loadExtensionSetting('selected_resp_type_config')
+        if self.selected_resp_type_config == "Complete Body":
+            self.responseCustomBodyRadio.setSelected(True)
+        elif self.selected_resp_type_config == "JSON Value":
+            self.responsejsonvalueradio.setSelected(True)
+        elif self.selected_resp_type_config == "JSON Key and Value":
+            self.responsejsonkeyvalueradio.setSelected(True)
+        elif self.selected_resp_type_config == "None":
+            self.ResponseTypeNoneRadio.setSelected(True)
+        self.selectedresponsetpye =self.selected_resp_type_config
 		
 		
 		#Additional Setting UI
@@ -249,9 +277,18 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         self.languagepath.setText("C:/Program Files/nodejs/node.exe")
         self.languagejpanel.add(self.languagepath,BorderLayout.NORTH)
         self.languagejpanel.add(self.language_select_button,BorderLayout.NORTH)
+
+        self.languagepath_config = callbacks.loadExtensionSetting('languagepath_config')
+
+        if not self.languagepath_config == None:
+            self.languagepath.setText(self.languagepath_config)
   
 		
-        
+        self.language_clear_button = JButton("Clear Language Selection")
+        self.language_clear_button.addActionListener(self.language_clear_button_listner)
+        self.languagejpanel.add(self.language_clear_button,BorderLayout.NORTH)
+
+
         self.reqmethodlabel = JLabel();
         self.reqmethodlabel.setText("Encryption and Decryption Method(Only for Request)");
 		
@@ -580,54 +617,60 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
 
         # Config Tab UI Placement options
+        # Set the border and layers for components in the requestlayerpane
+        # Set the border and layers for components in the requestlayerpane
         self.requestlayerpane.setBorder(BorderFactory.createLineBorder(Color(0, 0, 0)));
         self.requestlayerpane.setLayer(self.Requestypelabel, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.CustomBodyRadio, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.parametervalueRadio, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.paramkeyvalueRadio, JLayeredPane.DEFAULT_LAYER);
-        self.requestlayerpane.setLayer(self.CustomRequestRadio, JLayeredPane.DEFAULT_LAYER);
-        self.requestlayerpane.setLayer(self.CustomRequestheaderRadio, JLayeredPane.DEFAULT_LAYER);
         self.requestlayerpane.setLayer(self.RequestTypeNoneRadio, JLayeredPane.DEFAULT_LAYER);
 
+        # Layout for the requestlayerpane
         self.requestlayerpaneLayout = GroupLayout(self.requestlayerpane);
         self.requestlayerpane.setLayout(self.requestlayerpaneLayout);
+
+        # Set the horizontal group for left-to-right arrangement
         self.requestlayerpaneLayout.setHorizontalGroup(
             self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(self.Requestypelabel)
-                    .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
-                        .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(self.CustomBodyRadio)
-                            .addComponent(self.paramkeyvalueRadio)
-                            .addComponent(self.CustomRequestheaderRadio))
-                        .addGap(2, 2, 2)
-                        .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(self.RequestTypeNoneRadio)
-                            .addComponent(self.CustomRequestRadio)
-                            .addComponent(self.parametervalueRadio))))
-                .addContainerGap(53, Short.MAX_VALUE))
+                .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(self.Requestypelabel)
+                        .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
+                            .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addComponent(self.CustomBodyRadio)
+                                .addComponent(self.paramkeyvalueRadio)
+                            )
+                            .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addComponent(self.RequestTypeNoneRadio)
+                                .addComponent(self.parametervalueRadio)
+                            )
+                        )
+                    )
+                    .addContainerGap(53, Short.MAX_VALUE)
+                )
         );
+
+        # Set the vertical group for top-to-bottom arrangement
         self.requestlayerpaneLayout.setVerticalGroup(
-            self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(self.requestlayerpaneLayout.createSequentialGroup()
+            self.requestlayerpaneLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(self.Requestypelabel)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(self.CustomBodyRadio)
-                    .addComponent(self.parametervalueRadio))
+                    .addComponent(self.parametervalueRadio)
+                )
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(self.paramkeyvalueRadio)
-                    .addComponent(self.CustomRequestRadio))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(self.requestlayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(self.RequestTypeNoneRadio)
-                    .addComponent(self.CustomRequestheaderRadio))
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                )
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
+
+
 
 
 
@@ -916,55 +959,45 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
 
 
-        layout = GroupLayout(self.firstTab);
-        self.firstTab.setLayout(layout);
+        #layout = GroupLayout(self.firstTab);
+        #self.firstTab.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            layout.createSequentialGroup()  # This ensures components are placed horizontally (left to right)
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                    .addGroup(GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(self.requestlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(self.additionallayerpane))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(self.autoencryptlayerpane)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
-                            .addComponent(self.requestscriptfilelayerpane)
-                            .addComponent(self.responescriptfilelayerpane)))
-                    .addGroup(GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(Requestparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(Responseparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addGap(18, 18, 18))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)  # Align components to the left
+                    .addComponent(self.requestlayerpane)
                     .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
-                        .addComponent(self.additionallayerpane)
-                        .addComponent(self.requestlayerpane)))
-                .addGap(31, 31, 31)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
-                    .addComponent(self.autoencryptlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(self.requestscriptfilelayerpane)
-                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(self.responescriptfilelayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, False)
-                    .addComponent(Requestparamlist)
-                    .addComponent(Responseparamlist))
-                .addContainerGap(657, Short.MAX_VALUE))
-        );
+                    .addComponent(self.additionallayerpane)
+                    .addComponent(self.autoencryptlayerpane)
+                    .addComponent(self.requestscriptfilelayerpane)
+                    .addComponent(self.responescriptfilelayerpane)
+                    .addComponent(Requestparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(Responseparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                )
+                .addGap(18, 18, 18)  # Optional gap at the end of the horizontal layout
+        )
 
+        layout.setVerticalGroup(
+            layout.createSequentialGroup()  # Stack components vertically (top to bottom)
+                .addGap(18, 18, 18)  # Optional gap from the top
+                .addComponent(self.requestlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.additionallayerpane)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.autoencryptlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.requestscriptfilelayerpane)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(self.responescriptfilelayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)  # Align the next row (left to right)
+                    .addComponent(Requestparamlist)
+                    .addComponent(Responseparamlist)
+                )
+                .addContainerGap(657, Short.MAX_VALUE)  # Optional gap at the bottom
+        )
 
         
     
@@ -977,13 +1010,16 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             if None not in (self.responsedecryptionfilepath,self.responseencryptionfilepath):
                 self.ResponseTypeNoneRadio.setSelected(False)
                 self.selectedresponsetpye = selected.getText()
+                self.callbacks.saveExtensionSetting("selected_resp_type_config",selected.getText())
             else:
                 JOptionPane.showMessageDialog(None, "Response Encryption and Decryption File Required to Start")
                 self.ResponseTypeNoneRadio.setSelected(True)
                 self.selectedresponsetpye = "None"
+                self.callbacks.saveExtensionSetting("selected_resp_type_config","None")
         elif selected.getText() == "None":
             self.selectedresponsetpye = "None"
             self.ResponseTypeNoneRadio.setSelected(True)
+            self.callbacks.saveExtensionSetting("selected_resp_type_config","None")
 
         if selected.getText() not in ["JSON Value", "JSON Key and Value"]:
             self.responseparamnonebutton.setSelected(True);
@@ -1000,6 +1036,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 #self.Autoencryptonoffbutton.setEnabled(True)
                 self.RequestTypeNoneRadio.setSelected(False)
                 self.selectedrequesttpye = selected.getText()
+                self.callbacks.saveExtensionSetting('selected_req_type',selected.getText())
                 if self.AutoencryptTooltypeScanner.isSelected() or self.AutoencryptTooltypeExtender.isSelected() or self.AutoencryptTooltypeRepeater.isSelected() or self.AutoencryptTooltypeProxy.isSelected() or self.AutoencryptTooltypeIntruder.isSelected() == True:
                     self.Autoencryptonoffbutton.setEnabled(True)
             else:
@@ -1009,10 +1046,12 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 self.Autoencryptonoffbutton.setEnabled(False)
                 self.Autoencryptonoffbutton.setSelected(False)
                 self.selectedrequesttpye = "None"
+                self.callbacks.saveExtensionSetting('selected_req_type',"None")
         elif selected.getText() == "None":
             self.selectedrequesttpye = "None"
             self.Autoencryptonoffbutton.setEnabled(False)
             self.Autoencryptonoffbutton.setSelected(False)
+            elf.callbacks.saveExtensionSetting('selected_req_type',"None")
 
         if selected.getText() not in ["Parameter Value", "Parameter Key and Value"]:
             self.Requestparamnonebutton.setSelected(True);
@@ -1035,6 +1074,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                     JOptionPane.showMessageDialog(None, "Parameter list cannot be empty", "Error", JOptionPane.ERROR_MESSAGE)
                 else:
                     self.selected_request_inc_ex_ctype = selected.getText()
+        else:
+            self.selected_request_inc_ex_ctype = None
 
 
     # Listener for Response Ignore or exclude parameters radio button
@@ -1051,6 +1092,8 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                     JOptionPane.showMessageDialog(None, "Parameter list cannot be empty", "Error", JOptionPane.ERROR_MESSAGE)
                 else:
                     self.selected_response_inc_ex_ctype = selected.getText()
+        else:
+            self.selected_request_inc_ex_ctype = None
 
 
 
@@ -1115,6 +1158,12 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             fileLoad = chooseFile.getSelectedFile()
             self.languagefullpath = fileLoad.getAbsolutePath()
             self.languagepath.setText(self.languagefullpath)
+            self.callbacks.saveExtensionSetting("languagepath_config",self.languagefullpath)
+
+    def language_clear_button_listner(self,e):
+        self.languagepath.setText("")
+        self.callbacks.saveExtensionSetting("languagepath_config","")
+
             
     # Returning the Extension Tab name to burp ITAB
     def getTabCaption(self):
@@ -1273,9 +1322,9 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
         if self.selectedrequst:
             output = StringCrypto(self,encpath,query,http_request_response)
-            encryptedstring = output.encrypt_string_request()
+            encryptedstring, _ = output.encrypt_string_request()
         else:
-            encryptedstring = Parameterencrypt(self.languagepath.getText(), encpath, query)
+            encryptedstring, _ = Parameterencrypt(self.languagepath.getText(), encpath, query)
         #JOptionPane.showInputDialog(None, "Encrypted String", "Decryption", JOptionPane.PLAIN_MESSAGE, None, None, encryptedstring)
         #JOptionPane.showMessageDialog(None, encryptedstring, "String", JOptionPane.INFORMATION_MESSAGE)
         showEditableDialog(encryptedstring, "Encrypted String")
@@ -1318,9 +1367,10 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         
         if self.selectedrequst:
             output = StringCrypto(self,encpath,query,http_request_response)
-            decryptedstring = output.decrypt_string_request()
+            decryptedstring, _ = output.decrypt_string_request()
         else:
-            decryptedstring = Parameterdecrypt(self.languagepath.getText(), encpath, query)
+            ## response does not need header to be passed hence its always empty for response 
+            decryptedstring, _ = Parameterdecrypt(self.languagepath.getText(), encpath, query)
 
         showEditableDialog(decryptedstring, "Decryted String")
 
@@ -1436,6 +1486,9 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self._log.pop(modelRowIndex)
             self.fireTableDataChanged()
 
+    def extensionUnloaded(self):
+        # delete temp folders
+        delete_temp_folder()
    
     #Message Editor Hanlder for Decrpyted Request Messages
     def getHttpService(self):
