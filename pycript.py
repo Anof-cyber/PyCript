@@ -5,7 +5,7 @@ JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,J
 from javax.swing.table import AbstractTableModel;
 from javax.swing.filechooser import FileNameExtensionFilter
 from java.lang import Short
-
+from javax.swing import ScrollPaneLayout
 import sys
 from threading import Thread,Lock
 from java.awt.event import MouseAdapter
@@ -70,10 +70,15 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
 
         # Creating First Tab as Config Tab
         self.firstTab_UI = JPanel()
-        layout = GroupLayout(self.firstTab_UI)
-        self.firstTab = JScrollPane(self.firstTab_UI)
 
-        self.tabbedPane.addTab("Config", self.firstTab_UI)
+        self.firstTab = JScrollPane(self.firstTab_UI)
+        layout = GroupLayout(self.firstTab_UI)
+
+        # Set the layout to the firstTab_UI
+        self.firstTab_UI.setLayout(layout)
+        #self.firstTab.setLayout(layout);
+
+        self.tabbedPane.addTab("Config", self.firstTab)
 
         # Creating Second Tab as Decrypted Request Tab
         self.secondTab = JPanel()
@@ -553,7 +558,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                         .addComponent(self.Requestparamnonebutton))
                     .addComponent(self.requestparamlist, GroupLayout.PREFERRED_SIZE, 331, GroupLayout.PREFERRED_SIZE)
                     .addComponent(Requestparamlabel3))
-                .addContainerGap(267, Short.MAX_VALUE))
+                .addContainerGap(261, Short.MAX_VALUE))
         );
         RequestparamlistLayout.setVerticalGroup(
             RequestparamlistLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -568,7 +573,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 .addComponent(Requestparamlabel3)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(self.requestparamlist, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 42, Short.MAX_VALUE))
         );
 
         
@@ -756,7 +761,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                         .addComponent(self.reqresponselabel)
                         .addGap(18, 18, 18)
                         .addComponent(self.reqresponsecombobox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(25, Short.MAX_VALUE))
+                )
         );
         self.additionallayerpaneLayout.setVerticalGroup(
             self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -767,7 +772,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 .addGroup(self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(self.languagelabel)
                     .addComponent(self.languagejpanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 40, 40))
+                   )
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(self.additionallayerpaneLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(self.reqmethodlabel)
@@ -965,16 +970,16 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             layout.createSequentialGroup()  # This ensures components are placed horizontally (left to right)
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)  # Align components to the left
-                    .addComponent(self.requestlayerpane)
+                    .addComponent(self.requestlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(self.additionallayerpane)
-                    .addComponent(self.autoencryptlayerpane)
-                    .addComponent(self.requestscriptfilelayerpane)
-                    .addComponent(self.responescriptfilelayerpane)
+                    .addComponent(self.additionallayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(self.autoencryptlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(self.requestscriptfilelayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(self.responescriptfilelayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(Requestparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(Responseparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 )
-                .addGap(18, 18, 18)  # Optional gap at the end of the horizontal layout
+                #.addGap(18, 18, 18)  # Optional gap at the end of the horizontal layout
         )
 
         layout.setVerticalGroup(
@@ -984,19 +989,19 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(self.responslayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(self.additionallayerpane)
+                .addComponent(self.additionallayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(self.autoencryptlayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(self.requestscriptfilelayerpane)
+                .addComponent(self.requestscriptfilelayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(self.responescriptfilelayerpane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)  # Align the next row (left to right)
-                    .addComponent(Requestparamlist)
-                    .addComponent(Responseparamlist)
-                )
-                .addContainerGap(657, Short.MAX_VALUE)  # Optional gap at the bottom
+                .addComponent(Requestparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                 .addComponent(Responseparamlist, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                
+                #.addContainerGap(657, Short.MAX_VALUE)  # Optional gap at the bottom
         )
 
         
@@ -1051,7 +1056,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
             self.selectedrequesttpye = "None"
             self.Autoencryptonoffbutton.setEnabled(False)
             self.Autoencryptonoffbutton.setSelected(False)
-            elf.callbacks.saveExtensionSetting('selected_req_type',"None")
+            self.callbacks.saveExtensionSetting('selected_req_type',"None")
 
         if selected.getText() not in ["Parameter Value", "Parameter Key and Value"]:
             self.Requestparamnonebutton.setSelected(True);
