@@ -5,11 +5,8 @@ JSeparator,JButton,JToggleButton,JCheckBox,JScrollPane,GroupLayout,LayoutStyle,J
 from javax.swing.table import AbstractTableModel;
 from javax.swing.filechooser import FileNameExtensionFilter
 from java.lang import Short
-from javax.swing import ScrollPaneLayout
 import sys
 from threading import Thread,Lock
-from java.awt.event import MouseAdapter
-from java.awt import Desktop, ComponentOrientation
 from java.net import URI
 from java.io import IOException
 from javax.swing.event import HyperlinkListener
