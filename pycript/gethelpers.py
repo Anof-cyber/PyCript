@@ -20,7 +20,8 @@ def string_to_bytes(string):
 
 def bytes_to_string(byte_data):
     """Convert bytes to string using helpers."""
-    byte_data_clean = byte_data.strip('[]')
-    byte_data2 = [int(code.strip()) for code in byte_data_clean.split(',')]
+    #byte_data_clean = byte_data.strip('[]')
+    #byte_data2 = [int(code.strip()) for code in byte_data_clean.split(',')]
     #return get_helpers().bytesToString(byte_data2)   # for some reason helper API gives error or remove some non ascii data from string results in wrong string for non ascii or binary data
-    return ''.join(chr(code) for code in byte_data2)
+    #return ''.join(chr(code) for code in byte_data2)
+    return ''.join(chr(code & 255) for code in byte_data)
