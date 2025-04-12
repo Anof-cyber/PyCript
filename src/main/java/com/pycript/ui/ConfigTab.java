@@ -37,6 +37,8 @@ public class ConfigTab extends JPanel
     public static String selectedRequestDecryptionFile;
     public static String selectedResponseEncryptionFile;
     public static String selectedResponseDecryptionFile;
+    private String selectedToolType = ""; // Initially empty
+
     public ConfigTab(MontoyaApi api)
     {
         super(new BorderLayout());
@@ -279,14 +281,66 @@ public class ConfigTab extends JPanel
         response_parameterKeyValueButton.addActionListener(responseTypeListener);
         response_noneButton.addActionListener(responseTypeListener);
 
+
         JLabel encryptionDecryptionFileLabel = new JLabel("Encryption Decryption File for Response");
         JLabel encryptionFileLabel = new JLabel("Encryption File");
         JButton chooseEncryptionFileButton = new JButton("Choose File");
         JLabel encryptionFilePathLabel = new JLabel("/usr/temp");
 
+        ActionListener chooseEncryptionFileListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fileChooser.setDialogTitle("Select Response Encryption File");
+
+                // Show the file chooser dialog and capture the user's action
+                int userSelection = fileChooser.showDialog(null, "Select");
+
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    // Get the selected file
+                    File selectedFile = fileChooser.getSelectedFile();
+                    if (selectedFile != null) {
+                        selectedResponseEncryptionFile = selectedFile.getAbsolutePath(); // Get the full file path
+                        encryptionFilePathLabel.setText(selectedResponseEncryptionFile); // Update the label with the file path
+                    }
+                } else {
+                    // Handle the cancel action
+                    JOptionPane.showMessageDialog(null, "No file selected.", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        };
+        chooseEncryptionFileButton.addActionListener(chooseEncryptionFileListener);
+
         JLabel decryptionFileLabel = new JLabel("Decryption File");
         JButton chooseDecryptionFileButton = new JButton("Choose File");
         JLabel decryptionFilePathLabel = new JLabel("/usr/temp");
+
+        ActionListener chooseDecryptionFileListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fileChooser.setDialogTitle("Select Response Decryption File");
+
+                // Show the file chooser dialog and capture the user's action
+                int userSelection = fileChooser.showDialog(null, "Select");
+
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    // Get the selected file
+                    File selectedFile = fileChooser.getSelectedFile();
+                    if (selectedFile != null) {
+                        selectedResponseDecryptionFile = selectedFile.getAbsolutePath(); // Get the full file path
+                        decryptionFilePathLabel.setText(selectedResponseDecryptionFile); // Update the label with the file path
+                    }
+                } else {
+                    // Handle the cancel action
+                    JOptionPane.showMessageDialog(null, "No file selected.", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        };
+
+        chooseDecryptionFileButton.addActionListener(chooseDecryptionFileListener);
 
         responseTypePane.add(label, JLayeredPane.DEFAULT_LAYER);
         responseTypePane.add(response_completeBodyButton, JLayeredPane.DEFAULT_LAYER);
@@ -446,8 +500,9 @@ public class ConfigTab extends JPanel
         autoEncryptPane.setBorder(new LineBorder(Color.BLACK)); // Add black border
 
         JLabel autoEncryptLabel = new JLabel("Auto Encrypt the Request");
-        JButton turnOnButton = new JButton("Turn ON");
         JLabel currentStatusLabel = new JLabel("Current Status: OFF");
+        JButton turnOnButton = new JButton("Turn ON");
+        turnOnButton.setEnabled(false);
 
         JLabel cannotTurnOnLabel = new JLabel("Cannot Turn ON Unless Request Type and Tool Type are selected");
 
@@ -457,6 +512,81 @@ public class ConfigTab extends JPanel
         JCheckBox proxyCheckBox = new JCheckBox("Proxy");
         JCheckBox extenderCheckBox = new JCheckBox("Extender");
         JCheckBox intruderCheckBox = new JCheckBox("Intruder");
+
+        ActionListener toolTypeListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Check if any checkbox is selected
+                boolean isAnyCheckboxSelected = scannerCheckBox.isSelected() || repeaterCheckBox.isSelected() ||
+                                                proxyCheckBox.isSelected() || extenderCheckBox.isSelected() ||
+                                                intruderCheckBox.isSelected();
+
+                if (isAnyCheckboxSelected) {
+                    // Check if request_noneButton is selected
+                    if (selectedRequestType == null || selectedRequestType.equals("None")) {
+                        JOptionPane.showMessageDialog(null, "Request type is required.", "Warning", JOptionPane.WARNING_MESSAGE);
+                        selectedToolType = ""; // Clear the selected tool type
+                        turnOnButton.setEnabled(false); // Disable the turnOnButton
+                        scannerCheckBox.setSelected(false);
+                        repeaterCheckBox.setSelected(false);
+                        proxyCheckBox.setSelected(false);
+                        extenderCheckBox.setSelected(false);
+                        intruderCheckBox.setSelected(false);
+                        
+                    } else {
+                        // Store the selected checkbox values in the variable
+                        StringBuilder selectedTools = new StringBuilder();
+                        if (scannerCheckBox.isSelected()) selectedTools.append("Scanner, ");
+                        if (repeaterCheckBox.isSelected()) selectedTools.append("Repeater, ");
+                        if (proxyCheckBox.isSelected()) selectedTools.append("Proxy, ");
+                        if (extenderCheckBox.isSelected()) selectedTools.append("Extender, ");
+                        if (intruderCheckBox.isSelected()) selectedTools.append("Intruder, ");
+
+                        // Remove the trailing comma and space
+                        selectedToolType = selectedTools.substring(0, selectedTools.length() - 2);
+
+                        turnOnButton.setEnabled(true); // Enable the turnOnButton
+                    }
+                } else {
+                    // No checkbox is selected
+                    selectedToolType = ""; // Clear the selected tool type
+                    turnOnButton.setEnabled(false); // Disable the turnOnButton
+                }
+            }
+        };
+
+        scannerCheckBox.addActionListener(toolTypeListener);
+        repeaterCheckBox.addActionListener(toolTypeListener);
+        proxyCheckBox.addActionListener(toolTypeListener);
+        extenderCheckBox.addActionListener(toolTypeListener);
+        intruderCheckBox.addActionListener(toolTypeListener);
+
+        ActionListener turnOnButtonListener = new ActionListener() {
+            private boolean isOn = false; // Track the current state of the button
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Check if at least one checkbox is selected
+                if (scannerCheckBox.isSelected() || repeaterCheckBox.isSelected() || proxyCheckBox.isSelected() ||
+                    extenderCheckBox.isSelected() || intruderCheckBox.isSelected()) {
+                    
+                    // Toggle the state
+                    isOn = !isOn;
+
+                    if (isOn) {
+                        currentStatusLabel.setText("Current Status: ON");
+                        turnOnButton.setText("Turn OFF");
+                    } else {
+                        currentStatusLabel.setText("Current Status: OFF");
+                        turnOnButton.setText("Turn ON");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please select at least one checkbox to turn ON.", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        };
+
+        turnOnButton.addActionListener(turnOnButtonListener);
 
         autoEncryptPane.add(autoEncryptLabel, JLayeredPane.DEFAULT_LAYER);
         autoEncryptPane.add(turnOnButton, JLayeredPane.DEFAULT_LAYER);
