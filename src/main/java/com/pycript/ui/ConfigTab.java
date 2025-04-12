@@ -37,7 +37,7 @@ public class ConfigTab extends JPanel
     public static String selectedRequestDecryptionFile;
     public static String selectedResponseEncryptionFile;
     public static String selectedResponseDecryptionFile;
-    private String selectedToolType = ""; // Initially empty
+    private String selectedToolType = ""; 
     private JRadioButton request_parameterValueButton;
     private JRadioButton request_parameterKeyValueButton;
     private JRadioButton response_parameterValueButton;
@@ -71,25 +71,25 @@ public class ConfigTab extends JPanel
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
         topPanel.add(requestTypePane);
-        topPanel.add(Box.createRigidArea(new Dimension(10, 0))); // Add space between the panes
+        topPanel.add(Box.createRigidArea(new Dimension(10, 0))); 
         topPanel.add(responseTypePane);
 
         JPanel middlePanel = new JPanel();
         middlePanel.setLayout(new BoxLayout(middlePanel, BoxLayout.X_AXIS));
         middlePanel.add(additionalSettingsPane);
-        middlePanel.add(Box.createRigidArea(new Dimension(10, 0))); // Add space between the panes
+        middlePanel.add(Box.createRigidArea(new Dimension(10, 0))); 
         middlePanel.add(autoEncryptPane);
 
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
         bottomPanel.add(requestParameterPane);
-        bottomPanel.add(Box.createRigidArea(new Dimension(10, 0))); // Add space between the panes
+        bottomPanel.add(Box.createRigidArea(new Dimension(10, 0))); 
         bottomPanel.add(responseParameterPane);
 
         mainPanel.add(topPanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between the top and middle panels
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); 
         mainPanel.add(middlePanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between the middle and bottom panels
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); 
         mainPanel.add(bottomPanel);
 
         this.add(mainPanel, BorderLayout.CENTER);
@@ -98,10 +98,10 @@ public class ConfigTab extends JPanel
     private JLayeredPane createRequestTypePane()
     {
         JLayeredPane requestTypePane = new JLayeredPane();
-        requestTypePane.setBorder(new LineBorder(Color.BLACK)); // Add black border
+        requestTypePane.setBorder(new LineBorder(Color.BLACK)); 
 
         JLabel label = new JLabel("Request Type");
-        label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14)); // Example font
+        label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14)); 
         JRadioButton request_completeBodyButton = new JRadioButton("Complete Body");
         request_parameterValueButton = new JRadioButton("Parameter Value");
         request_parameterKeyValueButton = new JRadioButton("Parameter Key and Value");
@@ -114,7 +114,7 @@ public class ConfigTab extends JPanel
         group.add(request_parameterKeyValueButton);
         group.add(request_noneButton);
 
-        // Add action listeners to update the selectedRequestType variable
+        
         ActionListener requestTypeListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -123,9 +123,9 @@ public class ConfigTab extends JPanel
                     
                     selectedRequestType = e.getActionCommand();
 
-                    // If "None" is selected, reset tool type and disable the turnOnButton
+                    
                     if (selectedRequestType.equals("None")) {
-                        turnOnButton.setEnabled(false); // Disable the turnOnButton
+                        turnOnButton.setEnabled(false); 
                         currentStatusLabel.setText("Current Status: OFF");
                         turnOnButton.setText("Turn ON");
                     }
@@ -138,8 +138,8 @@ public class ConfigTab extends JPanel
                     request_noneButton.setSelected(true);
                     JOptionPane.showMessageDialog(null, "Request Encryption Decryption file is missing", "Error", JOptionPane.ERROR_MESSAGE);
 
-                    // Reset tool type and disable the turnOnButton
-                    turnOnButton.setEnabled(false); // Disable the turnOnButton
+                    
+                    turnOnButton.setEnabled(false); 
                     
                     currentStatusLabel.setText("Current Status: OFF");
                     turnOnButton.setText("Turn ON");
@@ -166,18 +166,18 @@ public class ConfigTab extends JPanel
                     fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                     fileChooser.setDialogTitle("Select Request Encryption File");
 
-                    // Show the file chooser dialog and capture the user's action
+                    
                     int userSelection = fileChooser.showDialog(null, "Select");
 
                     if (userSelection == JFileChooser.APPROVE_OPTION) {
-                        // Get the selected file
+                        
                         File selectedFile = fileChooser.getSelectedFile();
                         if (selectedFile != null) {
-                            selectedRequestEncryptionFile = selectedFile.getAbsolutePath(); // Get the full file path
-                            encryptionFilePathLabel.setText(selectedRequestEncryptionFile); // Update the label with the file path
+                            selectedRequestEncryptionFile = selectedFile.getAbsolutePath(); 
+                            encryptionFilePathLabel.setText(selectedRequestEncryptionFile); 
                         }
                     } else {
-                        // Handle the cancel action
+                        
                         JOptionPane.showMessageDialog(null, "No file selected.", "Warning", JOptionPane.WARNING_MESSAGE);
                     }
                 }
@@ -196,18 +196,18 @@ public class ConfigTab extends JPanel
                 fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 fileChooser.setDialogTitle("Select Request Decryption File");
 
-                // Show the file chooser dialog and capture the user's action
+                
                 int userSelection = fileChooser.showDialog(null, "Select");
 
                 if (userSelection == JFileChooser.APPROVE_OPTION) {
-                    // Get the selected file
+                    
                     File selectedFile = fileChooser.getSelectedFile();
                     if (selectedFile != null) {
-                        selectedRequestDecryptionFile = selectedFile.getAbsolutePath(); // Get the full file path
-                        decryptionFilePathLabel.setText(selectedRequestDecryptionFile); // Update the label with the file path
+                        selectedRequestDecryptionFile = selectedFile.getAbsolutePath(); 
+                        decryptionFilePathLabel.setText(selectedRequestDecryptionFile); 
                     }
                 } else {
-                    // Handle the cancel action
+                    
                     JOptionPane.showMessageDialog(null, "No file selected.", "Warning", JOptionPane.WARNING_MESSAGE);
                 }
             }
@@ -290,7 +290,7 @@ public class ConfigTab extends JPanel
     private JLayeredPane createResponseTypePane()
     {
         JLayeredPane responseTypePane = new JLayeredPane();
-        responseTypePane.setBorder(new LineBorder(Color.BLACK)); // Add black border
+        responseTypePane.setBorder(new LineBorder(Color.BLACK)); 
 
         JLabel label = new JLabel("Response Type");
         label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
@@ -298,7 +298,7 @@ public class ConfigTab extends JPanel
         response_parameterValueButton = new JRadioButton("Parameter Value");
         response_parameterKeyValueButton = new JRadioButton("Parameter Key and Value");
         JRadioButton response_noneButton = new JRadioButton("None");
-        response_noneButton.setSelected(true); // Default selection
+        response_noneButton.setSelected(true); 
 
         ButtonGroup group = new ButtonGroup();
         group.add(response_completeBodyButton);
@@ -345,18 +345,18 @@ public class ConfigTab extends JPanel
                 fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 fileChooser.setDialogTitle("Select Response Encryption File");
 
-                // Show the file chooser dialog and capture the user's action
+                
                 int userSelection = fileChooser.showDialog(null, "Select");
 
                 if (userSelection == JFileChooser.APPROVE_OPTION) {
-                    // Get the selected file
+                    
                     File selectedFile = fileChooser.getSelectedFile();
                     if (selectedFile != null) {
-                        selectedResponseEncryptionFile = selectedFile.getAbsolutePath(); // Get the full file path
-                        encryptionFilePathLabel.setText(selectedResponseEncryptionFile); // Update the label with the file path
+                        selectedResponseEncryptionFile = selectedFile.getAbsolutePath(); 
+                        encryptionFilePathLabel.setText(selectedResponseEncryptionFile); 
                     }
                 } else {
-                    // Handle the cancel action
+                    
                     JOptionPane.showMessageDialog(null, "No file selected.", "Warning", JOptionPane.WARNING_MESSAGE);
                 }
             }
@@ -374,18 +374,18 @@ public class ConfigTab extends JPanel
                 fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 fileChooser.setDialogTitle("Select Response Decryption File");
 
-                // Show the file chooser dialog and capture the user's action
+                
                 int userSelection = fileChooser.showDialog(null, "Select");
 
                 if (userSelection == JFileChooser.APPROVE_OPTION) {
-                    // Get the selected file
+                    
                     File selectedFile = fileChooser.getSelectedFile();
                     if (selectedFile != null) {
-                        selectedResponseDecryptionFile = selectedFile.getAbsolutePath(); // Get the full file path
-                        decryptionFilePathLabel.setText(selectedResponseDecryptionFile); // Update the label with the file path
+                        selectedResponseDecryptionFile = selectedFile.getAbsolutePath(); 
+                        decryptionFilePathLabel.setText(selectedResponseDecryptionFile); 
                     }
                 } else {
-                    // Handle the cancel action
+                    
                     JOptionPane.showMessageDialog(null, "No file selected.", "Warning", JOptionPane.WARNING_MESSAGE);
                 }
             }
@@ -469,7 +469,7 @@ public class ConfigTab extends JPanel
     private JLayeredPane createAdditionalSettingsPane()
     {
         JLayeredPane additionalSettingsPane = new JLayeredPane();
-        additionalSettingsPane.setBorder(new LineBorder(Color.BLACK)); // Add black border
+        additionalSettingsPane.setBorder(new LineBorder(Color.BLACK)); 
 
         JLabel additionalSettingsLabel = new JLabel("Additional Settings");
         additionalSettingsLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
@@ -550,7 +550,7 @@ public class ConfigTab extends JPanel
     private JLayeredPane createAutoEncryptPane()
     {
         JLayeredPane autoEncryptPane = new JLayeredPane();
-        autoEncryptPane.setBorder(new LineBorder(Color.BLACK)); // Add black border
+        autoEncryptPane.setBorder(new LineBorder(Color.BLACK)); 
 
         JLabel autoEncryptLabel = new JLabel("Auto Encrypt the Request");
         autoEncryptLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
@@ -570,17 +570,17 @@ public class ConfigTab extends JPanel
         ActionListener toolTypeListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Check if any checkbox is selected
+                
                 boolean isAnyCheckboxSelected = scannerCheckBox.isSelected() || repeaterCheckBox.isSelected() ||
                                                 proxyCheckBox.isSelected() || extenderCheckBox.isSelected() ||
                                                 intruderCheckBox.isSelected();
 
                 if (isAnyCheckboxSelected) {
-                    // Check if request_noneButton is selected
+                    
                     if (selectedRequestType == null || selectedRequestType.equals("None")) {
                         JOptionPane.showMessageDialog(null, "Request type is required.", "Warning", JOptionPane.WARNING_MESSAGE);
-                        selectedToolType = ""; // Clear the selected tool type
-                        turnOnButton.setEnabled(false); // Disable the turnOnButton
+                        selectedToolType = ""; 
+                        turnOnButton.setEnabled(false); 
                         scannerCheckBox.setSelected(false);
                         repeaterCheckBox.setSelected(false);
                         proxyCheckBox.setSelected(false);
@@ -589,7 +589,7 @@ public class ConfigTab extends JPanel
                         currentStatusLabel.setText("Current Status: OFF");
                         turnOnButton.setText("Turn ON");
                     } else {
-                        // Store the selected checkbox values in the variable
+                        
                         StringBuilder selectedTools = new StringBuilder();
                         if (scannerCheckBox.isSelected()) selectedTools.append("Scanner, ");
                         if (repeaterCheckBox.isSelected()) selectedTools.append("Repeater, ");
@@ -597,15 +597,15 @@ public class ConfigTab extends JPanel
                         if (extenderCheckBox.isSelected()) selectedTools.append("Extender, ");
                         if (intruderCheckBox.isSelected()) selectedTools.append("Intruder, ");
 
-                        // Remove the trailing comma and space
+                        
                         selectedToolType = selectedTools.substring(0, selectedTools.length() - 2);
 
-                        turnOnButton.setEnabled(true); // Enable the turnOnButton
+                        turnOnButton.setEnabled(true); 
                     }
                 } else {
-                    // No checkbox is selected
-                    selectedToolType = ""; // Clear the selected tool type
-                    turnOnButton.setEnabled(false); // Disable the turnOnButton
+                    
+                    selectedToolType = ""; 
+                    turnOnButton.setEnabled(false); 
                 }
             }
         };
@@ -617,15 +617,15 @@ public class ConfigTab extends JPanel
         intruderCheckBox.addActionListener(toolTypeListener);
 
         ActionListener turnOnButtonListener = new ActionListener() {
-            private boolean isOn = false; // Track the current state of the button
+            private boolean isOn = false; 
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Check if at least one checkbox is selected
+                
                 if (scannerCheckBox.isSelected() || repeaterCheckBox.isSelected() || proxyCheckBox.isSelected() ||
                     extenderCheckBox.isSelected() || intruderCheckBox.isSelected()) {
                     
-                    // Toggle the state
+                    
                     isOn = !isOn;
 
                     if (isOn) {
@@ -711,14 +711,14 @@ public class ConfigTab extends JPanel
 
     private JLayeredPane createRequestParameterPane() {
         JLayeredPane requestParameterPane = new JLayeredPane();
-        requestParameterPane.setBorder(new LineBorder(Color.BLACK)); // Add black border
+        requestParameterPane.setBorder(new LineBorder(Color.BLACK)); 
 
         JLabel titleLabel = new JLabel("Request Parameters to Include/Exclude");
         titleLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
         JRadioButton includeParametersButton = new JRadioButton("Include Parameters");
         JRadioButton excludeParametersButton = new JRadioButton("Exclude Parameters");
         Request_Paramter_Ignore_select_noneButton = new JRadioButton("None");
-        Request_Paramter_Ignore_select_noneButton.setSelected(true); // Default selection
+        Request_Paramter_Ignore_select_noneButton.setSelected(true); 
 
         ButtonGroup group = new ButtonGroup();
         group.add(includeParametersButton);
@@ -727,14 +727,14 @@ public class ConfigTab extends JPanel
 
         JLabel infoLabel = new JLabel("Separated by commas, case-sensitive:");
         JTextField parameterTextField = new JTextField("password,Current_Password");
-        parameterTextField.setPreferredSize(new Dimension(200, 20)); // Set width to 200px and height to 20px
+        parameterTextField.setPreferredSize(new Dimension(200, 20)); 
 
-        // Add a common listener for the radio buttons
+        
         ActionListener requestParameterListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!request_parameterValueButton.isSelected() && !request_parameterKeyValueButton.isSelected()) {
-                    Request_Paramter_Ignore_select_noneButton.setSelected(true); // Reset to "None"
+                    Request_Paramter_Ignore_select_noneButton.setSelected(true); 
                     JOptionPane.showMessageDialog(null, "Request Parameter Type must be selected.", "Warning", JOptionPane.WARNING_MESSAGE);
                 }
             }
@@ -743,7 +743,7 @@ public class ConfigTab extends JPanel
         includeParametersButton.addActionListener(requestParameterListener);
         excludeParametersButton.addActionListener(requestParameterListener);
 
-        // Layout setup
+        
         GroupLayout layout = new GroupLayout(requestParameterPane);
         requestParameterPane.setLayout(layout);
         layout.setAutoCreateGaps(true);
@@ -758,7 +758,7 @@ public class ConfigTab extends JPanel
                     .addComponent(Request_Paramter_Ignore_select_noneButton))
                 .addComponent(infoLabel)
                 .addGroup(layout.createSequentialGroup()
-                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE) // Set fixed width
+                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE) 
                 )
         );
 
@@ -771,7 +771,7 @@ public class ConfigTab extends JPanel
                     .addComponent(Request_Paramter_Ignore_select_noneButton))
                 .addComponent(infoLabel)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE) // Set fixed height
+                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE) 
                 )
         );
 
@@ -780,14 +780,14 @@ public class ConfigTab extends JPanel
 
     private JLayeredPane createResponseParameterPane() {
         JLayeredPane responseParameterPane = new JLayeredPane();
-        responseParameterPane.setBorder(new LineBorder(Color.BLACK)); // Add black border
+        responseParameterPane.setBorder(new LineBorder(Color.BLACK)); 
 
         JLabel titleLabel = new JLabel("Response Parameters to Include/Exclude");
         titleLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
         JRadioButton includeParametersButton = new JRadioButton("Include Parameters");
         JRadioButton excludeParametersButton = new JRadioButton("Exclude Parameters");
         Response_Paramter_Ignore_select_noneButton = new JRadioButton("None");
-        Response_Paramter_Ignore_select_noneButton.setSelected(true); // Default selection
+        Response_Paramter_Ignore_select_noneButton.setSelected(true); 
 
         ButtonGroup group = new ButtonGroup();
         group.add(includeParametersButton);
@@ -796,14 +796,14 @@ public class ConfigTab extends JPanel
 
         JLabel infoLabel = new JLabel("Separated by commas, case-sensitive:");
         JTextField parameterTextField = new JTextField("password,Current_Password");
-        parameterTextField.setPreferredSize(new Dimension(200, 20)); // Set width to 200px and height to 20px
+        parameterTextField.setPreferredSize(new Dimension(200, 20)); 
 
-        // Add a common listener for the radio buttons
+        
         ActionListener responseParameterListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (!response_parameterValueButton.isSelected() && !response_parameterKeyValueButton.isSelected()) {
-                    Response_Paramter_Ignore_select_noneButton.setSelected(true); // Reset to "None"
+                    Response_Paramter_Ignore_select_noneButton.setSelected(true); 
                     JOptionPane.showMessageDialog(null, "Response Parameter Type must be selected.", "Warning", JOptionPane.WARNING_MESSAGE);
                 }
             }
@@ -812,7 +812,7 @@ public class ConfigTab extends JPanel
         includeParametersButton.addActionListener(responseParameterListener);
         excludeParametersButton.addActionListener(responseParameterListener);
 
-        // Layout setup
+        
         GroupLayout layout = new GroupLayout(responseParameterPane);
         responseParameterPane.setLayout(layout);
         layout.setAutoCreateGaps(true);
@@ -827,7 +827,7 @@ public class ConfigTab extends JPanel
                     .addComponent(Response_Paramter_Ignore_select_noneButton))
                 .addComponent(infoLabel)
                 .addGroup(layout.createSequentialGroup()
-                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE) // Set fixed width
+                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE) 
                 )
         );
 
@@ -840,7 +840,7 @@ public class ConfigTab extends JPanel
                     .addComponent(Response_Paramter_Ignore_select_noneButton))
                 .addComponent(infoLabel)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE) // Set fixed height
+                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE) 
                 )
         );
 
