@@ -38,6 +38,20 @@ public class ConfigTab extends JPanel
     public static String selectedResponseEncryptionFile;
     public static String selectedResponseDecryptionFile;
     private String selectedToolType = ""; // Initially empty
+    private JRadioButton request_parameterValueButton;
+    private JRadioButton request_parameterKeyValueButton;
+    private JRadioButton response_parameterValueButton;
+    private JRadioButton response_parameterKeyValueButton;
+    private JButton turnOnButton;
+    private JLabel currentStatusLabel;
+    private JCheckBox scannerCheckBox;
+    private JCheckBox repeaterCheckBox;
+    private JCheckBox proxyCheckBox;
+    private JCheckBox extenderCheckBox;
+    private JCheckBox intruderCheckBox;
+    private JRadioButton request_noneButton;
+    private JRadioButton Request_Paramter_Ignore_select_noneButton;
+    private JRadioButton Response_Paramter_Ignore_select_noneButton;
 
     public ConfigTab(MontoyaApi api)
     {
@@ -51,6 +65,8 @@ public class ConfigTab extends JPanel
         JLayeredPane responseTypePane = createResponseTypePane();
         JLayeredPane additionalSettingsPane = createAdditionalSettingsPane();
         JLayeredPane autoEncryptPane = createAutoEncryptPane();
+        JLayeredPane requestParameterPane = createRequestParameterPane();
+        JLayeredPane responseParameterPane = createResponseParameterPane();
 
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
@@ -58,14 +74,22 @@ public class ConfigTab extends JPanel
         topPanel.add(Box.createRigidArea(new Dimension(10, 0))); // Add space between the panes
         topPanel.add(responseTypePane);
 
+        JPanel middlePanel = new JPanel();
+        middlePanel.setLayout(new BoxLayout(middlePanel, BoxLayout.X_AXIS));
+        middlePanel.add(additionalSettingsPane);
+        middlePanel.add(Box.createRigidArea(new Dimension(10, 0))); // Add space between the panes
+        middlePanel.add(autoEncryptPane);
+
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
-        bottomPanel.add(additionalSettingsPane);
+        bottomPanel.add(requestParameterPane);
         bottomPanel.add(Box.createRigidArea(new Dimension(10, 0))); // Add space between the panes
-        bottomPanel.add(autoEncryptPane);
+        bottomPanel.add(responseParameterPane);
 
         mainPanel.add(topPanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between the top and bottom panels
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between the top and middle panels
+        mainPanel.add(middlePanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between the middle and bottom panels
         mainPanel.add(bottomPanel);
 
         this.add(mainPanel, BorderLayout.CENTER);
@@ -77,10 +101,12 @@ public class ConfigTab extends JPanel
         requestTypePane.setBorder(new LineBorder(Color.BLACK)); // Add black border
 
         JLabel label = new JLabel("Request Type");
+        label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14)); // Example font
         JRadioButton request_completeBodyButton = new JRadioButton("Complete Body");
-        JRadioButton request_parameterValueButton = new JRadioButton("Parameter Value");
-        JRadioButton request_parameterKeyValueButton = new JRadioButton("Parameter Key and Value");
-        JRadioButton request_noneButton = new JRadioButton("None");
+        request_parameterValueButton = new JRadioButton("Parameter Value");
+        request_parameterKeyValueButton = new JRadioButton("Parameter Key and Value");
+        request_noneButton = new JRadioButton("None");
+        request_noneButton.setSelected(true);
 
         ButtonGroup group = new ButtonGroup();
         group.add(request_completeBodyButton);
@@ -93,15 +119,33 @@ public class ConfigTab extends JPanel
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (selectedRequestEncryptionFile != null && !selectedRequestEncryptionFile.isBlank() &&
-                selectedRequestDecryptionFile != null && !selectedRequestDecryptionFile.isBlank()) {
-                // Request Encryption and Decryption files are required for Request Type
-                selectedRequestType = e.getActionCommand(); 
-            }
-            else {
-                selectedRequestType = "None";
-                request_noneButton.setSelected(true);
-                JOptionPane.showMessageDialog(null, "Request Encryption Decryption file is missing", "Error", JOptionPane.ERROR_MESSAGE);
-            }
+                    selectedRequestDecryptionFile != null && !selectedRequestDecryptionFile.isBlank()) {
+                    
+                    selectedRequestType = e.getActionCommand();
+
+                    // If "None" is selected, reset tool type and disable the turnOnButton
+                    if (selectedRequestType.equals("None")) {
+                        turnOnButton.setEnabled(false); // Disable the turnOnButton
+                        currentStatusLabel.setText("Current Status: OFF");
+                        turnOnButton.setText("Turn ON");
+                    }
+                    if (!(selectedRequestType.equals("Parameter Value") || selectedRequestType.equals("Parameter Key and Value"))) {
+                        Request_Paramter_Ignore_select_noneButton.setSelected(true);
+                        
+                    }
+                } else {
+                    selectedRequestType = "None";
+                    request_noneButton.setSelected(true);
+                    JOptionPane.showMessageDialog(null, "Request Encryption Decryption file is missing", "Error", JOptionPane.ERROR_MESSAGE);
+
+                    // Reset tool type and disable the turnOnButton
+                    turnOnButton.setEnabled(false); // Disable the turnOnButton
+                    
+                    currentStatusLabel.setText("Current Status: OFF");
+                    turnOnButton.setText("Turn ON");
+                }
+
+                
             }
         };
 
@@ -249,10 +293,12 @@ public class ConfigTab extends JPanel
         responseTypePane.setBorder(new LineBorder(Color.BLACK)); // Add black border
 
         JLabel label = new JLabel("Response Type");
+        label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
         JRadioButton response_completeBodyButton = new JRadioButton("Complete Body");
-        JRadioButton response_parameterValueButton = new JRadioButton("Parameter Value");
-        JRadioButton response_parameterKeyValueButton = new JRadioButton("Parameter Key and Value");
+        response_parameterValueButton = new JRadioButton("Parameter Value");
+        response_parameterKeyValueButton = new JRadioButton("Parameter Key and Value");
         JRadioButton response_noneButton = new JRadioButton("None");
+        response_noneButton.setSelected(true); // Default selection
 
         ButtonGroup group = new ButtonGroup();
         group.add(response_completeBodyButton);
@@ -266,6 +312,11 @@ public class ConfigTab extends JPanel
                 if (selectedResponseEncryptionFile != null && !selectedResponseEncryptionFile.isBlank() &&
                 selectedResponseDecryptionFile != null && !selectedResponseDecryptionFile.isBlank()) {
                 selectedResponseType = e.getActionCommand();
+
+                if (!(selectedResponseType.equals("Parameter Value") || selectedResponseType.equals("Parameter Key and Value"))) {
+                    Response_Paramter_Ignore_select_noneButton.setSelected(true);
+                    
+                }
             }
             else {
                 selectedResponseType = "None";
@@ -421,8 +472,10 @@ public class ConfigTab extends JPanel
         additionalSettingsPane.setBorder(new LineBorder(Color.BLACK)); // Add black border
 
         JLabel additionalSettingsLabel = new JLabel("Additional Settings");
+        additionalSettingsLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
         JLabel languageLabel = new JLabel("Selected Language Binary");
         JTextField languageTextField = new JTextField(20);
+        languageTextField.setText("usr/bin/python");
         JButton selectLanguageButton = new JButton("Select Language Binary Path");
         JButton clearLanguageButton = new JButton("Clear Language Selected");
 
@@ -500,18 +553,19 @@ public class ConfigTab extends JPanel
         autoEncryptPane.setBorder(new LineBorder(Color.BLACK)); // Add black border
 
         JLabel autoEncryptLabel = new JLabel("Auto Encrypt the Request");
-        JLabel currentStatusLabel = new JLabel("Current Status: OFF");
-        JButton turnOnButton = new JButton("Turn ON");
+        autoEncryptLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        currentStatusLabel = new JLabel("Current Status: OFF");
+        turnOnButton = new JButton("Turn ON");
         turnOnButton.setEnabled(false);
 
         JLabel cannotTurnOnLabel = new JLabel("Cannot Turn ON Unless Request Type and Tool Type are selected");
 
         JLabel toolTypeLabel = new JLabel("Auto Encrypt Tool Type");
-        JCheckBox scannerCheckBox = new JCheckBox("Scanner");
-        JCheckBox repeaterCheckBox = new JCheckBox("Repeater");
-        JCheckBox proxyCheckBox = new JCheckBox("Proxy");
-        JCheckBox extenderCheckBox = new JCheckBox("Extender");
-        JCheckBox intruderCheckBox = new JCheckBox("Intruder");
+        scannerCheckBox = new JCheckBox("Scanner");
+        repeaterCheckBox = new JCheckBox("Repeater");
+        proxyCheckBox = new JCheckBox("Proxy");
+        extenderCheckBox = new JCheckBox("Extender");
+        intruderCheckBox = new JCheckBox("Intruder");
 
         ActionListener toolTypeListener = new ActionListener() {
             @Override
@@ -532,7 +586,8 @@ public class ConfigTab extends JPanel
                         proxyCheckBox.setSelected(false);
                         extenderCheckBox.setSelected(false);
                         intruderCheckBox.setSelected(false);
-                        
+                        currentStatusLabel.setText("Current Status: OFF");
+                        turnOnButton.setText("Turn ON");
                     } else {
                         // Store the selected checkbox values in the variable
                         StringBuilder selectedTools = new StringBuilder();
@@ -652,5 +707,143 @@ public class ConfigTab extends JPanel
         );
 
         return autoEncryptPane;
+    }
+
+    private JLayeredPane createRequestParameterPane() {
+        JLayeredPane requestParameterPane = new JLayeredPane();
+        requestParameterPane.setBorder(new LineBorder(Color.BLACK)); // Add black border
+
+        JLabel titleLabel = new JLabel("Request Parameters to Include/Exclude");
+        titleLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        JRadioButton includeParametersButton = new JRadioButton("Include Parameters");
+        JRadioButton excludeParametersButton = new JRadioButton("Exclude Parameters");
+        Request_Paramter_Ignore_select_noneButton = new JRadioButton("None");
+        Request_Paramter_Ignore_select_noneButton.setSelected(true); // Default selection
+
+        ButtonGroup group = new ButtonGroup();
+        group.add(includeParametersButton);
+        group.add(excludeParametersButton);
+        group.add(Request_Paramter_Ignore_select_noneButton);
+
+        JLabel infoLabel = new JLabel("Separated by commas, case-sensitive:");
+        JTextField parameterTextField = new JTextField("password,Current_Password");
+        parameterTextField.setPreferredSize(new Dimension(200, 20)); // Set width to 200px and height to 20px
+
+        // Add a common listener for the radio buttons
+        ActionListener requestParameterListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!request_parameterValueButton.isSelected() && !request_parameterKeyValueButton.isSelected()) {
+                    Request_Paramter_Ignore_select_noneButton.setSelected(true); // Reset to "None"
+                    JOptionPane.showMessageDialog(null, "Request Parameter Type must be selected.", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        };
+
+        includeParametersButton.addActionListener(requestParameterListener);
+        excludeParametersButton.addActionListener(requestParameterListener);
+
+        // Layout setup
+        GroupLayout layout = new GroupLayout(requestParameterPane);
+        requestParameterPane.setLayout(layout);
+        layout.setAutoCreateGaps(true);
+        layout.setAutoCreateContainerGaps(true);
+
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addComponent(titleLabel)
+                .addGroup(layout.createSequentialGroup()
+                    .addComponent(includeParametersButton)
+                    .addComponent(excludeParametersButton)
+                    .addComponent(Request_Paramter_Ignore_select_noneButton))
+                .addComponent(infoLabel)
+                .addGroup(layout.createSequentialGroup()
+                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE) // Set fixed width
+                )
+        );
+
+        layout.setVerticalGroup(
+            layout.createSequentialGroup()
+                .addComponent(titleLabel)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(includeParametersButton)
+                    .addComponent(excludeParametersButton)
+                    .addComponent(Request_Paramter_Ignore_select_noneButton))
+                .addComponent(infoLabel)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE) // Set fixed height
+                )
+        );
+
+        return requestParameterPane;
+    }
+
+    private JLayeredPane createResponseParameterPane() {
+        JLayeredPane responseParameterPane = new JLayeredPane();
+        responseParameterPane.setBorder(new LineBorder(Color.BLACK)); // Add black border
+
+        JLabel titleLabel = new JLabel("Response Parameters to Include/Exclude");
+        titleLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        JRadioButton includeParametersButton = new JRadioButton("Include Parameters");
+        JRadioButton excludeParametersButton = new JRadioButton("Exclude Parameters");
+        Response_Paramter_Ignore_select_noneButton = new JRadioButton("None");
+        Response_Paramter_Ignore_select_noneButton.setSelected(true); // Default selection
+
+        ButtonGroup group = new ButtonGroup();
+        group.add(includeParametersButton);
+        group.add(excludeParametersButton);
+        group.add(Response_Paramter_Ignore_select_noneButton);
+
+        JLabel infoLabel = new JLabel("Separated by commas, case-sensitive:");
+        JTextField parameterTextField = new JTextField("password,Current_Password");
+        parameterTextField.setPreferredSize(new Dimension(200, 20)); // Set width to 200px and height to 20px
+
+        // Add a common listener for the radio buttons
+        ActionListener responseParameterListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!response_parameterValueButton.isSelected() && !response_parameterKeyValueButton.isSelected()) {
+                    Response_Paramter_Ignore_select_noneButton.setSelected(true); // Reset to "None"
+                    JOptionPane.showMessageDialog(null, "Response Parameter Type must be selected.", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        };
+
+        includeParametersButton.addActionListener(responseParameterListener);
+        excludeParametersButton.addActionListener(responseParameterListener);
+
+        // Layout setup
+        GroupLayout layout = new GroupLayout(responseParameterPane);
+        responseParameterPane.setLayout(layout);
+        layout.setAutoCreateGaps(true);
+        layout.setAutoCreateContainerGaps(true);
+
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addComponent(titleLabel)
+                .addGroup(layout.createSequentialGroup()
+                    .addComponent(includeParametersButton)
+                    .addComponent(excludeParametersButton)
+                    .addComponent(Response_Paramter_Ignore_select_noneButton))
+                .addComponent(infoLabel)
+                .addGroup(layout.createSequentialGroup()
+                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE) // Set fixed width
+                )
+        );
+
+        layout.setVerticalGroup(
+            layout.createSequentialGroup()
+                .addComponent(titleLabel)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(includeParametersButton)
+                    .addComponent(excludeParametersButton)
+                    .addComponent(Response_Paramter_Ignore_select_noneButton))
+                .addComponent(infoLabel)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(parameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE) // Set fixed height
+                )
+        );
+
+        return responseParameterPane;
     }
 }
