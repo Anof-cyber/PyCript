@@ -29,6 +29,7 @@ public class PyCript implements BurpExtension
 
         // Add a new tab to the Burp Suite UI
         api.userInterface().registerSuiteTab("PyCript", new PyCriptTab(api));
+        api.userInterface().registerHttpRequestEditorProvider(new PyCriptRequestTab(api));
     }
 
     private static class PyCriptTab extends JPanel
