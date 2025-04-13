@@ -32,11 +32,13 @@ public class ConfigTab extends JPanel
     private final MontoyaApi api;
     private final Logging logging;
     public static String selectedRequestType; 
+    
     public static String selectedResponseType;
     public static String selectedRequestEncryptionFile;
     public static String selectedRequestDecryptionFile;
     public static String selectedResponseEncryptionFile;
     public static String selectedResponseDecryptionFile;
+    public static JComboBox<String> reqresponsecombobox;
     private String selectedToolType = ""; 
     private JRadioButton request_parameterValueButton;
     private JRadioButton request_parameterKeyValueButton;
@@ -483,7 +485,7 @@ public class ConfigTab extends JPanel
         JComboBox<String> methodComboBox = new JComboBox<>(new String[]{"GET", "BODY", "BOTH"});
 
         JLabel forLabel = new JLabel("Encryption Decryption For");
-        JComboBox<String> forComboBox = new JComboBox<>(new String[]{"Request", "Response", "BOTH"});
+        reqresponsecombobox = new JComboBox<>(new String[]{"Request", "Response", "BOTH"});
 
         additionalSettingsPane.add(additionalSettingsLabel, JLayeredPane.DEFAULT_LAYER);
         additionalSettingsPane.add(languageLabel, JLayeredPane.DEFAULT_LAYER);
@@ -493,7 +495,7 @@ public class ConfigTab extends JPanel
         additionalSettingsPane.add(methodLabel, JLayeredPane.DEFAULT_LAYER);
         additionalSettingsPane.add(methodComboBox, JLayeredPane.DEFAULT_LAYER);
         additionalSettingsPane.add(forLabel, JLayeredPane.DEFAULT_LAYER);
-        additionalSettingsPane.add(forComboBox, JLayeredPane.DEFAULT_LAYER);
+        additionalSettingsPane.add(reqresponsecombobox, JLayeredPane.DEFAULT_LAYER);
 
         GroupLayout layout = new GroupLayout(additionalSettingsPane);
         additionalSettingsPane.setLayout(layout);
@@ -515,7 +517,7 @@ public class ConfigTab extends JPanel
                             .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
                                 .addComponent(languageTextField)
                                 .addComponent(methodComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(forComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addComponent(reqresponsecombobox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(selectLanguageButton)
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -540,7 +542,7 @@ public class ConfigTab extends JPanel
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(forLabel)
-                    .addComponent(forComboBox))
+                    .addComponent(reqresponsecombobox))
                 .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 

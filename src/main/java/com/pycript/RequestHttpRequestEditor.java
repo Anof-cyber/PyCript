@@ -2,12 +2,15 @@ package com.pycript;
 
 import java.util.Optional;
 
+import com.pycript.ui.ConfigTab;
+
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.core.ByteArray;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.params.HttpParameter;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.ui.Selection;
+import burp.api.montoya.ui.editor.EditorOptions;
 import burp.api.montoya.ui.editor.RawEditor;
 import burp.api.montoya.ui.editor.extension.EditorCreationContext;
 import burp.api.montoya.ui.editor.extension.ExtensionProvidedHttpRequestEditor;
@@ -26,7 +29,7 @@ class RequestHttpRequestEditor implements ExtensionProvidedHttpRequestEditor {
 
     RequestHttpRequestEditor (MontoyaApi api, EditorCreationContext creationContext) {
         this.api = api;
-        requestEditor = api.userInterface().createRawEditor();
+        requestEditor = api.userInterface().createRawEditor(EditorOptions.WRAP_LINES, EditorOptions.SHOW_NON_PRINTABLE_CHARACTERS);
     }
 
     @Override
@@ -35,22 +38,42 @@ class RequestHttpRequestEditor implements ExtensionProvidedHttpRequestEditor {
         
         HttpRequest request;
         request = requestResponse.request();
+        
         return request;
     }
 
     @Override
     public void setRequestResponse(HttpRequestResponse requestResponse)
     {
-        this.requestResponse = requestResponse;
+        HttpRequest request;
+        
+        if (requestResponse.request() == null || requestResponse.request().toByteArray().length() == 0) {
+            this.requestEditor.setEditable(false);
+        }
+        
+        else {
+            request = requestResponse.request();
+
+           if (request.isInScope()) {
+                this.requestEditor.setEditable(true);
+            } else {
+                this.requestEditor.setEditable(false);
+                this.requestEditor.setContents(ByteArray.byteArray(api.utilities().byteUtils().convertFromString("Request is out of scope")));
+            }
+
+
+
+        }
+
+        
+        //this.requestEditor.setContents();
 
     }
 
     @Override
     public boolean isEnabledFor(HttpRequestResponse requestResponse)
     {
-        
-
-        return true;
+        return !ConfigTab.selectedRequestType.equals("None") && !ConfigTab.reqresponsecombobox.getSelectedItem().equals("Response");
     }
 
     @Override
@@ -75,6 +98,11 @@ class RequestHttpRequestEditor implements ExtensionProvidedHttpRequestEditor {
     public boolean isModified()
     {
         return requestEditor.isModified();
+    }
+
+    public void setEditable(boolean editable)
+    {
+        requestEditor.setEditable(editable);
     }
 
     
