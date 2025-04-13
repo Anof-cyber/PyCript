@@ -11,7 +11,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'net.portswigger.burp.extensions:montoya-api:+' // Burp Suite API
+    implementation 'net.portswigger.burp.extensions:montoya-api:+' // Burp Suite API,
+    implementation 'org.apache.commons:commons-lang3:3.12.0' // Apache Commons Lang
 }
 
 test {

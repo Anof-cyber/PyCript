@@ -3,7 +3,7 @@ package com.pycript;
 import java.util.Optional;
 
 import com.pycript.ui.ConfigTab;
-
+import com.pycript.encdec.Request;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.core.ByteArray;
 import burp.api.montoya.http.message.HttpRequestResponse;
@@ -16,6 +16,7 @@ import burp.api.montoya.ui.editor.extension.EditorCreationContext;
 import burp.api.montoya.ui.editor.extension.ExtensionProvidedHttpRequestEditor;
 import burp.api.montoya.utilities.Base64EncodingOptions;
 import burp.api.montoya.http.message.HttpRequestResponse;
+
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.ui.Selection;
 import java.awt.Component;
@@ -54,11 +55,18 @@ class RequestHttpRequestEditor implements ExtensionProvidedHttpRequestEditor {
         else {
             request = requestResponse.request();
 
-           if (request.isInScope()) {
-                this.requestEditor.setEditable(true);
+           if (!request.isInScope()) {
+
+            this.requestEditor.setEditable(false);
+            this.requestEditor.setContents(ByteArray.byteArray(api.utilities().byteUtils().convertFromString("Request is out of scope")));  
+               
             } else {
-                this.requestEditor.setEditable(false);
-                this.requestEditor.setContents(ByteArray.byteArray(api.utilities().byteUtils().convertFromString("Request is out of scope")));
+
+                this.requestEditor.setEditable(true);
+                Request req = new Request();
+                HttpRequest decryptedRequest = Request.decrypt(request, api);
+                this.requestEditor.setContents(decryptedRequest.toByteArray());
+                
             }
 
 

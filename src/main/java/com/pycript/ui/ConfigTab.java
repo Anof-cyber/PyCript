@@ -39,6 +39,8 @@ public class ConfigTab extends JPanel
     public static String selectedResponseEncryptionFile;
     public static String selectedResponseDecryptionFile;
     public static JComboBox<String> reqresponsecombobox;
+    public static JComboBox<String> requestmethodComboBox;
+    public static JTextField languageTextField;
     private String selectedToolType = ""; 
     private JRadioButton request_parameterValueButton;
     private JRadioButton request_parameterKeyValueButton;
@@ -476,13 +478,13 @@ public class ConfigTab extends JPanel
         JLabel additionalSettingsLabel = new JLabel("Additional Settings");
         additionalSettingsLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
         JLabel languageLabel = new JLabel("Selected Language Binary");
-        JTextField languageTextField = new JTextField(20);
+        languageTextField = new JTextField(20);
         languageTextField.setText("usr/bin/python");
         JButton selectLanguageButton = new JButton("Select Language Binary Path");
         JButton clearLanguageButton = new JButton("Clear Language Selected");
 
         JLabel methodLabel = new JLabel("Encryption Decryption Method");
-        JComboBox<String> methodComboBox = new JComboBox<>(new String[]{"GET", "BODY", "BOTH"});
+        requestmethodComboBox = new JComboBox<>(new String[]{"GET", "BODY", "BOTH"});
 
         JLabel forLabel = new JLabel("Encryption Decryption For");
         reqresponsecombobox = new JComboBox<>(new String[]{"Request", "Response", "BOTH"});
@@ -493,7 +495,7 @@ public class ConfigTab extends JPanel
         additionalSettingsPane.add(selectLanguageButton, JLayeredPane.DEFAULT_LAYER);
         additionalSettingsPane.add(clearLanguageButton, JLayeredPane.DEFAULT_LAYER);
         additionalSettingsPane.add(methodLabel, JLayeredPane.DEFAULT_LAYER);
-        additionalSettingsPane.add(methodComboBox, JLayeredPane.DEFAULT_LAYER);
+        additionalSettingsPane.add(requestmethodComboBox, JLayeredPane.DEFAULT_LAYER);
         additionalSettingsPane.add(forLabel, JLayeredPane.DEFAULT_LAYER);
         additionalSettingsPane.add(reqresponsecombobox, JLayeredPane.DEFAULT_LAYER);
 
@@ -516,7 +518,7 @@ public class ConfigTab extends JPanel
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                             .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
                                 .addComponent(languageTextField)
-                                .addComponent(methodComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(requestmethodComboBox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(reqresponsecombobox, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(selectLanguageButton)
@@ -538,7 +540,7 @@ public class ConfigTab extends JPanel
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(methodLabel)
-                    .addComponent(methodComboBox))
+                    .addComponent(requestmethodComboBox))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(forLabel)
