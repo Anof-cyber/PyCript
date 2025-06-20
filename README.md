@@ -18,13 +18,6 @@ Pycript is a Burp Suite extension that enables users to encrypt and decrypt requ
 [![](https://i.ibb.co/qsV4mb9/twitter-2.png)](https://twitter.com/ano_f_)[![](https://i.ibb.co/89LKTrL/linkedin-1.png)](https://www.linkedin.com/in/sourav-kalal/)
 
 
-## Support
-
-<a href="https://www.buymeacoffee.com/AnoF"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=AnoF&button_colour=FF5F5F&font_colour=ffffff&font_family=Arial&outline_colour=000000&coffee_colour=FFDD00" /></a>
-
-<a href="https://github.com/sponsors/Anof-cyber"><img src="https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86" alt="Sponsor Anof-cyber" width="230" height="50"></a>
-
-
 ## Documentation
 
 <a href="https://pycript.souravkalal.tech/#/"><img src="https://i.ibb.co/NLTJ6MR/70686099-3855f780-1c79-11ea-8141-899e39459da2.png" alt="70686099-3855f780-1c79-11ea-8141-899e39459da2" border="0"></a>
@@ -56,13 +49,6 @@ Pycript is a Burp Suite extension that enables users to encrypt and decrypt requ
 - [X] Support for GET Paramters
 - [X] Allowing Edit Headers for Request Type ```Custom Request```
 - [X] Supporting multiple languages for encryption and decryption 
-
-
-## Demo Code
-
-- Repository for Encryption Decryption PyCript Template [Code Repository ](https://github.com/Anof-cyber/PyCript-Template)
-
-
 
 
 

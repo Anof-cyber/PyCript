@@ -24,7 +24,7 @@ from pycript.gui import create_third_tab_elements
 
 errorlogtextbox = None
 errorlogcheckbox = None
-VERSION = "Version 0.4"
+VERSION = "Version 0.4.1"
 
 class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFactory, IMessageEditorController, AbstractTableModel,IHttpListener):
 
@@ -41,9 +41,10 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         # Informing Burp suite the name of the extension
         callbacks.setExtensionName("PyCript")
         callbacks.printOutput("Author: Sourav Kalal")
+        callbacks.printOutput("Modified By: Embaby")
         callbacks.printOutput(VERSION)
-        callbacks.printOutput("GitHub - https://github.com/Anof-cyber/PyCript")
-        callbacks.printOutput("Website - https://souravkalal.tech/")
+            callbacks.printOutput("GitHub - https://github.com/0xEmbo/")
+        callbacks.printOutput("Medium - https://0xembo.medium.com/")
         callbacks.printOutput("Documentation - https://pycript.souravkalal.tech/")
         
         callbacks.registerContextMenuFactory(self)
