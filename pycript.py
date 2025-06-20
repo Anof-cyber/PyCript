@@ -44,7 +44,6 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         callbacks.printOutput("Modified By: 0xEmbo")
         callbacks.printOutput(VERSION)
         callbacks.printOutput("GitHub - https://github.com/0xEmbo/")
-        callbacks.printOutput("Medium - https://0xembo.medium.com/")
         callbacks.printOutput("Documentation - https://pycript.souravkalal.tech/")
         
         callbacks.registerContextMenuFactory(self)
