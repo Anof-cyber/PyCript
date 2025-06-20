@@ -41,7 +41,7 @@ class BurpExtender(IBurpExtender, ITab,IMessageEditorTabFactory,IContextMenuFact
         # Informing Burp suite the name of the extension
         callbacks.setExtensionName("PyCript")
         callbacks.printOutput("Author: Sourav Kalal")
-        callbacks.printOutput("Modified By: Embaby")
+        callbacks.printOutput("Modified By: 0xEmbo")
         callbacks.printOutput(VERSION)
             callbacks.printOutput("GitHub - https://github.com/0xEmbo/")
         callbacks.printOutput("Medium - https://0xembo.medium.com/")
