@@ -1,5 +1,6 @@
 from java.util import Arrays;
 from java.lang import String
+import re
 
 _helpers = None  # Private variable to hold the helpers reference.
 
@@ -19,8 +20,6 @@ def string_to_bytes(string):
     return get_helpers().stringToBytes(string)
 
 def bytes_to_string(byte_data):
-    """Convert bytes to string using helpers."""
-    byte_data_clean = byte_data.strip('[]')
-    byte_data2 = [int(code.strip()) for code in byte_data_clean.split(',')]
-    #return get_helpers().bytesToString(byte_data2)   # for some reason helper API gives error or remove some non ascii data from string results in wrong string for non ascii or binary data
-    return ''.join(chr(code) for code in byte_data2)
+    s = str(byte_data)
+    numbers = re.findall(r'\d+', s)
+    return ''.join(chr(int(n) & 0xFF) for n in numbers)
