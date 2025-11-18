@@ -32,7 +32,7 @@ public class Request {
         if (ConfigTab.selectedRequestType.equals("Complete Body")) {
 
             Pair<String, String> result = Decryption.Parameterdecrypt(ConfigTab.languageTextField.getText(), ConfigTab.selectedRequestDecryptionFile, string_body, raw_headers);
-            String decryptedValue = result.getLeft();  
+            String decryptedValue = result.getLeft();
             String updatedHeader = result.getRight();
 
             List<? extends HttpHeader> headerList = utils.processCustomHeaders(updatedHeader);
@@ -46,10 +46,10 @@ public class Request {
 
 
 
-         
-        } 
+
+        }
         return httpRequest;
-        
-        
+
+
     }
 }
