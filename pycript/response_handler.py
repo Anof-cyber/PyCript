@@ -1,5 +1,5 @@
-from .decryption import Parameterdecrypt,Customrequestdecrypt
-from .encryption import Parameterencrypt,Customrequestencrypt
+from .decryption import Parameterdecrypt
+from .encryption import Parameterencrypt
 from json import loads, dumps
 from .utils import update_json_value, update_json_key_value
 
@@ -16,7 +16,7 @@ def encrypt_decrypt_response(extender,currentresp,response,enc_dec,enc_dec_type)
     listofparam = extender.responseparamlist1.getText().split(',')
 
     if str(extender.selectedresponsetpye) == "Complete Body":
-        decryptedvalue = enc_dec(selectedlang, enc_dec_file_path, stringbody)
+        decryptedvalue, _ = enc_dec(selectedlang, enc_dec_file_path, stringbody)
         output = extender.helpers.stringToBytes(decryptedvalue)
         return extender.helpers.buildHttpMessage(header, output)
     
