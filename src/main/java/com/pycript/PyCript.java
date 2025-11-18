@@ -45,7 +45,7 @@ public class PyCript implements BurpExtension
             // Add three tabs
             tabbedPane.addTab("Config", new ConfigTab(this.api));
             tabbedPane.addTab("Decrypted Request", new DecryptedRequestTab());
-            tabbedPane.addTab("Log", new LogTab());
+            tabbedPane.addTab("Log", new LogTab(this.api));
 
             this.add(tabbedPane, BorderLayout.CENTER);
         }
