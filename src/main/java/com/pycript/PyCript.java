@@ -17,7 +17,6 @@ public class PyCript implements BurpExtension
     @Override
     public void initialize(MontoyaApi api)
     {
-        // set extension name
         api.extension().setName("PyCript");
 
         Logging logging = api.logging();
@@ -27,7 +26,6 @@ public class PyCript implements BurpExtension
         logging.logToOutput("Website - https://souravkalal.tech/");
         logging.logToOutput("Documentation - https://pycript.souravkalal.tech/");
 
-        // Add a new tab to the Burp Suite UI
         api.userInterface().registerSuiteTab("PyCript", new PyCriptTab(api));
         api.userInterface().registerHttpRequestEditorProvider(new PyCriptRequestTab(api));
     }
@@ -42,8 +40,9 @@ public class PyCript implements BurpExtension
             this.api = api;
             JTabbedPane tabbedPane = new JTabbedPane();
 
-            // Add three tabs
-            tabbedPane.addTab("Config", new ConfigTab(this.api));
+            ConfigTab configTab = new ConfigTab(this.api);
+            ConfigTab.setInstance(configTab);
+            tabbedPane.addTab("Config", configTab);
             tabbedPane.addTab("Decrypted Request", new DecryptedRequestTab());
             tabbedPane.addTab("Log", new LogTab(this.api));
 
