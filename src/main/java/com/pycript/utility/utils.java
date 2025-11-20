@@ -1,21 +1,166 @@
 package com.pycript.utility;
 
+import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.core.ByteArray;
 import burp.api.montoya.http.message.HttpHeader;
 import burp.api.montoya.http.message.params.HttpParameter;
+import burp.api.montoya.http.message.params.HttpParameterType;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
+import burp.api.montoya.http.message.requests.HttpRequest;
 import org.apache.commons.lang3.tuple.Pair;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
+import com.pycript.EncDec.Decryption;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 public class utils {
+
+    public static boolean shouldDecryptParameter(String paramName, String selectedIncExcType, List<String> listOfParam) {
+        if (selectedIncExcType == null || "None".equals(selectedIncExcType)) {
+            return true;
+        } else if ("Include Parameters".equals(selectedIncExcType)) {
+            return listOfParam.contains(paramName);
+        } else if ("Exclude Parameters".equals(selectedIncExcType)) {
+            return !listOfParam.contains(paramName);
+        }
+        return false;
+    }
+
+    public static String decryptString(String input, String selectedLang, String decryptionPath, String rawHeaders) {
+        Pair<byte[], String> result = Decryption.Parameterdecrypt(selectedLang, decryptionPath, input.getBytes(), rawHeaders);
+        return new String(result.getLeft());
+    }
+
+    public static boolean shouldProcessParameter(HttpParameterType paramType, String selectedMethod,
+                                                   HttpParameterType targetType, String targetMethod) {
+        return (targetMethod.equals(selectedMethod) || "BOTH".equals(selectedMethod)) && paramType == targetType;
+    }
+
+    public static HttpRequest buildHttpRequest(String headers, byte[] body, MontoyaApi api) {
+        String[] lines = headers.split("\r?\n");
+        String[] requestLine = lines[0].split(" ", 3);
+        String method = requestLine[0];
+        String path = requestLine[1];
+
+        HttpRequest newRequest = HttpRequest.httpRequest()
+                .withMethod(method)
+                .withPath(path);
+
+        for (int i = 1; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (!line.isEmpty()) {
+                int colonIndex = line.indexOf(':');
+                if (colonIndex > 0) {
+                    String headerName = line.substring(0, colonIndex).trim();
+                    String headerValue = line.substring(colonIndex + 1).trim();
+                    newRequest = newRequest.withHeader(HttpHeader.httpHeader(headerName, headerValue));
+                }
+            }
+        }
+
+        newRequest = newRequest.withBody(ByteArray.byteArray(body));
+        return newRequest;
+    }
+
+    public static String processParameterValue(ParsedHttpParameter param, String selectedLang,
+                                          String decryptionPath, String selectedIncExcType,
+                                          List<String> listOfParam, String rawHeaders) {
+        if (shouldDecryptParameter(param.name(), selectedIncExcType, listOfParam)) {
+            return decryptString(param.value(), selectedLang, decryptionPath, rawHeaders);
+        }
+        return param.value();
+    }
+
+    public static Pair<String, String> processParameterKeyAndValue(ParsedHttpParameter param, String selectedLang,
+                                          String decryptionPath, String selectedIncExcType,
+                                          List<String> listOfParam, String rawHeaders) {
+        if (shouldDecryptParameter(param.name(), selectedIncExcType, listOfParam)) {
+            String decryptedName = decryptString(param.name(), selectedLang, decryptionPath, rawHeaders);
+            String decryptedValue = decryptString(param.value(), selectedLang, decryptionPath, rawHeaders);
+            return org.apache.commons.lang3.tuple.ImmutablePair.of(decryptedName, decryptedValue);
+        }
+        return org.apache.commons.lang3.tuple.ImmutablePair.of(param.name(), param.value());
+    }
+
+    public static HttpRequest updateParameter(HttpRequest request, ParsedHttpParameter param,
+                                               String selectedLang, String decryptionPath, String selectedIncExcType,
+                                               List<String> listOfParam, String rawHeaders, boolean decryptKeys,
+                                               HttpParameterType paramType) {
+        if (decryptKeys) {
+            Pair<String, String> decrypted = processParameterKeyAndValue(param, selectedLang, decryptionPath,
+                selectedIncExcType, listOfParam, rawHeaders);
+            request = request.withRemovedParameters(param);
+            HttpParameter newParam = paramType == HttpParameterType.URL
+                ? HttpParameter.urlParameter(decrypted.getLeft(), decrypted.getRight())
+                : HttpParameter.bodyParameter(decrypted.getLeft(), decrypted.getRight());
+            return request.withAddedParameters(newParam);
+        } else {
+            String decryptedValue = processParameterValue(param, selectedLang, decryptionPath,
+                selectedIncExcType, listOfParam, rawHeaders);
+            HttpParameter newParam = paramType == HttpParameterType.URL
+                ? HttpParameter.urlParameter(param.name(), decryptedValue)
+                : HttpParameter.bodyParameter(param.name(), decryptedValue);
+            return request.withUpdatedParameters(newParam);
+        }
+    }
+
+    public static boolean hasJsonParameters(HttpRequest request) {
+        for (ParsedHttpParameter param : request.parameters()) {
+            if (param.type() == HttpParameterType.JSON) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static HttpRequest processJsonBody(HttpRequest currentRequest, MontoyaApi api, String selectedLang,
+                                               String decryptionPath, String selectedIncExcType,
+                                               List<String> listOfParam, String rawHeaders, boolean decryptKeys) {
+        String bodyString = currentRequest.bodyToString();
+        Gson gson = new Gson();
+        JsonElement jsonElement = gson.fromJson(bodyString, JsonElement.class);
+
+        if (jsonElement.isJsonObject()) {
+            JsonObject jsonObject = jsonElement.getAsJsonObject();
+            JsonObject updatedObject = new JsonObject();
+
+            for (String key : jsonObject.keySet()) {
+                JsonElement value = jsonObject.get(key);
+
+                if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
+                    String stringValue = value.getAsString();
+
+                    if (shouldDecryptParameter(key, selectedIncExcType, listOfParam)) {
+                        if (decryptKeys) {
+                            String decryptedKey = decryptString(key, selectedLang, decryptionPath, rawHeaders);
+                            String decryptedValue = decryptString(stringValue, selectedLang, decryptionPath, rawHeaders);
+                            updatedObject.addProperty(decryptedKey, decryptedValue);
+                        } else {
+                            String decryptedValue = decryptString(stringValue, selectedLang, decryptionPath, rawHeaders);
+                            updatedObject.addProperty(key, decryptedValue);
+                        }
+                    } else {
+                        updatedObject.add(key, value);
+                    }
+                } else {
+                    updatedObject.add(key, value);
+                }
+            }
+
+            String updatedBody = gson.toJson(updatedObject);
+            int bodyOffset = currentRequest.bodyOffset();
+            String headers = (currentRequest.toString()).substring(0, bodyOffset).trim();
+            return buildHttpRequest(headers, updatedBody.getBytes(), api);
+        }
+
+        return currentRequest;
+    }
 
     public static List<? extends HttpHeader> processCustomHeaders(String updatedHeader) {
         String[] updatedHeaders = updatedHeader.split("\n");
@@ -29,161 +174,5 @@ public class utils {
         }
 
         return headerList;
-    }
-
-    public static String updateRawValue(
-            HttpParameter param,
-            String selectedLang,
-            String encryptionPath,
-            BiFunction<String, String, Pair<byte[], String>> encDecFunction,
-            String selectedRequestIncExcType,
-            List<String> listOfParam,
-            String headersStr) {
-
-        String paramName = param.name();
-        String paramValue = param.value();
-
-        if (selectedRequestIncExcType == null) {
-            Pair<byte[], String> result = encDecFunction.apply(selectedLang, encryptionPath);
-            paramValue = new String(result.getLeft());
-        } else if ("Include Parameters".equals(selectedRequestIncExcType) && listOfParam.contains(paramName)) {
-            Pair<byte[], String> result = encDecFunction.apply(selectedLang, encryptionPath);
-            paramValue = new String(result.getLeft());
-        } else if ("Exclude Parameters".equals(selectedRequestIncExcType) && !listOfParam.contains(paramName)) {
-            Pair<byte[], String> result = encDecFunction.apply(selectedLang, encryptionPath);
-            paramValue = new String(result.getLeft());
-        }
-
-        return paramValue;
-    }
-
-    public static JsonElement updateJsonValue(
-            JsonElement jsonElement,
-            String selectedLang,
-            String decryptionPath,
-            BiFunction<byte[], String, Pair<byte[], String>> encDecFunction,
-            String selectedRequestIncExcType,
-            List<String> listOfParam,
-            String headersStr) {
-
-        if (selectedRequestIncExcType == null || "None".equals(selectedRequestIncExcType)) {
-            return processAllJsonElements(jsonElement, selectedLang, decryptionPath, encDecFunction, headersStr);
-        } else if ("Include Parameters".equals(selectedRequestIncExcType)) {
-            return processJsonWithInclude(jsonElement, selectedLang, decryptionPath, encDecFunction, listOfParam, headersStr);
-        } else if ("Exclude Parameters".equals(selectedRequestIncExcType)) {
-            return processJsonWithExclude(jsonElement, selectedLang, decryptionPath, encDecFunction, listOfParam, headersStr);
-        }
-
-        return jsonElement;
-    }
-
-    private static JsonElement processAllJsonElements(
-            JsonElement element,
-            String selectedLang,
-            String path,
-            BiFunction<byte[], String, Pair<byte[], String>> encDecFunction,
-            String headersStr) {
-
-        if (element.isJsonObject()) {
-            JsonObject obj = element.getAsJsonObject();
-            JsonObject newObj = new JsonObject();
-            for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
-                newObj.add(entry.getKey(), processAllJsonElements(entry.getValue(), selectedLang, path, encDecFunction, headersStr));
-            }
-            return newObj;
-        } else if (element.isJsonArray()) {
-            JsonArray arr = element.getAsJsonArray();
-            JsonArray newArr = new JsonArray();
-            for (JsonElement item : arr) {
-                newArr.add(processAllJsonElements(item, selectedLang, path, encDecFunction, headersStr));
-            }
-            return newArr;
-        } else if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()) {
-            String originalValue = element.getAsString();
-            byte[] valueBytes = originalValue.getBytes();
-            Pair<byte[], String> result = encDecFunction.apply(valueBytes, path);
-            String decryptedValue = new String(result.getLeft());
-            return new JsonPrimitive(decryptedValue);
-        }
-
-        return element;
-    }
-
-    private static JsonElement processJsonWithInclude(
-            JsonElement element,
-            String selectedLang,
-            String path,
-            BiFunction<byte[], String, Pair<byte[], String>> encDecFunction,
-            List<String> listOfParam,
-            String headersStr) {
-
-        if (element.isJsonObject()) {
-            JsonObject obj = element.getAsJsonObject();
-            JsonObject newObj = new JsonObject();
-            for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
-                String key = entry.getKey();
-                if (listOfParam.contains(key)) {
-                    if (entry.getValue().isJsonPrimitive() && entry.getValue().getAsJsonPrimitive().isString()) {
-                        String originalValue = entry.getValue().getAsString();
-                        byte[] valueBytes = originalValue.getBytes();
-                        Pair<byte[], String> result = encDecFunction.apply(valueBytes, path);
-                        newObj.add(key, new JsonPrimitive(new String(result.getLeft())));
-                    } else {
-                        newObj.add(key, processJsonWithInclude(entry.getValue(), selectedLang, path, encDecFunction, listOfParam, headersStr));
-                    }
-                } else {
-                    newObj.add(key, entry.getValue());
-                }
-            }
-            return newObj;
-        } else if (element.isJsonArray()) {
-            JsonArray arr = element.getAsJsonArray();
-            JsonArray newArr = new JsonArray();
-            for (JsonElement item : arr) {
-                newArr.add(processJsonWithInclude(item, selectedLang, path, encDecFunction, listOfParam, headersStr));
-            }
-            return newArr;
-        }
-
-        return element;
-    }
-
-    private static JsonElement processJsonWithExclude(
-            JsonElement element,
-            String selectedLang,
-            String path,
-            BiFunction<byte[], String, Pair<byte[], String>> encDecFunction,
-            List<String> listOfParam,
-            String headersStr) {
-
-        if (element.isJsonObject()) {
-            JsonObject obj = element.getAsJsonObject();
-            JsonObject newObj = new JsonObject();
-            for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
-                String key = entry.getKey();
-                if (!listOfParam.contains(key)) {
-                    if (entry.getValue().isJsonPrimitive() && entry.getValue().getAsJsonPrimitive().isString()) {
-                        String originalValue = entry.getValue().getAsString();
-                        byte[] valueBytes = originalValue.getBytes();
-                        Pair<byte[], String> result = encDecFunction.apply(valueBytes, path);
-                        newObj.add(key, new JsonPrimitive(new String(result.getLeft())));
-                    } else {
-                        newObj.add(key, processJsonWithExclude(entry.getValue(), selectedLang, path, encDecFunction, listOfParam, headersStr));
-                    }
-                } else {
-                    newObj.add(key, entry.getValue());
-                }
-            }
-            return newObj;
-        } else if (element.isJsonArray()) {
-            JsonArray arr = element.getAsJsonArray();
-            JsonArray newArr = new JsonArray();
-            for (JsonElement item : arr) {
-                newArr.add(processJsonWithExclude(item, selectedLang, path, encDecFunction, listOfParam, headersStr));
-            }
-            return newArr;
-        }
-
-        return element;
     }
 }
