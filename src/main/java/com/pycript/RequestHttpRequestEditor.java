@@ -36,16 +36,16 @@ class RequestHttpRequestEditor implements ExtensionProvidedHttpRequestEditor {
     @Override
     public HttpRequest getRequest()
     {
-
         HttpRequest request;
         request = requestResponse.request();
-
-        return request;
+        HttpRequest encryptedRequest = Request.encrypt(request, api);
+        return encryptedRequest;
     }
 
     @Override
     public void setRequestResponse(HttpRequestResponse requestResponse)
     {
+        this.requestResponse = requestResponse;
         HttpRequest request;
 
         if (requestResponse.request() == null || requestResponse.request().toByteArray().length() == 0) {
@@ -68,9 +68,6 @@ class RequestHttpRequestEditor implements ExtensionProvidedHttpRequestEditor {
                 this.requestEditor.setContents(decryptedRequest.toByteArray());
 
             }
-
-
-
         }
 
 

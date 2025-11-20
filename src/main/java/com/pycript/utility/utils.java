@@ -14,6 +14,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
 import com.pycript.EncDec.Decryption;
+import com.pycript.EncDec.Encryption;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,11 @@ public class utils {
 
     public static String decryptString(String input, String selectedLang, String decryptionPath, String rawHeaders) {
         Pair<byte[], String> result = Decryption.Parameterdecrypt(selectedLang, decryptionPath, input.getBytes(), rawHeaders);
+        return new String(result.getLeft());
+    }
+
+    public static String encryptString(String input, String selectedLang, String encryptionPath, String rawHeaders) {
+        Pair<byte[], String> result = Encryption.Parameterencrypt(selectedLang, encryptionPath, input.getBytes(), rawHeaders);
         return new String(result.getLeft());
     }
 
@@ -77,6 +83,15 @@ public class utils {
         return param.value();
     }
 
+    public static String processParameterValueEncrypt(ParsedHttpParameter param, String selectedLang,
+                                          String encryptionPath, String selectedIncExcType,
+                                          List<String> listOfParam, String rawHeaders) {
+        if (shouldDecryptParameter(param.name(), selectedIncExcType, listOfParam)) {
+            return encryptString(param.value(), selectedLang, encryptionPath, rawHeaders);
+        }
+        return param.value();
+    }
+
     public static Pair<String, String> processParameterKeyAndValue(ParsedHttpParameter param, String selectedLang,
                                           String decryptionPath, String selectedIncExcType,
                                           List<String> listOfParam, String rawHeaders) {
@@ -84,6 +99,17 @@ public class utils {
             String decryptedName = decryptString(param.name(), selectedLang, decryptionPath, rawHeaders);
             String decryptedValue = decryptString(param.value(), selectedLang, decryptionPath, rawHeaders);
             return org.apache.commons.lang3.tuple.ImmutablePair.of(decryptedName, decryptedValue);
+        }
+        return org.apache.commons.lang3.tuple.ImmutablePair.of(param.name(), param.value());
+    }
+
+    public static Pair<String, String> processParameterKeyAndValueEncrypt(ParsedHttpParameter param, String selectedLang,
+                                          String encryptionPath, String selectedIncExcType,
+                                          List<String> listOfParam, String rawHeaders) {
+        if (shouldDecryptParameter(param.name(), selectedIncExcType, listOfParam)) {
+            String encryptedName = encryptString(param.name(), selectedLang, encryptionPath, rawHeaders);
+            String encryptedValue = encryptString(param.value(), selectedLang, encryptionPath, rawHeaders);
+            return org.apache.commons.lang3.tuple.ImmutablePair.of(encryptedName, encryptedValue);
         }
         return org.apache.commons.lang3.tuple.ImmutablePair.of(param.name(), param.value());
     }
@@ -106,6 +132,28 @@ public class utils {
             HttpParameter newParam = paramType == HttpParameterType.URL
                 ? HttpParameter.urlParameter(param.name(), decryptedValue)
                 : HttpParameter.bodyParameter(param.name(), decryptedValue);
+            return request.withUpdatedParameters(newParam);
+        }
+    }
+
+    public static HttpRequest updateParameterEncrypt(HttpRequest request, ParsedHttpParameter param,
+                                               String selectedLang, String encryptionPath, String selectedIncExcType,
+                                               List<String> listOfParam, String rawHeaders, boolean encryptKeys,
+                                               HttpParameterType paramType) {
+        if (encryptKeys) {
+            Pair<String, String> encrypted = processParameterKeyAndValueEncrypt(param, selectedLang, encryptionPath,
+                selectedIncExcType, listOfParam, rawHeaders);
+            request = request.withRemovedParameters(param);
+            HttpParameter newParam = paramType == HttpParameterType.URL
+                ? HttpParameter.urlParameter(encrypted.getLeft(), encrypted.getRight())
+                : HttpParameter.bodyParameter(encrypted.getLeft(), encrypted.getRight());
+            return request.withAddedParameters(newParam);
+        } else {
+            String encryptedValue = processParameterValueEncrypt(param, selectedLang, encryptionPath,
+                selectedIncExcType, listOfParam, rawHeaders);
+            HttpParameter newParam = paramType == HttpParameterType.URL
+                ? HttpParameter.urlParameter(param.name(), encryptedValue)
+                : HttpParameter.bodyParameter(param.name(), encryptedValue);
             return request.withUpdatedParameters(newParam);
         }
     }
@@ -144,6 +192,49 @@ public class utils {
                         } else {
                             String decryptedValue = decryptString(stringValue, selectedLang, decryptionPath, rawHeaders);
                             updatedObject.addProperty(key, decryptedValue);
+                        }
+                    } else {
+                        updatedObject.add(key, value);
+                    }
+                } else {
+                    updatedObject.add(key, value);
+                }
+            }
+
+            String updatedBody = gson.toJson(updatedObject);
+            int bodyOffset = currentRequest.bodyOffset();
+            String headers = (currentRequest.toString()).substring(0, bodyOffset).trim();
+            return buildHttpRequest(headers, updatedBody.getBytes(), api);
+        }
+
+        return currentRequest;
+    }
+
+    public static HttpRequest processJsonBodyEncrypt(HttpRequest currentRequest, MontoyaApi api, String selectedLang,
+                                               String encryptionPath, String selectedIncExcType,
+                                               List<String> listOfParam, String rawHeaders, boolean encryptKeys) {
+        String bodyString = currentRequest.bodyToString();
+        Gson gson = new Gson();
+        JsonElement jsonElement = gson.fromJson(bodyString, JsonElement.class);
+
+        if (jsonElement.isJsonObject()) {
+            JsonObject jsonObject = jsonElement.getAsJsonObject();
+            JsonObject updatedObject = new JsonObject();
+
+            for (String key : jsonObject.keySet()) {
+                JsonElement value = jsonObject.get(key);
+
+                if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
+                    String stringValue = value.getAsString();
+
+                    if (shouldDecryptParameter(key, selectedIncExcType, listOfParam)) {
+                        if (encryptKeys) {
+                            String encryptedKey = encryptString(key, selectedLang, encryptionPath, rawHeaders);
+                            String encryptedValue = encryptString(stringValue, selectedLang, encryptionPath, rawHeaders);
+                            updatedObject.addProperty(encryptedKey, encryptedValue);
+                        } else {
+                            String encryptedValue = encryptString(stringValue, selectedLang, encryptionPath, rawHeaders);
+                            updatedObject.addProperty(key, encryptedValue);
                         }
                     } else {
                         updatedObject.add(key, value);
