@@ -37,9 +37,19 @@ class RequestHttpRequestEditor implements ExtensionProvidedHttpRequestEditor {
     public HttpRequest getRequest()
     {
         HttpRequest request;
-        request = requestResponse.request();
-        HttpRequest encryptedRequest = Request.encrypt(request, api);
-        return encryptedRequest;
+
+        if (requestEditor.isModified())
+        {
+            ByteArray modifiedContent = requestEditor.getContents();
+            HttpRequest modifiedRequest = HttpRequest.httpRequest(modifiedContent);
+            request = Request.encrypt(modifiedRequest, api);
+        }
+        else
+        {
+            request = requestResponse.request();
+        }
+
+        return request;
     }
 
     @Override
@@ -63,7 +73,6 @@ class RequestHttpRequestEditor implements ExtensionProvidedHttpRequestEditor {
             } else {
 
                 this.requestEditor.setEditable(true);
-                Request req = new Request();
                 HttpRequest decryptedRequest = Request.decrypt(request, api);
                 this.requestEditor.setContents(decryptedRequest.toByteArray());
 
@@ -78,7 +87,8 @@ class RequestHttpRequestEditor implements ExtensionProvidedHttpRequestEditor {
     @Override
     public boolean isEnabledFor(HttpRequestResponse requestResponse)
     {
-        return !ConfigTab.selectedRequestType.equals("None") && !ConfigTab.reqresponsecombobox.getSelectedItem().equals("Response");
+        return ConfigTab.selectedRequestType != null &&
+               !ConfigTab.selectedRequestType.equals("None");
     }
 
     @Override

@@ -5,6 +5,7 @@ import java.nio.file.*;
 import java.util.Random;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import com.pycript.ui.LogTab;
 
 public class TempFile {
 
@@ -20,6 +21,11 @@ public class TempFile {
     public static Pair<byte[], String> parseTempFileOutput(byte[] originalData, String originalHeader, String tempFilePath) {
         try {
             byte[] fileContent = Files.readAllBytes(Paths.get(tempFilePath));
+
+            LogTab logTab = LogTab.getInstance();
+            if (logTab != null && logTab.isLoggingEnabled()) {
+                logTab.appendLog(new String(fileContent));
+            }
 
             int markerIndex = indexOf(fileContent, BODY_END_MARKER);
 

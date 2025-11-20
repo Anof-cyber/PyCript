@@ -5,6 +5,7 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
+import com.pycript.ui.LogTab;
 
 public class Execution {
 
@@ -31,6 +32,12 @@ public class Execution {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder(command);
                 processBuilder.redirectErrorStream(false);
+
+                LogTab logTab = LogTab.getInstance();
+                if (logTab != null && logTab.isLoggingEnabled()) {
+                    logTab.appendLog("\nroot@PyCript# " + String.join(" ", command));
+                }
+
                 Process process = processBuilder.start();
 
                 StringBuilder output = new StringBuilder();
@@ -51,6 +58,15 @@ public class Execution {
                 }
 
                 int exitCode = process.waitFor();
+
+                if (logTab != null && logTab.isLoggingEnabled()) {
+                    if (output.length() > 0) {
+                        logTab.appendLog(output.toString().trim());
+                    }
+                    if (errorOutput.length() > 0) {
+                        logTab.appendLog(errorOutput.toString().trim());
+                    }
+                }
 
                 if (exitCode == 0) {
                     Pair<byte[], String> result = TempFile.parseTempFileOutput(data, headerValue, tempFilePath);

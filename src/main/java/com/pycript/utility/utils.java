@@ -171,7 +171,7 @@ public class utils {
                                                String decryptionPath, String selectedIncExcType,
                                                List<String> listOfParam, String rawHeaders, boolean decryptKeys) {
         String bodyString = currentRequest.bodyToString();
-        Gson gson = new Gson();
+        Gson gson = new com.google.gson.GsonBuilder().disableHtmlEscaping().create();
         JsonElement jsonElement = gson.fromJson(bodyString, JsonElement.class);
 
         if (jsonElement.isJsonObject()) {
@@ -214,7 +214,7 @@ public class utils {
                                                String encryptionPath, String selectedIncExcType,
                                                List<String> listOfParam, String rawHeaders, boolean encryptKeys) {
         String bodyString = currentRequest.bodyToString();
-        Gson gson = new Gson();
+        Gson gson = new com.google.gson.GsonBuilder().disableHtmlEscaping().create();
         JsonElement jsonElement = gson.fromJson(bodyString, JsonElement.class);
 
         if (jsonElement.isJsonObject()) {
