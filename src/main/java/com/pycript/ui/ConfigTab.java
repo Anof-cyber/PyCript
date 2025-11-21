@@ -84,32 +84,22 @@ public class ConfigTab extends JPanel
         JLayeredPane responseTypePane = createResponseTypePane();
         JLayeredPane additionalSettingsPane = createAdditionalSettingsPane();
         JLayeredPane autoEncryptPane = createAutoEncryptPane();
-        JLayeredPane requestParameterPane = createRequestParameterPane();
-        JLayeredPane responseParameterPane = createResponseParameterPane();
 
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
         topPanel.add(requestTypePane);
-        topPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+        topPanel.add(Box.createRigidArea(new Dimension(5, 0)));
         topPanel.add(responseTypePane);
 
         JPanel middlePanel = new JPanel();
         middlePanel.setLayout(new BoxLayout(middlePanel, BoxLayout.X_AXIS));
         middlePanel.add(additionalSettingsPane);
-        middlePanel.add(Box.createRigidArea(new Dimension(10, 0)));
+        middlePanel.add(Box.createRigidArea(new Dimension(5, 0)));
         middlePanel.add(autoEncryptPane);
 
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
-        bottomPanel.add(requestParameterPane);
-        bottomPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-        bottomPanel.add(responseParameterPane);
-
         mainPanel.add(topPanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         mainPanel.add(middlePanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        mainPanel.add(bottomPanel);
 
         this.add(mainPanel, BorderLayout.CENTER);
 
@@ -119,10 +109,11 @@ public class ConfigTab extends JPanel
     private JLayeredPane createRequestTypePane()
     {
         JLayeredPane requestTypePane = new JLayeredPane();
-        requestTypePane.setBorder(new LineBorder(Color.BLACK));
+        requestTypePane.setBorder(new LineBorder(Color.GRAY, 1));
 
         JLabel label = new JLabel("Request Type");
-        label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        label.setForeground(new Color(0xFF, 0x66, 0x33));
         request_completeBodyButton = new JRadioButton("Complete Body");
         request_parameterValueButton = new JRadioButton("Parameter Value");
         request_parameterKeyValueButton = new JRadioButton("Parameter Key and Value");
@@ -177,6 +168,8 @@ public class ConfigTab extends JPanel
         request_noneButton.addActionListener(requestTypeListener);
 
         JLabel encryptionDecryptionFileLabel = new JLabel("Encryption Decryption File for Request");
+        encryptionDecryptionFileLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        encryptionDecryptionFileLabel.setForeground(new Color(0xFF, 0x66, 0x33));
         JLabel encryptionFileLabel = new JLabel("Encryption File");
         JButton chooseEncryptionFileButton = new JButton("Choose File");
         requestEncryptionFilePathLabel = new JLabel("/usr/temp");
@@ -238,6 +231,40 @@ public class ConfigTab extends JPanel
         };
         chooseDecryptionFileButton.addActionListener(chooseDecryptionFileListener);
 
+        // Request Parameter Controls
+        JLabel parameterTitleLabel = new JLabel("Parameters to Include/Exclude");
+        parameterTitleLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        parameterTitleLabel.setForeground(new Color(0xFF, 0x66, 0x33));
+        requestIncludeParametersButton = new JRadioButton("Include");
+        requestExcludeParametersButton = new JRadioButton("Exclude");
+        Request_Paramter_Ignore_select_noneButton = new JRadioButton("None");
+        Request_Paramter_Ignore_select_noneButton.setSelected(true);
+
+        ButtonGroup parameterGroup = new ButtonGroup();
+        parameterGroup.add(requestIncludeParametersButton);
+        parameterGroup.add(requestExcludeParametersButton);
+        parameterGroup.add(Request_Paramter_Ignore_select_noneButton);
+
+        JLabel parameterInfoLabel = new JLabel("Separated by commas, case-sensitive:");
+        requestParameterTextField = new JTextField("password,Current_Password");
+        requestParameterTextField.setPreferredSize(new Dimension(200, 20));
+
+        ActionListener requestParameterListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!request_parameterValueButton.isSelected() && !request_parameterKeyValueButton.isSelected()) {
+                    Request_Paramter_Ignore_select_noneButton.setSelected(true);
+                    JOptionPane.showMessageDialog(null, "Request Parameter Type must be selected.", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+                api.persistence().preferences().setString("pycript.request.include.exclude", getRequestParameterIncludeExcludeType());
+            }
+        };
+
+        requestIncludeParametersButton.addActionListener(requestParameterListener);
+        requestExcludeParametersButton.addActionListener(requestParameterListener);
+        Request_Paramter_Ignore_select_noneButton.addActionListener(e -> api.persistence().preferences().setString("pycript.request.include.exclude", "None"));
+        requestParameterTextField.addActionListener(e -> api.persistence().preferences().setString("pycript.request.parameter.text", requestParameterTextField.getText()));
+
         requestTypePane.add(label, JLayeredPane.DEFAULT_LAYER);
         requestTypePane.add(request_completeBodyButton, JLayeredPane.DEFAULT_LAYER);
         requestTypePane.add(request_parameterValueButton, JLayeredPane.DEFAULT_LAYER);
@@ -250,11 +277,17 @@ public class ConfigTab extends JPanel
         requestTypePane.add(decryptionFileLabel, JLayeredPane.DEFAULT_LAYER);
         requestTypePane.add(chooseDecryptionFileButton, JLayeredPane.DEFAULT_LAYER);
         requestTypePane.add(requestDecryptionFilePathLabel, JLayeredPane.DEFAULT_LAYER);
+        requestTypePane.add(parameterTitleLabel, JLayeredPane.DEFAULT_LAYER);
+        requestTypePane.add(requestIncludeParametersButton, JLayeredPane.DEFAULT_LAYER);
+        requestTypePane.add(requestExcludeParametersButton, JLayeredPane.DEFAULT_LAYER);
+        requestTypePane.add(Request_Paramter_Ignore_select_noneButton, JLayeredPane.DEFAULT_LAYER);
+        requestTypePane.add(parameterInfoLabel, JLayeredPane.DEFAULT_LAYER);
+        requestTypePane.add(requestParameterTextField, JLayeredPane.DEFAULT_LAYER);
 
         GroupLayout layout = new GroupLayout(requestTypePane);
         requestTypePane.setLayout(layout);
-        layout.setAutoCreateGaps(true);
-        layout.setAutoCreateContainerGaps(true);
+        layout.setAutoCreateGaps(false);
+        layout.setAutoCreateContainerGaps(false);
 
         layout.setHorizontalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -281,7 +314,14 @@ public class ConfigTab extends JPanel
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(chooseDecryptionFileButton)
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(requestDecryptionFilePathLabel)))
+                            .addComponent(requestDecryptionFilePathLabel))
+                        .addComponent(parameterTitleLabel)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(requestIncludeParametersButton)
+                            .addComponent(requestExcludeParametersButton)
+                            .addComponent(Request_Paramter_Ignore_select_noneButton))
+                        .addComponent(parameterInfoLabel)
+                        .addComponent(requestParameterTextField, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE))
                     .addContainerGap(5, Short.MAX_VALUE))
         );
 
@@ -305,7 +345,15 @@ public class ConfigTab extends JPanel
                     .addComponent(decryptionFileLabel)
                     .addComponent(chooseDecryptionFileButton)
                     .addComponent(requestDecryptionFilePathLabel))
-                .addContainerGap(5, Short.MAX_VALUE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(parameterTitleLabel)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(requestIncludeParametersButton)
+                    .addComponent(requestExcludeParametersButton)
+                    .addComponent(Request_Paramter_Ignore_select_noneButton))
+                .addComponent(parameterInfoLabel)
+                .addComponent(requestParameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(3, Short.MAX_VALUE)
         );
 
         return requestTypePane;
@@ -314,10 +362,11 @@ public class ConfigTab extends JPanel
     private JLayeredPane createResponseTypePane()
     {
         JLayeredPane responseTypePane = new JLayeredPane();
-        responseTypePane.setBorder(new LineBorder(Color.BLACK));
+        responseTypePane.setBorder(new LineBorder(Color.GRAY, 1));
 
         JLabel label = new JLabel("Response Type");
-        label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        label.setForeground(new Color(0xFF, 0x66, 0x33));
         response_completeBodyButton = new JRadioButton("Complete Body");
         response_parameterValueButton = new JRadioButton("Parameter Value");
         response_parameterKeyValueButton = new JRadioButton("Parameter Key and Value");
@@ -359,6 +408,8 @@ public class ConfigTab extends JPanel
 
 
         JLabel encryptionDecryptionFileLabel = new JLabel("Encryption Decryption File for Response");
+        encryptionDecryptionFileLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        encryptionDecryptionFileLabel.setForeground(new Color(0xFF, 0x66, 0x33));
         JLabel encryptionFileLabel = new JLabel("Encryption File");
         JButton chooseEncryptionFileButton = new JButton("Choose File");
         responseEncryptionFilePathLabel = new JLabel("/usr/temp");
@@ -420,6 +471,40 @@ public class ConfigTab extends JPanel
 
         chooseDecryptionFileButton.addActionListener(chooseDecryptionFileListener);
 
+        // Response Parameter Controls
+        JLabel parameterTitleLabel = new JLabel("Parameters to Include/Exclude");
+        parameterTitleLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        parameterTitleLabel.setForeground(new Color(0xFF, 0x66, 0x33));
+        responseIncludeParametersButton = new JRadioButton("Include");
+        responseExcludeParametersButton = new JRadioButton("Exclude");
+        Response_Paramter_Ignore_select_noneButton = new JRadioButton("None");
+        Response_Paramter_Ignore_select_noneButton.setSelected(true);
+
+        ButtonGroup parameterGroup = new ButtonGroup();
+        parameterGroup.add(responseIncludeParametersButton);
+        parameterGroup.add(responseExcludeParametersButton);
+        parameterGroup.add(Response_Paramter_Ignore_select_noneButton);
+
+        JLabel parameterInfoLabel = new JLabel("Separated by commas, case-sensitive:");
+        responseParameterTextField = new JTextField("password,Current_Password");
+        responseParameterTextField.setPreferredSize(new Dimension(200, 20));
+
+        ActionListener responseParameterListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!response_parameterValueButton.isSelected() && !response_parameterKeyValueButton.isSelected()) {
+                    Response_Paramter_Ignore_select_noneButton.setSelected(true);
+                    JOptionPane.showMessageDialog(null, "Response Parameter Type must be selected.", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+                api.persistence().preferences().setString("pycript.response.include.exclude", getResponseParameterIncludeExcludeType());
+            }
+        };
+
+        responseIncludeParametersButton.addActionListener(responseParameterListener);
+        responseExcludeParametersButton.addActionListener(responseParameterListener);
+        Response_Paramter_Ignore_select_noneButton.addActionListener(e -> api.persistence().preferences().setString("pycript.response.include.exclude", "None"));
+        responseParameterTextField.addActionListener(e -> api.persistence().preferences().setString("pycript.response.parameter.text", responseParameterTextField.getText()));
+
         responseTypePane.add(label, JLayeredPane.DEFAULT_LAYER);
         responseTypePane.add(response_completeBodyButton, JLayeredPane.DEFAULT_LAYER);
         responseTypePane.add(response_parameterValueButton, JLayeredPane.DEFAULT_LAYER);
@@ -432,11 +517,17 @@ public class ConfigTab extends JPanel
         responseTypePane.add(decryptionFileLabel, JLayeredPane.DEFAULT_LAYER);
         responseTypePane.add(chooseDecryptionFileButton, JLayeredPane.DEFAULT_LAYER);
         responseTypePane.add(responseDecryptionFilePathLabel, JLayeredPane.DEFAULT_LAYER);
+        responseTypePane.add(parameterTitleLabel, JLayeredPane.DEFAULT_LAYER);
+        responseTypePane.add(responseIncludeParametersButton, JLayeredPane.DEFAULT_LAYER);
+        responseTypePane.add(responseExcludeParametersButton, JLayeredPane.DEFAULT_LAYER);
+        responseTypePane.add(Response_Paramter_Ignore_select_noneButton, JLayeredPane.DEFAULT_LAYER);
+        responseTypePane.add(parameterInfoLabel, JLayeredPane.DEFAULT_LAYER);
+        responseTypePane.add(responseParameterTextField, JLayeredPane.DEFAULT_LAYER);
 
         GroupLayout layout = new GroupLayout(responseTypePane);
         responseTypePane.setLayout(layout);
-        layout.setAutoCreateGaps(true);
-        layout.setAutoCreateContainerGaps(true);
+        layout.setAutoCreateGaps(false);
+        layout.setAutoCreateContainerGaps(false);
 
         layout.setHorizontalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -463,8 +554,15 @@ public class ConfigTab extends JPanel
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(chooseDecryptionFileButton)
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(responseDecryptionFilePathLabel)))
-                    .addContainerGap(53, Short.MAX_VALUE))
+                            .addComponent(responseDecryptionFilePathLabel))
+                        .addComponent(parameterTitleLabel)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(responseIncludeParametersButton)
+                            .addComponent(responseExcludeParametersButton)
+                            .addComponent(Response_Paramter_Ignore_select_noneButton))
+                        .addComponent(parameterInfoLabel)
+                        .addComponent(responseParameterTextField, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE))
+                    .addContainerGap(5, Short.MAX_VALUE))
         );
 
         layout.setVerticalGroup(
@@ -487,7 +585,15 @@ public class ConfigTab extends JPanel
                     .addComponent(decryptionFileLabel)
                     .addComponent(chooseDecryptionFileButton)
                     .addComponent(responseDecryptionFilePathLabel))
-                .addContainerGap(53, Short.MAX_VALUE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(parameterTitleLabel)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(responseIncludeParametersButton)
+                    .addComponent(responseExcludeParametersButton)
+                    .addComponent(Response_Paramter_Ignore_select_noneButton))
+                .addComponent(parameterInfoLabel)
+                .addComponent(responseParameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(3, Short.MAX_VALUE)
         );
 
         return responseTypePane;
@@ -496,10 +602,10 @@ public class ConfigTab extends JPanel
     private JLayeredPane createAdditionalSettingsPane()
     {
         JLayeredPane additionalSettingsPane = new JLayeredPane();
-        additionalSettingsPane.setBorder(new LineBorder(Color.BLACK));
+        additionalSettingsPane.setBorder(new LineBorder(Color.GRAY, 1));
 
         JLabel additionalSettingsLabel = new JLabel("Additional Settings");
-        additionalSettingsLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        additionalSettingsLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
         JLabel languageLabel = new JLabel("Selected Language Binary");
         languageTextField = new JTextField(20);
         languageTextField.setText("usr/bin/python");
@@ -527,8 +633,8 @@ public class ConfigTab extends JPanel
 
         GroupLayout layout = new GroupLayout(additionalSettingsPane);
         additionalSettingsPane.setLayout(layout);
-        layout.setAutoCreateGaps(true);
-        layout.setAutoCreateContainerGaps(true);
+        layout.setAutoCreateGaps(false);
+        layout.setAutoCreateContainerGaps(false);
 
         layout.setHorizontalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -557,21 +663,21 @@ public class ConfigTab extends JPanel
             layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(additionalSettingsLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(languageLabel)
                     .addComponent(languageTextField)
                     .addComponent(selectLanguageButton)
                     .addComponent(clearLanguageButton))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(methodLabel)
                     .addComponent(requestmethodComboBox))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(forLabel)
                     .addComponent(reqresponsecombobox))
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(3, Short.MAX_VALUE)
         );
 
         return additionalSettingsPane;
@@ -580,10 +686,10 @@ public class ConfigTab extends JPanel
     private JLayeredPane createAutoEncryptPane()
     {
         JLayeredPane autoEncryptPane = new JLayeredPane();
-        autoEncryptPane.setBorder(new LineBorder(Color.BLACK));
+        autoEncryptPane.setBorder(new LineBorder(Color.GRAY, 1));
 
         JLabel autoEncryptLabel = new JLabel("Auto Encrypt the Request");
-        autoEncryptLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
+        autoEncryptLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
         currentStatusLabel = new JLabel("Current Status: OFF");
         turnOnButton = new JButton("Turn ON");
         turnOnButton.setEnabled(false);
@@ -686,8 +792,8 @@ public class ConfigTab extends JPanel
 
         GroupLayout layout = new GroupLayout(autoEncryptPane);
         autoEncryptPane.setLayout(layout);
-        layout.setAutoCreateGaps(true);
-        layout.setAutoCreateContainerGaps(true);
+        layout.setAutoCreateGaps(false);
+        layout.setAutoCreateContainerGaps(false);
 
         layout.setHorizontalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -716,171 +822,27 @@ public class ConfigTab extends JPanel
             layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(autoEncryptLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(turnOnButton)
                     .addComponent(currentStatusLabel))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cannotTurnOnLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(toolTypeLabel)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(scannerCheckBox)
                     .addComponent(repeaterCheckBox)
                     .addComponent(intruderCheckBox))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(proxyCheckBox)
                     .addComponent(extenderCheckBox))
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(3, Short.MAX_VALUE)
         );
 
         return autoEncryptPane;
-    }
-
-    private JLayeredPane createRequestParameterPane() {
-        JLayeredPane requestParameterPane = new JLayeredPane();
-        requestParameterPane.setBorder(new LineBorder(Color.BLACK));
-
-        JLabel titleLabel = new JLabel("Request Parameters to Include/Exclude");
-        titleLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
-        requestIncludeParametersButton = new JRadioButton("Include Parameters");
-        requestExcludeParametersButton = new JRadioButton("Exclude Parameters");
-        Request_Paramter_Ignore_select_noneButton = new JRadioButton("None");
-        Request_Paramter_Ignore_select_noneButton.setSelected(true);
-
-        ButtonGroup group = new ButtonGroup();
-        group.add(requestIncludeParametersButton);
-        group.add(requestExcludeParametersButton);
-        group.add(Request_Paramter_Ignore_select_noneButton);
-
-        JLabel infoLabel = new JLabel("Separated by commas, case-sensitive:");
-        requestParameterTextField = new JTextField("password,Current_Password");
-        requestParameterTextField.setPreferredSize(new Dimension(200, 20));
-
-
-        ActionListener requestParameterListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!request_parameterValueButton.isSelected() && !request_parameterKeyValueButton.isSelected()) {
-                    Request_Paramter_Ignore_select_noneButton.setSelected(true);
-                    JOptionPane.showMessageDialog(null, "Request Parameter Type must be selected.", "Warning", JOptionPane.WARNING_MESSAGE);
-                }
-                api.persistence().preferences().setString("pycript.request.include.exclude", getRequestParameterIncludeExcludeType());
-            }
-        };
-
-        requestIncludeParametersButton.addActionListener(requestParameterListener);
-        requestExcludeParametersButton.addActionListener(requestParameterListener);
-        Request_Paramter_Ignore_select_noneButton.addActionListener(e -> api.persistence().preferences().setString("pycript.request.include.exclude", "None"));
-        requestParameterTextField.addActionListener(e -> api.persistence().preferences().setString("pycript.request.parameter.text", requestParameterTextField.getText()));
-
-
-        GroupLayout layout = new GroupLayout(requestParameterPane);
-        requestParameterPane.setLayout(layout);
-        layout.setAutoCreateGaps(true);
-        layout.setAutoCreateContainerGaps(true);
-
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addComponent(titleLabel)
-                .addGroup(layout.createSequentialGroup()
-                    .addComponent(requestIncludeParametersButton)
-                    .addComponent(requestExcludeParametersButton)
-                    .addComponent(Request_Paramter_Ignore_select_noneButton))
-                .addComponent(infoLabel)
-                .addGroup(layout.createSequentialGroup()
-                    .addComponent(requestParameterTextField, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE)
-                )
-        );
-
-        layout.setVerticalGroup(
-            layout.createSequentialGroup()
-                .addComponent(titleLabel)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(requestIncludeParametersButton)
-                    .addComponent(requestExcludeParametersButton)
-                    .addComponent(Request_Paramter_Ignore_select_noneButton))
-                .addComponent(infoLabel)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(requestParameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-                )
-        );
-
-        return requestParameterPane;
-    }
-
-    private JLayeredPane createResponseParameterPane() {
-        JLayeredPane responseParameterPane = new JLayeredPane();
-        responseParameterPane.setBorder(new LineBorder(Color.BLACK));
-
-        JLabel titleLabel = new JLabel("Response Parameters to Include/Exclude");
-        titleLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
-        responseIncludeParametersButton = new JRadioButton("Include Parameters");
-        responseExcludeParametersButton = new JRadioButton("Exclude Parameters");
-        Response_Paramter_Ignore_select_noneButton = new JRadioButton("None");
-        Response_Paramter_Ignore_select_noneButton.setSelected(true);
-
-        ButtonGroup group = new ButtonGroup();
-        group.add(responseIncludeParametersButton);
-        group.add(responseExcludeParametersButton);
-        group.add(Response_Paramter_Ignore_select_noneButton);
-
-        JLabel infoLabel = new JLabel("Separated by commas, case-sensitive:");
-        responseParameterTextField = new JTextField("password,Current_Password");
-        responseParameterTextField.setPreferredSize(new Dimension(200, 20));
-
-
-        ActionListener responseParameterListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!response_parameterValueButton.isSelected() && !response_parameterKeyValueButton.isSelected()) {
-                    Response_Paramter_Ignore_select_noneButton.setSelected(true);
-                    JOptionPane.showMessageDialog(null, "Response Parameter Type must be selected.", "Warning", JOptionPane.WARNING_MESSAGE);
-                }
-                api.persistence().preferences().setString("pycript.response.include.exclude", getResponseParameterIncludeExcludeType());
-            }
-        };
-
-        responseIncludeParametersButton.addActionListener(responseParameterListener);
-        responseExcludeParametersButton.addActionListener(responseParameterListener);
-        Response_Paramter_Ignore_select_noneButton.addActionListener(e -> api.persistence().preferences().setString("pycript.response.include.exclude", "None"));
-        responseParameterTextField.addActionListener(e -> api.persistence().preferences().setString("pycript.response.parameter.text", responseParameterTextField.getText()));
-
-
-        GroupLayout layout = new GroupLayout(responseParameterPane);
-        responseParameterPane.setLayout(layout);
-        layout.setAutoCreateGaps(true);
-        layout.setAutoCreateContainerGaps(true);
-
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addComponent(titleLabel)
-                .addGroup(layout.createSequentialGroup()
-                    .addComponent(responseIncludeParametersButton)
-                    .addComponent(responseExcludeParametersButton)
-                    .addComponent(Response_Paramter_Ignore_select_noneButton))
-                .addComponent(infoLabel)
-                .addGroup(layout.createSequentialGroup()
-                    .addComponent(responseParameterTextField, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE)
-                )
-        );
-
-        layout.setVerticalGroup(
-            layout.createSequentialGroup()
-                .addComponent(titleLabel)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(responseIncludeParametersButton)
-                    .addComponent(responseExcludeParametersButton)
-                    .addComponent(Response_Paramter_Ignore_select_noneButton))
-                .addComponent(infoLabel)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(responseParameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-                )
-        );
-
-        return responseParameterPane;
     }
 
     public static List<String> getParameterList() {
