@@ -29,6 +29,10 @@ import javax.swing.border.LineBorder;
 
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
+import burp.api.montoya.core.ToolType;
+import burp.api.montoya.core.Registration;
+import com.pycript.EncDec.Request;
+import com.pycript.EncDec.AutoEncryptHttpHandler;
 
 public class ConfigTab extends JPanel
 {
@@ -45,6 +49,8 @@ public class ConfigTab extends JPanel
     public static JComboBox<String> requestmethodComboBox;
     public static JTextField languageTextField;
     private String selectedToolType = "";
+    private List<ToolType> selectedToolTypes = new ArrayList<>();
+    private Registration httpHandlerRegistration;
     private JRadioButton request_completeBodyButton;
     private JRadioButton request_parameterValueButton;
     private JRadioButton request_parameterKeyValueButton;
@@ -731,6 +737,7 @@ public class ConfigTab extends JPanel
                     if (selectedRequestType == null || selectedRequestType.equals("None")) {
                         JOptionPane.showMessageDialog(null, "Request type is required.", "Warning", JOptionPane.WARNING_MESSAGE);
                         selectedToolType = "";
+                        selectedToolTypes.clear();
                         turnOnButton.setEnabled(false);
                         scannerCheckBox.setSelected(false);
                         repeaterCheckBox.setSelected(false);
@@ -740,13 +747,28 @@ public class ConfigTab extends JPanel
                         currentStatusLabel.setText("Current Status: OFF");
                         turnOnButton.setText("Turn ON");
                     } else {
-
+                        selectedToolTypes.clear();
                         StringBuilder selectedTools = new StringBuilder();
-                        if (scannerCheckBox.isSelected()) selectedTools.append("Scanner, ");
-                        if (repeaterCheckBox.isSelected()) selectedTools.append("Repeater, ");
-                        if (proxyCheckBox.isSelected()) selectedTools.append("Proxy, ");
-                        if (extenderCheckBox.isSelected()) selectedTools.append("Extender, ");
-                        if (intruderCheckBox.isSelected()) selectedTools.append("Intruder, ");
+                        if (scannerCheckBox.isSelected()) {
+                            selectedTools.append("Scanner, ");
+                            selectedToolTypes.add(ToolType.SCANNER);
+                        }
+                        if (repeaterCheckBox.isSelected()) {
+                            selectedTools.append("Repeater, ");
+                            selectedToolTypes.add(ToolType.REPEATER);
+                        }
+                        if (proxyCheckBox.isSelected()) {
+                            selectedTools.append("Proxy, ");
+                            selectedToolTypes.add(ToolType.PROXY);
+                        }
+                        if (extenderCheckBox.isSelected()) {
+                            selectedTools.append("Extender, ");
+                            selectedToolTypes.add(ToolType.EXTENSIONS);
+                        }
+                        if (intruderCheckBox.isSelected()) {
+                            selectedTools.append("Intruder, ");
+                            selectedToolTypes.add(ToolType.INTRUDER);
+                        }
 
 
                         selectedToolType = selectedTools.substring(0, selectedTools.length() - 2);
@@ -756,6 +778,7 @@ public class ConfigTab extends JPanel
                 } else {
 
                     selectedToolType = "";
+                    selectedToolTypes.clear();
                     turnOnButton.setEnabled(false);
                 }
             }
@@ -782,9 +805,22 @@ public class ConfigTab extends JPanel
                     if (isOn) {
                         currentStatusLabel.setText("Current Status: ON");
                         turnOnButton.setText("Turn OFF");
+                        turnOnButton.setBackground(new Color(0, 163, 16));
+                        turnOnButton.setForeground(Color.WHITE);
+                        // Register HTTP handler
+                        if (httpHandlerRegistration == null) {
+                            httpHandlerRegistration = api.http().registerHttpHandler(new AutoEncryptHttpHandler(api, selectedToolTypes));
+                        }
                     } else {
                         currentStatusLabel.setText("Current Status: OFF");
                         turnOnButton.setText("Turn ON");
+                        turnOnButton.setBackground(new Color(255, 21, 0));
+                        turnOnButton.setForeground(Color.WHITE);
+                        // Unregister HTTP handler
+                        if (httpHandlerRegistration != null) {
+                            httpHandlerRegistration.deregister();
+                            httpHandlerRegistration = null;
+                        }
                     }
                 } else {
                     JOptionPane.showMessageDialog(null, "Please select at least one checkbox to turn ON.", "Warning", JOptionPane.WARNING_MESSAGE);
@@ -1018,4 +1054,5 @@ public class ConfigTab extends JPanel
 
         }
     }
+
 }
