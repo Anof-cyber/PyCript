@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -101,7 +102,11 @@ public class ConfigTab extends JPanel
         mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         mainPanel.add(middlePanel);
 
-        this.add(mainPanel, BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+        this.add(scrollPane, BorderLayout.CENTER);
 
         loadSettings();
     }
@@ -353,7 +358,7 @@ public class ConfigTab extends JPanel
                     .addComponent(Request_Paramter_Ignore_select_noneButton))
                 .addComponent(parameterInfoLabel)
                 .addComponent(requestParameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(3, Short.MAX_VALUE)
+                .addContainerGap()
         );
 
         return requestTypePane;
@@ -593,7 +598,7 @@ public class ConfigTab extends JPanel
                     .addComponent(Response_Paramter_Ignore_select_noneButton))
                 .addComponent(parameterInfoLabel)
                 .addComponent(responseParameterTextField, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(3, Short.MAX_VALUE)
+                .addContainerGap()
         );
 
         return responseTypePane;
@@ -684,7 +689,7 @@ public class ConfigTab extends JPanel
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(forLabel)
                     .addComponent(reqresponsecombobox))
-                .addContainerGap(3, Short.MAX_VALUE)
+                .addContainerGap()
         );
 
         return additionalSettingsPane;
@@ -849,7 +854,7 @@ public class ConfigTab extends JPanel
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(proxyCheckBox)
                     .addComponent(extenderCheckBox))
-                .addContainerGap(3, Short.MAX_VALUE)
+                .addContainerGap()
         );
 
         return autoEncryptPane;
