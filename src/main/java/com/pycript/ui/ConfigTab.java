@@ -606,7 +606,10 @@ public class ConfigTab extends JPanel
 
         JLabel additionalSettingsLabel = new JLabel("Additional Settings");
         additionalSettingsLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        additionalSettingsLabel.setForeground(new Color(0x00, 0x7A, 0xCC));
         JLabel languageLabel = new JLabel("Selected Language Binary");
+        languageLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        languageLabel.setForeground(new Color(0xFF, 0x66, 0x33));
         languageTextField = new JTextField(20);
         languageTextField.setText("usr/bin/python");
         languageTextField.addActionListener(e -> api.persistence().preferences().setString("pycript.language.path", languageTextField.getText()));
@@ -614,10 +617,14 @@ public class ConfigTab extends JPanel
         JButton clearLanguageButton = new JButton("Clear Language Selected");
 
         JLabel methodLabel = new JLabel("Encryption Decryption Method");
+        methodLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        methodLabel.setForeground(new Color(0xFF, 0x66, 0x33));
         requestmethodComboBox = new JComboBox<>(new String[]{"GET", "BODY", "BOTH"});
         requestmethodComboBox.addActionListener(e -> api.persistence().preferences().setString("pycript.request.method", (String) requestmethodComboBox.getSelectedItem()));
 
         JLabel forLabel = new JLabel("Encryption Decryption For");
+        forLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        forLabel.setForeground(new Color(0xFF, 0x66, 0x33));
         reqresponsecombobox = new JComboBox<>(new String[]{"Request", "Response", "BOTH"});
         reqresponsecombobox.addActionListener(e -> api.persistence().preferences().setString("pycript.reqresponse.combo", (String) reqresponsecombobox.getSelectedItem()));
 
@@ -690,6 +697,7 @@ public class ConfigTab extends JPanel
 
         JLabel autoEncryptLabel = new JLabel("Auto Encrypt the Request");
         autoEncryptLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        autoEncryptLabel.setForeground(new Color(0xFF, 0x66, 0x33));
         currentStatusLabel = new JLabel("Current Status: OFF");
         turnOnButton = new JButton("Turn ON");
         turnOnButton.setEnabled(false);
@@ -697,6 +705,8 @@ public class ConfigTab extends JPanel
         JLabel cannotTurnOnLabel = new JLabel("Cannot Turn ON Unless Request Type and Tool Type are selected");
 
         JLabel toolTypeLabel = new JLabel("Auto Encrypt Tool Type");
+        toolTypeLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        toolTypeLabel.setForeground(new Color(0xFF, 0x66, 0x33));
         scannerCheckBox = new JCheckBox("Scanner");
         repeaterCheckBox = new JCheckBox("Repeater");
         proxyCheckBox = new JCheckBox("Proxy");
