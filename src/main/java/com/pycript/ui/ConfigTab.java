@@ -44,10 +44,13 @@ public class ConfigTab extends JPanel
     public static JComboBox<String> requestmethodComboBox;
     public static JTextField languageTextField;
     private String selectedToolType = "";
+    private JRadioButton request_completeBodyButton;
     private JRadioButton request_parameterValueButton;
     private JRadioButton request_parameterKeyValueButton;
+    private JRadioButton response_completeBodyButton;
     private JRadioButton response_parameterValueButton;
     private JRadioButton response_parameterKeyValueButton;
+    private JRadioButton response_noneButton;
     private JButton turnOnButton;
     private JLabel currentStatusLabel;
     private JCheckBox scannerCheckBox;
@@ -64,6 +67,10 @@ public class ConfigTab extends JPanel
     private JRadioButton requestExcludeParametersButton;
     private JRadioButton responseIncludeParametersButton;
     private JRadioButton responseExcludeParametersButton;
+    private JLabel requestEncryptionFilePathLabel;
+    private JLabel requestDecryptionFilePathLabel;
+    private JLabel responseEncryptionFilePathLabel;
+    private JLabel responseDecryptionFilePathLabel;
 
     public ConfigTab(MontoyaApi api)
     {
@@ -105,6 +112,8 @@ public class ConfigTab extends JPanel
         mainPanel.add(bottomPanel);
 
         this.add(mainPanel, BorderLayout.CENTER);
+
+        loadSettings();
     }
 
     private JLayeredPane createRequestTypePane()
@@ -114,7 +123,7 @@ public class ConfigTab extends JPanel
 
         JLabel label = new JLabel("Request Type");
         label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
-        JRadioButton request_completeBodyButton = new JRadioButton("Complete Body");
+        request_completeBodyButton = new JRadioButton("Complete Body");
         request_parameterValueButton = new JRadioButton("Parameter Value");
         request_parameterKeyValueButton = new JRadioButton("Parameter Key and Value");
         request_noneButton = new JRadioButton("None");
@@ -145,6 +154,7 @@ public class ConfigTab extends JPanel
                         Request_Paramter_Ignore_select_noneButton.setSelected(true);
 
                     }
+                    api.persistence().preferences().setString("pycript.request.type", selectedRequestType);
                 } else {
                     selectedRequestType = "None";
                     request_noneButton.setSelected(true);
@@ -169,7 +179,7 @@ public class ConfigTab extends JPanel
         JLabel encryptionDecryptionFileLabel = new JLabel("Encryption Decryption File for Request");
         JLabel encryptionFileLabel = new JLabel("Encryption File");
         JButton chooseEncryptionFileButton = new JButton("Choose File");
-        JLabel encryptionFilePathLabel = new JLabel("/usr/temp");
+        requestEncryptionFilePathLabel = new JLabel("/usr/temp");
 
         ActionListener chooseEncryptionFileListener = new ActionListener() {
                 @Override
@@ -186,7 +196,8 @@ public class ConfigTab extends JPanel
                         File selectedFile = fileChooser.getSelectedFile();
                         if (selectedFile != null) {
                             selectedRequestEncryptionFile = selectedFile.getAbsolutePath();
-                            encryptionFilePathLabel.setText(selectedRequestEncryptionFile);
+                            requestEncryptionFilePathLabel.setText(selectedRequestEncryptionFile);
+                            api.persistence().preferences().setString("pycript.request.encryption.file", selectedRequestEncryptionFile);
                         }
                     } else {
 
@@ -199,7 +210,7 @@ public class ConfigTab extends JPanel
 
         JLabel decryptionFileLabel = new JLabel("Decryption File");
         JButton chooseDecryptionFileButton = new JButton("Choose File");
-        JLabel decryptionFilePathLabel = new JLabel("/usr/temp");
+        requestDecryptionFilePathLabel = new JLabel("/usr/temp");
 
         ActionListener chooseDecryptionFileListener = new ActionListener() {
             @Override
@@ -216,7 +227,8 @@ public class ConfigTab extends JPanel
                     File selectedFile = fileChooser.getSelectedFile();
                     if (selectedFile != null) {
                         selectedRequestDecryptionFile = selectedFile.getAbsolutePath();
-                        decryptionFilePathLabel.setText(selectedRequestDecryptionFile);
+                        requestDecryptionFilePathLabel.setText(selectedRequestDecryptionFile);
+                        api.persistence().preferences().setString("pycript.request.decryption.file", selectedRequestDecryptionFile);
                     }
                 } else {
 
@@ -234,10 +246,10 @@ public class ConfigTab extends JPanel
         requestTypePane.add(encryptionDecryptionFileLabel, JLayeredPane.DEFAULT_LAYER);
         requestTypePane.add(encryptionFileLabel, JLayeredPane.DEFAULT_LAYER);
         requestTypePane.add(chooseEncryptionFileButton, JLayeredPane.DEFAULT_LAYER);
-        requestTypePane.add(encryptionFilePathLabel, JLayeredPane.DEFAULT_LAYER);
+        requestTypePane.add(requestEncryptionFilePathLabel, JLayeredPane.DEFAULT_LAYER);
         requestTypePane.add(decryptionFileLabel, JLayeredPane.DEFAULT_LAYER);
         requestTypePane.add(chooseDecryptionFileButton, JLayeredPane.DEFAULT_LAYER);
-        requestTypePane.add(decryptionFilePathLabel, JLayeredPane.DEFAULT_LAYER);
+        requestTypePane.add(requestDecryptionFilePathLabel, JLayeredPane.DEFAULT_LAYER);
 
         GroupLayout layout = new GroupLayout(requestTypePane);
         requestTypePane.setLayout(layout);
@@ -263,13 +275,13 @@ public class ConfigTab extends JPanel
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(chooseEncryptionFileButton)
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(encryptionFilePathLabel))
+                            .addComponent(requestEncryptionFilePathLabel))
                         .addGroup(layout.createSequentialGroup()
                             .addComponent(decryptionFileLabel)
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(chooseDecryptionFileButton)
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(decryptionFilePathLabel)))
+                            .addComponent(requestDecryptionFilePathLabel)))
                     .addContainerGap(5, Short.MAX_VALUE))
         );
 
@@ -288,11 +300,11 @@ public class ConfigTab extends JPanel
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(encryptionFileLabel)
                     .addComponent(chooseEncryptionFileButton)
-                    .addComponent(encryptionFilePathLabel))
+                    .addComponent(requestEncryptionFilePathLabel))
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(decryptionFileLabel)
                     .addComponent(chooseDecryptionFileButton)
-                    .addComponent(decryptionFilePathLabel))
+                    .addComponent(requestDecryptionFilePathLabel))
                 .addContainerGap(5, Short.MAX_VALUE)
         );
 
@@ -306,10 +318,10 @@ public class ConfigTab extends JPanel
 
         JLabel label = new JLabel("Response Type");
         label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
-        JRadioButton response_completeBodyButton = new JRadioButton("Complete Body");
+        response_completeBodyButton = new JRadioButton("Complete Body");
         response_parameterValueButton = new JRadioButton("Parameter Value");
         response_parameterKeyValueButton = new JRadioButton("Parameter Key and Value");
-        JRadioButton response_noneButton = new JRadioButton("None");
+        response_noneButton = new JRadioButton("None");
         response_noneButton.setSelected(true);
 
         ButtonGroup group = new ButtonGroup();
@@ -329,6 +341,7 @@ public class ConfigTab extends JPanel
                     Response_Paramter_Ignore_select_noneButton.setSelected(true);
 
                 }
+                api.persistence().preferences().setString("pycript.response.type", selectedResponseType);
             }
             else {
                 selectedResponseType = "None";
@@ -348,7 +361,7 @@ public class ConfigTab extends JPanel
         JLabel encryptionDecryptionFileLabel = new JLabel("Encryption Decryption File for Response");
         JLabel encryptionFileLabel = new JLabel("Encryption File");
         JButton chooseEncryptionFileButton = new JButton("Choose File");
-        JLabel encryptionFilePathLabel = new JLabel("/usr/temp");
+        responseEncryptionFilePathLabel = new JLabel("/usr/temp");
 
         ActionListener chooseEncryptionFileListener = new ActionListener() {
             @Override
@@ -365,7 +378,8 @@ public class ConfigTab extends JPanel
                     File selectedFile = fileChooser.getSelectedFile();
                     if (selectedFile != null) {
                         selectedResponseEncryptionFile = selectedFile.getAbsolutePath();
-                        encryptionFilePathLabel.setText(selectedResponseEncryptionFile);
+                        responseEncryptionFilePathLabel.setText(selectedResponseEncryptionFile);
+                        api.persistence().preferences().setString("pycript.response.encryption.file", selectedResponseEncryptionFile);
                     }
                 } else {
 
@@ -377,7 +391,7 @@ public class ConfigTab extends JPanel
 
         JLabel decryptionFileLabel = new JLabel("Decryption File");
         JButton chooseDecryptionFileButton = new JButton("Choose File");
-        JLabel decryptionFilePathLabel = new JLabel("/usr/temp");
+        responseDecryptionFilePathLabel = new JLabel("/usr/temp");
 
         ActionListener chooseDecryptionFileListener = new ActionListener() {
             @Override
@@ -394,7 +408,8 @@ public class ConfigTab extends JPanel
                     File selectedFile = fileChooser.getSelectedFile();
                     if (selectedFile != null) {
                         selectedResponseDecryptionFile = selectedFile.getAbsolutePath();
-                        decryptionFilePathLabel.setText(selectedResponseDecryptionFile);
+                        responseDecryptionFilePathLabel.setText(selectedResponseDecryptionFile);
+                        api.persistence().preferences().setString("pycript.response.decryption.file", selectedResponseDecryptionFile);
                     }
                 } else {
 
@@ -413,10 +428,10 @@ public class ConfigTab extends JPanel
         responseTypePane.add(encryptionDecryptionFileLabel, JLayeredPane.DEFAULT_LAYER);
         responseTypePane.add(encryptionFileLabel, JLayeredPane.DEFAULT_LAYER);
         responseTypePane.add(chooseEncryptionFileButton, JLayeredPane.DEFAULT_LAYER);
-        responseTypePane.add(encryptionFilePathLabel, JLayeredPane.DEFAULT_LAYER);
+        responseTypePane.add(responseEncryptionFilePathLabel, JLayeredPane.DEFAULT_LAYER);
         responseTypePane.add(decryptionFileLabel, JLayeredPane.DEFAULT_LAYER);
         responseTypePane.add(chooseDecryptionFileButton, JLayeredPane.DEFAULT_LAYER);
-        responseTypePane.add(decryptionFilePathLabel, JLayeredPane.DEFAULT_LAYER);
+        responseTypePane.add(responseDecryptionFilePathLabel, JLayeredPane.DEFAULT_LAYER);
 
         GroupLayout layout = new GroupLayout(responseTypePane);
         responseTypePane.setLayout(layout);
@@ -442,13 +457,13 @@ public class ConfigTab extends JPanel
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(chooseEncryptionFileButton)
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(encryptionFilePathLabel))
+                            .addComponent(responseEncryptionFilePathLabel))
                         .addGroup(layout.createSequentialGroup()
                             .addComponent(decryptionFileLabel)
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(chooseDecryptionFileButton)
                             .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(decryptionFilePathLabel)))
+                            .addComponent(responseDecryptionFilePathLabel)))
                     .addContainerGap(53, Short.MAX_VALUE))
         );
 
@@ -467,11 +482,11 @@ public class ConfigTab extends JPanel
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(encryptionFileLabel)
                     .addComponent(chooseEncryptionFileButton)
-                    .addComponent(encryptionFilePathLabel))
+                    .addComponent(responseEncryptionFilePathLabel))
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(decryptionFileLabel)
                     .addComponent(chooseDecryptionFileButton)
-                    .addComponent(decryptionFilePathLabel))
+                    .addComponent(responseDecryptionFilePathLabel))
                 .addContainerGap(53, Short.MAX_VALUE)
         );
 
@@ -488,14 +503,17 @@ public class ConfigTab extends JPanel
         JLabel languageLabel = new JLabel("Selected Language Binary");
         languageTextField = new JTextField(20);
         languageTextField.setText("usr/bin/python");
+        languageTextField.addActionListener(e -> api.persistence().preferences().setString("pycript.language.path", languageTextField.getText()));
         JButton selectLanguageButton = new JButton("Select Language Binary Path");
         JButton clearLanguageButton = new JButton("Clear Language Selected");
 
         JLabel methodLabel = new JLabel("Encryption Decryption Method");
         requestmethodComboBox = new JComboBox<>(new String[]{"GET", "BODY", "BOTH"});
+        requestmethodComboBox.addActionListener(e -> api.persistence().preferences().setString("pycript.request.method", (String) requestmethodComboBox.getSelectedItem()));
 
         JLabel forLabel = new JLabel("Encryption Decryption For");
         reqresponsecombobox = new JComboBox<>(new String[]{"Request", "Response", "BOTH"});
+        reqresponsecombobox.addActionListener(e -> api.persistence().preferences().setString("pycript.reqresponse.combo", (String) reqresponsecombobox.getSelectedItem()));
 
         additionalSettingsPane.add(additionalSettingsLabel, JLayeredPane.DEFAULT_LAYER);
         additionalSettingsPane.add(languageLabel, JLayeredPane.DEFAULT_LAYER);
@@ -749,11 +767,14 @@ public class ConfigTab extends JPanel
                     Request_Paramter_Ignore_select_noneButton.setSelected(true);
                     JOptionPane.showMessageDialog(null, "Request Parameter Type must be selected.", "Warning", JOptionPane.WARNING_MESSAGE);
                 }
+                api.persistence().preferences().setString("pycript.request.include.exclude", getRequestParameterIncludeExcludeType());
             }
         };
 
         requestIncludeParametersButton.addActionListener(requestParameterListener);
         requestExcludeParametersButton.addActionListener(requestParameterListener);
+        Request_Paramter_Ignore_select_noneButton.addActionListener(e -> api.persistence().preferences().setString("pycript.request.include.exclude", "None"));
+        requestParameterTextField.addActionListener(e -> api.persistence().preferences().setString("pycript.request.parameter.text", requestParameterTextField.getText()));
 
 
         GroupLayout layout = new GroupLayout(requestParameterPane);
@@ -818,11 +839,14 @@ public class ConfigTab extends JPanel
                     Response_Paramter_Ignore_select_noneButton.setSelected(true);
                     JOptionPane.showMessageDialog(null, "Response Parameter Type must be selected.", "Warning", JOptionPane.WARNING_MESSAGE);
                 }
+                api.persistence().preferences().setString("pycript.response.include.exclude", getResponseParameterIncludeExcludeType());
             }
         };
 
         responseIncludeParametersButton.addActionListener(responseParameterListener);
         responseExcludeParametersButton.addActionListener(responseParameterListener);
+        Response_Paramter_Ignore_select_noneButton.addActionListener(e -> api.persistence().preferences().setString("pycript.response.include.exclude", "None"));
+        responseParameterTextField.addActionListener(e -> api.persistence().preferences().setString("pycript.response.parameter.text", responseParameterTextField.getText()));
 
 
         GroupLayout layout = new GroupLayout(responseParameterPane);
@@ -889,6 +913,18 @@ public class ConfigTab extends JPanel
         return "None";
     }
 
+    public static String getResponseParameterIncludeExcludeType() {
+        ConfigTab instance = getInstance();
+        if (instance != null) {
+            if (instance.responseIncludeParametersButton != null && instance.responseIncludeParametersButton.isSelected()) {
+                return "Include Parameters";
+            } else if (instance.responseExcludeParametersButton != null && instance.responseExcludeParametersButton.isSelected()) {
+                return "Exclude Parameters";
+            }
+        }
+        return "None";
+    }
+
     private static ConfigTab configTabInstance;
 
     private static ConfigTab getInstance() {
@@ -897,5 +933,112 @@ public class ConfigTab extends JPanel
 
     public static void setInstance(ConfigTab instance) {
         configTabInstance = instance;
+    }
+
+    private void loadSettings() {
+        try {
+            String requestType = api.persistence().preferences().getString("pycript.request.type");
+            if (requestType != null && !requestType.isEmpty()) {
+                selectedRequestType = requestType;
+                if ("Complete Body".equals(requestType) && request_noneButton != null) {
+                    request_noneButton.setSelected(true);
+                } else if ("Parameter Value".equals(requestType) && request_parameterValueButton != null) {
+                    request_parameterValueButton.setSelected(true);
+                } else if ("Parameter Key and Value".equals(requestType) && request_parameterKeyValueButton != null) {
+                    request_parameterKeyValueButton.setSelected(true);
+                }
+            }
+
+            String responseType = api.persistence().preferences().getString("pycript.response.type");
+            if (responseType != null && !responseType.isEmpty()) {
+                selectedResponseType = responseType;
+                if ("Parameter Value".equals(responseType) && response_parameterValueButton != null) {
+                    response_parameterValueButton.setSelected(true);
+                } else if ("Parameter Key and Value".equals(responseType) && response_parameterKeyValueButton != null) {
+                    response_parameterKeyValueButton.setSelected(true);
+                }
+            }
+
+            String reqEncFile = api.persistence().preferences().getString("pycript.request.encryption.file");
+            if (reqEncFile != null && !reqEncFile.isEmpty()) {
+                selectedRequestEncryptionFile = reqEncFile;
+                if (requestEncryptionFilePathLabel != null) {
+                    requestEncryptionFilePathLabel.setText(reqEncFile);
+                }
+            }
+
+            String reqDecFile = api.persistence().preferences().getString("pycript.request.decryption.file");
+            if (reqDecFile != null && !reqDecFile.isEmpty()) {
+                selectedRequestDecryptionFile = reqDecFile;
+                if (requestDecryptionFilePathLabel != null) {
+                    requestDecryptionFilePathLabel.setText(reqDecFile);
+                }
+            }
+
+            String resEncFile = api.persistence().preferences().getString("pycript.response.encryption.file");
+            if (resEncFile != null && !resEncFile.isEmpty()) {
+                selectedResponseEncryptionFile = resEncFile;
+                if (responseEncryptionFilePathLabel != null) {
+                    responseEncryptionFilePathLabel.setText(resEncFile);
+                }
+            }
+
+            String resDecFile = api.persistence().preferences().getString("pycript.response.decryption.file");
+            if (resDecFile != null && !resDecFile.isEmpty()) {
+                selectedResponseDecryptionFile = resDecFile;
+                if (responseDecryptionFilePathLabel != null) {
+                    responseDecryptionFilePathLabel.setText(resDecFile);
+                }
+            }
+
+            String langPath = api.persistence().preferences().getString("pycript.language.path");
+            if (langPath != null && !langPath.isEmpty() && languageTextField != null) {
+                languageTextField.setText(langPath);
+            }
+
+            String reqMethod = api.persistence().preferences().getString("pycript.request.method");
+            if (reqMethod != null && !reqMethod.isEmpty() && requestmethodComboBox != null) {
+                requestmethodComboBox.setSelectedItem(reqMethod);
+            }
+
+            String reqRespCombo = api.persistence().preferences().getString("pycript.reqresponse.combo");
+            if (reqRespCombo != null && !reqRespCombo.isEmpty() && reqresponsecombobox != null) {
+                reqresponsecombobox.setSelectedItem(reqRespCombo);
+            }
+
+            String reqParamText = api.persistence().preferences().getString("pycript.request.parameter.text");
+            if (reqParamText != null && !reqParamText.isEmpty() && requestParameterTextField != null) {
+                requestParameterTextField.setText(reqParamText);
+            }
+
+            String resParamText = api.persistence().preferences().getString("pycript.response.parameter.text");
+            if (resParamText != null && !resParamText.isEmpty() && responseParameterTextField != null) {
+                responseParameterTextField.setText(resParamText);
+            }
+
+            String reqIncExc = api.persistence().preferences().getString("pycript.request.include.exclude");
+            if (reqIncExc != null && !reqIncExc.isEmpty()) {
+                if ("Include Parameters".equals(reqIncExc) && requestIncludeParametersButton != null) {
+                    requestIncludeParametersButton.setSelected(true);
+                } else if ("Exclude Parameters".equals(reqIncExc) && requestExcludeParametersButton != null) {
+                    requestExcludeParametersButton.setSelected(true);
+                } else if (Request_Paramter_Ignore_select_noneButton != null) {
+                    Request_Paramter_Ignore_select_noneButton.setSelected(true);
+                }
+            }
+
+            String resIncExc = api.persistence().preferences().getString("pycript.response.include.exclude");
+            if (resIncExc != null && !resIncExc.isEmpty()) {
+                if ("Include Parameters".equals(resIncExc) && responseIncludeParametersButton != null) {
+                    responseIncludeParametersButton.setSelected(true);
+                } else if ("Exclude Parameters".equals(resIncExc) && responseExcludeParametersButton != null) {
+                    responseExcludeParametersButton.setSelected(true);
+                } else if (Response_Paramter_Ignore_select_noneButton != null) {
+                    Response_Paramter_Ignore_select_noneButton.setSelected(true);
+                }
+            }
+        } catch (Exception e) {
+
+        }
     }
 }
