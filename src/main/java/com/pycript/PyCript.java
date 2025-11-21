@@ -84,7 +84,17 @@ public class PyCript implements BurpExtension
             try
             {
                 HttpRequest decryptedRequest = Request.decrypt(originalRequest, api);
-                api.logging().logToOutput(decryptedRequest.toString());
+                String method = originalRequest.method();
+                String url = originalRequest.url();
+
+                burp.api.montoya.http.message.responses.HttpResponse response = messageEditor.requestResponse().response();
+
+                DecryptedRequestTab tab = DecryptedRequestTab.getInstance();
+                if (tab != null) {
+                    tab.addEntry(method, url, decryptedRequest, response);
+                }
+
+                api.logging().logToOutput("Request decrypted and added to Decrypted Request tab");
             }
             catch (Exception ex)
             {
@@ -106,7 +116,7 @@ public class PyCript implements BurpExtension
             ConfigTab configTab = new ConfigTab(this.api);
             ConfigTab.setInstance(configTab);
             tabbedPane.addTab("Config", configTab);
-            tabbedPane.addTab("Decrypted Request", new DecryptedRequestTab());
+            tabbedPane.addTab("Decrypted Request", new DecryptedRequestTab(this.api));
             tabbedPane.addTab("Log", new LogTab(this.api));
 
             this.add(tabbedPane, BorderLayout.CENTER);
