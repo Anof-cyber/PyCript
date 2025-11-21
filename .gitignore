@@ -88,3 +88,4 @@ nb-configuration.xml
 ## Miscellaneous
 ##############################
 *.log
+pycript/test_server.py

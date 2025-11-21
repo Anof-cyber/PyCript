@@ -938,6 +938,24 @@ public class ConfigTab extends JPanel
         return "None";
     }
 
+    public static List<String> getResponseParameterList() {
+        List<String> paramList = new ArrayList<>();
+        ConfigTab instance = getInstance();
+        if (instance != null && instance.responseParameterTextField != null) {
+            String paramText = instance.responseParameterTextField.getText();
+            if (paramText != null && !paramText.trim().isEmpty()) {
+                String[] params = paramText.split(",");
+                for (String param : params) {
+                    String trimmed = param.trim();
+                    if (!trimmed.isEmpty()) {
+                        paramList.add(trimmed);
+                    }
+                }
+            }
+        }
+        return paramList;
+    }
+
     private static ConfigTab configTabInstance;
 
     private static ConfigTab getInstance() {

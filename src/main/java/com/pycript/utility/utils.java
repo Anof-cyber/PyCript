@@ -7,6 +7,7 @@ import burp.api.montoya.http.message.params.HttpParameter;
 import burp.api.montoya.http.message.params.HttpParameterType;
 import burp.api.montoya.http.message.params.ParsedHttpParameter;
 import burp.api.montoya.http.message.requests.HttpRequest;
+import burp.api.montoya.http.message.responses.HttpResponse;
 import org.apache.commons.lang3.tuple.Pair;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -72,6 +73,11 @@ public class utils {
 
         newRequest = newRequest.withBody(ByteArray.byteArray(body));
         return newRequest;
+    }
+
+    public static HttpResponse buildHttpResponse(HttpResponse originalResponse, byte[] newBody) {
+        // Use original response headers and just update the body
+        return originalResponse.withBody(ByteArray.byteArray(newBody));
     }
 
     public static String processParameterValue(ParsedHttpParameter param, String selectedLang,
@@ -251,6 +257,88 @@ public class utils {
         }
 
         return currentRequest;
+    }
+
+    public static HttpResponse processJsonResponseBody(HttpResponse currentResponse, MontoyaApi api, String selectedLang,
+                                               String decryptionPath, String selectedIncExcType,
+                                               List<String> listOfParam, String rawHeaders, boolean decryptKeys) {
+        String bodyString = currentResponse.bodyToString();
+        Gson gson = new com.google.gson.GsonBuilder().disableHtmlEscaping().create();
+        JsonElement jsonElement = gson.fromJson(bodyString, JsonElement.class);
+
+        if (jsonElement.isJsonObject()) {
+            JsonObject jsonObject = jsonElement.getAsJsonObject();
+            JsonObject updatedObject = new JsonObject();
+
+            for (String key : jsonObject.keySet()) {
+                JsonElement value = jsonObject.get(key);
+
+                if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
+                    String stringValue = value.getAsString();
+
+                    if (shouldDecryptParameter(key, selectedIncExcType, listOfParam)) {
+                        if (decryptKeys) {
+                            String decryptedKey = decryptString(key, selectedLang, decryptionPath, rawHeaders);
+                            String decryptedValue = decryptString(stringValue, selectedLang, decryptionPath, rawHeaders);
+                            updatedObject.addProperty(decryptedKey, decryptedValue);
+                        } else {
+                            String decryptedValue = decryptString(stringValue, selectedLang, decryptionPath, rawHeaders);
+                            updatedObject.addProperty(key, decryptedValue);
+                        }
+                    } else {
+                        updatedObject.add(key, value);
+                    }
+                } else {
+                    updatedObject.add(key, value);
+                }
+            }
+
+            String updatedBody = gson.toJson(updatedObject);
+            return buildHttpResponse(currentResponse, updatedBody.getBytes());
+        }
+
+        return currentResponse;
+    }
+
+    public static HttpResponse processJsonResponseBodyEncrypt(HttpResponse currentResponse, MontoyaApi api, String selectedLang,
+                                               String encryptionPath, String selectedIncExcType,
+                                               List<String> listOfParam, String rawHeaders, boolean encryptKeys) {
+        String bodyString = currentResponse.bodyToString();
+        Gson gson = new com.google.gson.GsonBuilder().disableHtmlEscaping().create();
+        JsonElement jsonElement = gson.fromJson(bodyString, JsonElement.class);
+
+        if (jsonElement.isJsonObject()) {
+            JsonObject jsonObject = jsonElement.getAsJsonObject();
+            JsonObject updatedObject = new JsonObject();
+
+            for (String key : jsonObject.keySet()) {
+                JsonElement value = jsonObject.get(key);
+
+                if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
+                    String stringValue = value.getAsString();
+
+                    if (shouldDecryptParameter(key, selectedIncExcType, listOfParam)) {
+                        if (encryptKeys) {
+                            String encryptedKey = encryptString(key, selectedLang, encryptionPath, rawHeaders);
+                            String encryptedValue = encryptString(stringValue, selectedLang, encryptionPath, rawHeaders);
+                            updatedObject.addProperty(encryptedKey, encryptedValue);
+                        } else {
+                            String encryptedValue = encryptString(stringValue, selectedLang, encryptionPath, rawHeaders);
+                            updatedObject.addProperty(key, encryptedValue);
+                        }
+                    } else {
+                        updatedObject.add(key, value);
+                    }
+                } else {
+                    updatedObject.add(key, value);
+                }
+            }
+
+            String updatedBody = gson.toJson(updatedObject);
+            return buildHttpResponse(currentResponse, updatedBody.getBytes());
+        }
+
+        return currentResponse;
     }
 
     public static List<? extends HttpHeader> processCustomHeaders(String updatedHeader) {
