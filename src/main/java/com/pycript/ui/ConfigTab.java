@@ -644,9 +644,9 @@ public class ConfigTab extends JPanel
             public void actionPerformed(ActionEvent e) {
                 if (webSocketEncryptionFile != null && !webSocketEncryptionFile.isBlank() &&
                     webSocketDecryptionFile != null && !webSocketDecryptionFile.isBlank()) {
-                    
+
                     webSocketEnabled = !webSocketEnabled;
-                    
+
                     if (webSocketEnabled) {
                         webSocketToggleButton.setText("Turn OFF");
                         webSocketStatusLabel.setText("Status: ON");
@@ -656,7 +656,7 @@ public class ConfigTab extends JPanel
                         webSocketStatusLabel.setText("Status: OFF");
                         webSocketStatusLabel.setForeground(Color.RED);
                     }
-                    
+
                     api.persistence().preferences().setBoolean("pycript.websocket.enabled", webSocketEnabled);
                 } else {
                     JOptionPane.showMessageDialog(null, "WebSocket Encryption and Decryption files are required", "Error", JOptionPane.ERROR_MESSAGE);
