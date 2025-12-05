@@ -31,7 +31,7 @@ public class PyCript implements BurpExtension
 
         Logging logging = api.logging();
         logging.logToOutput("Author: Sourav Kalal");
-        logging.logToOutput("VERSION: 1.1");
+        logging.logToOutput("VERSION: 2.0");
         logging.logToOutput("GitHub - https://github.com/Anof-cyber/PyCript");
         logging.logToOutput("Website - https://souravkalal.tech/");
         logging.logToOutput("Documentation - https://pycript.souravkalal.tech/");
