@@ -11,6 +11,7 @@ import burp.api.montoya.http.message.responses.HttpResponse;
 import com.pycript.ui.ConfigTab;
 import com.pycript.ui.DecryptedRequestTab;
 import com.pycript.ui.LogTab;
+import com.pycript.ui.ResourceTab;
 import com.pycript.EncDec.Request;
 
 import javax.swing.*;
@@ -113,6 +114,7 @@ public class PyCript implements BurpExtension
             tabbedPane.addTab("Config", configTab);
             tabbedPane.addTab("Decrypted Request", new DecryptedRequestTab(this.api));
             tabbedPane.addTab("Log", new LogTab(this.api));
+            tabbedPane.addTab("Resource", new ResourceTab());
 
             this.add(tabbedPane, BorderLayout.CENTER);
         }
