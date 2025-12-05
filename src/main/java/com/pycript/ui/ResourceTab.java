@@ -58,14 +58,9 @@ public class ResourceTab extends JPanel
                 <li><a href="https://medium.com/bugbountywriteup/bypassing-asymmetric-client-side-encryption-without-private-key-822ed0d8aeb6">Bypassing Asymmetric Client Side Encryption Without Private Key</a></li>
             </ul>
 
-             <h2>Youtube</h2>
-            <ul>
-                <li><a href="https://youtu.be/J8KE5VR8yDk?si=gxw3jDre7a9RMqS6">PyCript Burp Suite Extension: Bypassing Client-Side Encryption For Bug Bounty And Pentesting</a></li>
-            </ul>
-
             <h2>Documentation</h2>
             <ul>
-                <li><a href="https://pycript.souravkalal.tech/0.2/">PyCript Documentation</a></li>
+                <li><a href="https://pycript.souravkalal.tech/">PyCript Documentation</a></li>
             </ul>
 
             <h2>Repository</h2>
