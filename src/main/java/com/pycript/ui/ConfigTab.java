@@ -45,6 +45,9 @@ public class ConfigTab extends JPanel
     public static String selectedRequestDecryptionFile;
     public static String selectedResponseEncryptionFile;
     public static String selectedResponseDecryptionFile;
+    public static String webSocketEncryptionFile;
+    public static String webSocketDecryptionFile;
+    public static boolean webSocketEnabled = false;
     public static JComboBox<String> reqresponsecombobox;
     public static JComboBox<String> requestmethodComboBox;
     public static JTextField languageTextField;
@@ -78,6 +81,10 @@ public class ConfigTab extends JPanel
     private JLabel requestDecryptionFilePathLabel;
     private JLabel responseEncryptionFilePathLabel;
     private JLabel responseDecryptionFilePathLabel;
+    private JButton webSocketToggleButton;
+    private JLabel webSocketStatusLabel;
+    private JLabel webSocketEncryptionFilePathLabel;
+    private JLabel webSocketDecryptionFilePathLabel;
 
     public ConfigTab(MontoyaApi api)
     {
@@ -89,6 +96,7 @@ public class ConfigTab extends JPanel
 
         JLayeredPane requestTypePane = createRequestTypePane();
         JLayeredPane responseTypePane = createResponseTypePane();
+        JLayeredPane webSocketPane = createWebSocketPane();
         JLayeredPane additionalSettingsPane = createAdditionalSettingsPane();
         JLayeredPane autoEncryptPane = createAutoEncryptPane();
 
@@ -104,9 +112,16 @@ public class ConfigTab extends JPanel
         middlePanel.add(Box.createRigidArea(new Dimension(5, 0)));
         middlePanel.add(autoEncryptPane);
 
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
+        bottomPanel.add(webSocketPane);
+        bottomPanel.add(Box.createHorizontalGlue());
+
         mainPanel.add(topPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         mainPanel.add(middlePanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        mainPanel.add(bottomPanel);
 
         JScrollPane scrollPane = new JScrollPane(mainPanel);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -610,6 +625,142 @@ public class ConfigTab extends JPanel
         return responseTypePane;
     }
 
+    private JLayeredPane createWebSocketPane()
+    {
+        JLayeredPane webSocketPane = new JLayeredPane();
+        webSocketPane.setBorder(new LineBorder(Color.GRAY, 1));
+
+        JLabel label = new JLabel("WebSocket Configuration");
+        label.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
+        label.setForeground(new Color(0xFF, 0x66, 0x33));
+
+        webSocketStatusLabel = new JLabel("Status: OFF");
+        webSocketStatusLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 11));
+        webSocketStatusLabel.setForeground(Color.RED);
+
+        webSocketToggleButton = new JButton("Turn ON");
+        webSocketToggleButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (webSocketEncryptionFile != null && !webSocketEncryptionFile.isBlank() &&
+                    webSocketDecryptionFile != null && !webSocketDecryptionFile.isBlank()) {
+                    
+                    webSocketEnabled = !webSocketEnabled;
+                    
+                    if (webSocketEnabled) {
+                        webSocketToggleButton.setText("Turn OFF");
+                        webSocketStatusLabel.setText("Status: ON");
+                        webSocketStatusLabel.setForeground(new Color(0, 128, 0));
+                    } else {
+                        webSocketToggleButton.setText("Turn ON");
+                        webSocketStatusLabel.setText("Status: OFF");
+                        webSocketStatusLabel.setForeground(Color.RED);
+                    }
+                    
+                    api.persistence().preferences().setBoolean("pycript.websocket.enabled", webSocketEnabled);
+                } else {
+                    JOptionPane.showMessageDialog(null, "WebSocket Encryption and Decryption files are required", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        JLabel encryptionFileLabel = new JLabel("Encryption File");
+        JButton chooseEncryptionFileButton = new JButton("Choose File");
+        webSocketEncryptionFilePathLabel = new JLabel("No file selected");
+
+        chooseEncryptionFileButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fileChooser.setDialogTitle("Select WebSocket Encryption File");
+
+                int userSelection = fileChooser.showDialog(null, "Select");
+
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    webSocketEncryptionFile = selectedFile.getAbsolutePath();
+                    webSocketEncryptionFilePathLabel.setText(webSocketEncryptionFile);
+                    api.persistence().preferences().setString("pycript.websocket.encryption.file", webSocketEncryptionFile);
+                }
+            }
+        });
+
+        JLabel decryptionFileLabel = new JLabel("Decryption File");
+        JButton chooseDecryptionFileButton = new JButton("Choose File");
+        webSocketDecryptionFilePathLabel = new JLabel("No file selected");
+
+        chooseDecryptionFileButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fileChooser.setDialogTitle("Select WebSocket Decryption File");
+
+                int userSelection = fileChooser.showDialog(null, "Select");
+
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    webSocketDecryptionFile = selectedFile.getAbsolutePath();
+                    webSocketDecryptionFilePathLabel.setText(webSocketDecryptionFile);
+                    api.persistence().preferences().setString("pycript.websocket.decryption.file", webSocketDecryptionFile);
+                }
+            }
+        });
+
+        GroupLayout layout = new GroupLayout(webSocketPane);
+        webSocketPane.setLayout(layout);
+        layout.setAutoCreateGaps(false);
+        layout.setAutoCreateContainerGaps(false);
+
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addComponent(label)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(webSocketStatusLabel)
+                            .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(webSocketToggleButton))
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(encryptionFileLabel)
+                            .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(chooseEncryptionFileButton)
+                            .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(webSocketEncryptionFilePathLabel))
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(decryptionFileLabel)
+                            .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(chooseDecryptionFileButton)
+                            .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(webSocketDecryptionFilePathLabel)))
+                    .addContainerGap(5, Short.MAX_VALUE))
+        );
+
+        layout.setVerticalGroup(
+            layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(label)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(webSocketStatusLabel)
+                    .addComponent(webSocketToggleButton))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(encryptionFileLabel)
+                    .addComponent(chooseEncryptionFileButton)
+                    .addComponent(webSocketEncryptionFilePathLabel))
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(decryptionFileLabel)
+                    .addComponent(chooseDecryptionFileButton)
+                    .addComponent(webSocketDecryptionFilePathLabel))
+                .addContainerGap()
+        );
+
+        return webSocketPane;
+    }
+
     private JLayeredPane createAdditionalSettingsPane()
     {
         JLayeredPane additionalSettingsPane = new JLayeredPane();
@@ -1066,6 +1217,38 @@ public class ConfigTab extends JPanel
                     responseExcludeParametersButton.setSelected(true);
                 } else if (Response_Paramter_Ignore_select_noneButton != null) {
                     Response_Paramter_Ignore_select_noneButton.setSelected(true);
+                }
+            }
+
+            String wsEncFile = api.persistence().preferences().getString("pycript.websocket.encryption.file");
+            if (wsEncFile != null && !wsEncFile.isEmpty()) {
+                webSocketEncryptionFile = wsEncFile;
+                if (webSocketEncryptionFilePathLabel != null) {
+                    webSocketEncryptionFilePathLabel.setText(wsEncFile);
+                }
+            }
+
+            String wsDecFile = api.persistence().preferences().getString("pycript.websocket.decryption.file");
+            if (wsDecFile != null && !wsDecFile.isEmpty()) {
+                webSocketDecryptionFile = wsDecFile;
+                if (webSocketDecryptionFilePathLabel != null) {
+                    webSocketDecryptionFilePathLabel.setText(wsDecFile);
+                }
+            }
+
+            Boolean wsEnabled = api.persistence().preferences().getBoolean("pycript.websocket.enabled");
+            if (wsEnabled != null) {
+                webSocketEnabled = wsEnabled;
+                if (webSocketToggleButton != null && webSocketStatusLabel != null) {
+                    if (webSocketEnabled) {
+                        webSocketToggleButton.setText("Turn OFF");
+                        webSocketStatusLabel.setText("Status: ON");
+                        webSocketStatusLabel.setForeground(new Color(0, 128, 0));
+                    } else {
+                        webSocketToggleButton.setText("Turn ON");
+                        webSocketStatusLabel.setText("Status: OFF");
+                        webSocketStatusLabel.setForeground(Color.RED);
+                    }
                 }
             }
         } catch (Exception e) {
