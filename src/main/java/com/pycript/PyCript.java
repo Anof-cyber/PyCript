@@ -3,11 +3,11 @@ package com.pycript;
 import burp.api.montoya.BurpExtension;
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.logging.Logging;
-import burp.api.montoya.ui.UserInterface;
 import burp.api.montoya.ui.contextmenu.ContextMenuEvent;
 import burp.api.montoya.ui.contextmenu.ContextMenuItemsProvider;
 import burp.api.montoya.ui.contextmenu.MessageEditorHttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
+import burp.api.montoya.http.message.responses.HttpResponse;
 import com.pycript.ui.ConfigTab;
 import com.pycript.ui.DecryptedRequestTab;
 import com.pycript.ui.LogTab;
@@ -85,7 +85,7 @@ public class PyCript implements BurpExtension
                 String method = originalRequest.method();
                 String url = originalRequest.url();
 
-                burp.api.montoya.http.message.responses.HttpResponse response = messageEditor.requestResponse().response();
+                HttpResponse response = messageEditor.requestResponse().response();
 
                 DecryptedRequestTab tab = DecryptedRequestTab.getInstance();
                 if (tab != null) {
