@@ -70,14 +70,12 @@ public class PyCript implements BurpExtension
         {
             if (ConfigTab.selectedRequestType == null || ConfigTab.selectedRequestType.equals("None"))
             {
-                api.logging().logToOutput("Request decryption is not configured");
                 return;
             }
 
             HttpRequest originalRequest = messageEditor.requestResponse().request();
             if (originalRequest == null)
             {
-                api.logging().logToOutput("No request found");
                 return;
             }
 
@@ -93,12 +91,9 @@ public class PyCript implements BurpExtension
                 if (tab != null) {
                     tab.addEntry(method, url, decryptedRequest, response);
                 }
-
-                api.logging().logToOutput("Request decrypted and added to Decrypted Request tab");
             }
             catch (Exception ex)
             {
-                api.logging().logToError("Error decrypting request: " + ex.getMessage());
             }
         }
     }

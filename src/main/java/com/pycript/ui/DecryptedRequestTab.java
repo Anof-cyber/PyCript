@@ -11,6 +11,8 @@ import burp.api.montoya.http.message.responses.HttpResponse;
 import burp.api.montoya.core.ByteArray;
 import burp.api.montoya.ui.editor.RawEditor;
 import burp.api.montoya.ui.editor.EditorOptions;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class DecryptedRequestTab extends JPanel
 {
@@ -19,16 +21,46 @@ public class DecryptedRequestTab extends JPanel
     private RawEditor requestViewer;
     private RawEditor responseViewer;
     private static DecryptedRequestTab instance;
+    private final MontoyaApi api;
 
     public DecryptedRequestTab(MontoyaApi api)
     {
         super(new BorderLayout());
         instance = this;
+        this.api = api;
 
         tableModel = new DecryptedRequestTableModel();
         table = new JTable(tableModel);
         table.setAutoCreateRowSorter(true);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        JPopupMenu tablePopupMenu = new JPopupMenu();
+        JMenuItem sendToScannerItem = new JMenuItem("Send to Active Scanner");
+        JMenuItem sendToRepeaterItem = new JMenuItem("Send to Repeater");
+        JMenuItem sendToIntruderItem = new JMenuItem("Send to Intruder");
+        JMenuItem deleteSelectedItem = new JMenuItem("Delete Selected Items");
+
+        sendToScannerItem.addActionListener(e -> sendToScanner());
+        sendToRepeaterItem.addActionListener(e -> sendToRepeater());
+        sendToIntruderItem.addActionListener(e -> sendToIntruder());
+        deleteSelectedItem.addActionListener(e -> deleteSelectedItems());
+
+        tablePopupMenu.add(sendToScannerItem);
+        tablePopupMenu.add(sendToRepeaterItem);
+        tablePopupMenu.add(sendToIntruderItem);
+        tablePopupMenu.addSeparator();
+        tablePopupMenu.add(deleteSelectedItem);        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    int row = table.rowAtPoint(e.getPoint());
+                    if (row >= 0) {
+                        table.setRowSelectionInterval(row, row);
+                        tablePopupMenu.show(e.getComponent(), e.getX(), e.getY());
+                    }
+                }
+            }
+        });
 
         JScrollPane tableScrollPane = new JScrollPane(table);
         tableScrollPane.setPreferredSize(new Dimension(0, 200));
@@ -74,6 +106,52 @@ public class DecryptedRequestTab extends JPanel
         tableModel.addEntry(new DecryptedRequestEntry(method, url, decryptedRequest, response));
     }
 
+    private void sendToScanner() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow >= 0) {
+            int modelRow = table.convertRowIndexToModel(selectedRow);
+            DecryptedRequestEntry entry = tableModel.getEntry(modelRow);
+            if (entry != null) {
+                burp.api.montoya.http.message.HttpRequestResponse requestResponse = burp.api.montoya.http.message.HttpRequestResponse.httpRequestResponse(
+                    entry.getDecryptedRequest().withService(burp.api.montoya.http.HttpService.httpService(entry.getUrl())),
+                    entry.getResponse()
+                );
+                burp.api.montoya.scanner.audit.Audit audit = api.scanner().startAudit(burp.api.montoya.scanner.AuditConfiguration.auditConfiguration(burp.api.montoya.scanner.BuiltInAuditConfiguration.LEGACY_ACTIVE_AUDIT_CHECKS));
+                audit.addRequestResponse(requestResponse);
+            }
+        }
+    }
+
+    private void sendToRepeater() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow >= 0) {
+            int modelRow = table.convertRowIndexToModel(selectedRow);
+            DecryptedRequestEntry entry = tableModel.getEntry(modelRow);
+            if (entry != null) {
+                api.repeater().sendToRepeater(entry.getDecryptedRequest().withService(burp.api.montoya.http.HttpService.httpService(entry.getUrl())));
+            }
+        }
+    }
+
+    private void sendToIntruder() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow >= 0) {
+            int modelRow = table.convertRowIndexToModel(selectedRow);
+            DecryptedRequestEntry entry = tableModel.getEntry(modelRow);
+            if (entry != null) {
+                api.intruder().sendToIntruder(entry.getDecryptedRequest().withService(burp.api.montoya.http.HttpService.httpService(entry.getUrl())));
+            }
+        }
+    }
+
+    private void deleteSelectedItems() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow >= 0) {
+            int modelRow = table.convertRowIndexToModel(selectedRow);
+            tableModel.removeEntry(modelRow);
+        }
+    }
+
     private static class DecryptedRequestTableModel extends AbstractTableModel
     {
         private final List<DecryptedRequestEntry> entries = new ArrayList<>();
@@ -109,6 +187,13 @@ public class DecryptedRequestTab extends JPanel
             int row = entries.size();
             entries.add(entry);
             fireTableRowsInserted(row, row);
+        }
+
+        public void removeEntry(int row) {
+            if (row >= 0 && row < entries.size()) {
+                entries.remove(row);
+                fireTableRowsDeleted(row, row);
+            }
         }
 
         public DecryptedRequestEntry getEntry(int row) {
