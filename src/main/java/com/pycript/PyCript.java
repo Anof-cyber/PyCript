@@ -13,6 +13,7 @@ import com.pycript.ui.DecryptedRequestTab;
 import com.pycript.ui.LogTab;
 import com.pycript.ui.ResourceTab;
 import com.pycript.EncDec.Request;
+import com.pycript.websocket.WebSocketEditorProvider;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,6 +40,7 @@ public class PyCript implements BurpExtension
         api.userInterface().registerHttpRequestEditorProvider(new PyCriptRequestTab(api));
         api.userInterface().registerHttpResponseEditorProvider(new PyCriptResponseTab(api));
         api.userInterface().registerContextMenuItemsProvider(new PyCriptContextMenu(api));
+        api.userInterface().registerWebSocketMessageEditorProvider(new WebSocketEditorProvider(api));
     }
 
     private static class PyCriptContextMenu implements ContextMenuItemsProvider
