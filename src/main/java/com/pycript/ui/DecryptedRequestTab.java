@@ -112,12 +112,8 @@ public class DecryptedRequestTab extends JPanel
             int modelRow = table.convertRowIndexToModel(selectedRow);
             DecryptedRequestEntry entry = tableModel.getEntry(modelRow);
             if (entry != null) {
-                burp.api.montoya.http.message.HttpRequestResponse requestResponse = burp.api.montoya.http.message.HttpRequestResponse.httpRequestResponse(
-                    entry.getDecryptedRequest().withService(burp.api.montoya.http.HttpService.httpService(entry.getUrl())),
-                    entry.getResponse()
-                );
                 burp.api.montoya.scanner.audit.Audit audit = api.scanner().startAudit(burp.api.montoya.scanner.AuditConfiguration.auditConfiguration(burp.api.montoya.scanner.BuiltInAuditConfiguration.LEGACY_ACTIVE_AUDIT_CHECKS));
-                audit.addRequestResponse(requestResponse);
+                audit.addRequest(entry.getDecryptedRequest().withService(burp.api.montoya.http.HttpService.httpService(entry.getUrl())));
             }
         }
     }
