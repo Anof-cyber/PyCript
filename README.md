@@ -8,6 +8,11 @@
 Pycript is a Burp Suite extension that enables users to encrypt and decrypt requests and responses for manual and automated application penetration testing. It also allows users to create custom encryption and decryption logic using any language like Python, Go, Nodeja, C, Bash etc allowing for a tailored encryption/decryption process for specific needs.
 
 
+> [!WARNING]  
+> This is Java version of the Original Python PyCript Extension. Java Version is under development.
+
+
+
 [![Deploy](https://github.com/Anof-cyber/PyCript-Docs/actions/workflows/static.yml/badge.svg)](https://github.com/Anof-cyber/PyCript-Docs/actions/workflows/static.yml)
 ![GitHub](https://img.shields.io/github/license/Anof-cyber/APTRS)
 ![GitHub closed issues](https://img.shields.io/github/issues-closed/Anof-cyber/PyCript)
@@ -74,4 +79,3 @@ Pycript is a Burp Suite extension that enables users to encrypt and decrypt requ
 
 
 ![PyCript](https://github.com/Anof-cyber/PyCript-Docs/blob/gh-pages/0.2/assets/Custom%20Request%20-%20Example%201.gif?raw=true)
-
