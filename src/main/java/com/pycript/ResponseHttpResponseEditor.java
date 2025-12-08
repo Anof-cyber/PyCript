@@ -21,7 +21,7 @@ class ResponseHttpResponseEditor implements ExtensionProvidedHttpResponseEditor 
 
     ResponseHttpResponseEditor(MontoyaApi api, EditorCreationContext creationContext) {
         this.api = api;
-        responseEditor = api.userInterface().createRawEditor(EditorOptions.WRAP_LINES, EditorOptions.SHOW_NON_PRINTABLE_CHARACTERS);
+        responseEditor = api.userInterface().createRawEditor();
     }
 
     @Override
@@ -55,7 +55,7 @@ class ResponseHttpResponseEditor implements ExtensionProvidedHttpResponseEditor 
 
         HttpResponse response = requestResponse.response();
 
-        if (requestResponse.request() == null || !requestResponse.request().isInScope()) {
+        if (requestResponse.request() == null || !api.scope().isInScope(requestResponse.request().url())) {
             this.responseEditor.setEditable(false);
             this.responseEditor.setContents(ByteArray.byteArray(api.utilities().byteUtils().convertFromString("Request is out of scope")));
         } else {

@@ -55,10 +55,13 @@ public class utils {
         String method = requestLine[0];
         String path = requestLine[1];
 
+        // Start with basic request
         HttpRequest newRequest = HttpRequest.httpRequest()
                 .withMethod(method)
-                .withPath(path);
+                .withPath(path)
+                .withBody(ByteArray.byteArray(body));
 
+        // Add all headers from the header string
         for (int i = 1; i < lines.length; i++) {
             String line = lines[i].trim();
             if (!line.isEmpty()) {
@@ -66,12 +69,11 @@ public class utils {
                 if (colonIndex > 0) {
                     String headerName = line.substring(0, colonIndex).trim();
                     String headerValue = line.substring(colonIndex + 1).trim();
-                    newRequest = newRequest.withHeader(HttpHeader.httpHeader(headerName, headerValue));
+                    newRequest = newRequest.withAddedHeader(headerName, headerValue);
                 }
             }
         }
 
-        newRequest = newRequest.withBody(ByteArray.byteArray(body));
         return newRequest;
     }
 

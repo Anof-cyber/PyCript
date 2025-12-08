@@ -29,7 +29,7 @@ public class AutoEncryptHttpHandler implements HttpHandler {
                 return RequestToBeSentAction.continueWith(requestToBeSent);
             }
 
-            if (!requestToBeSent.isInScope()) {
+            if (!api.scope().isInScope(requestToBeSent.url())) {
                 return RequestToBeSentAction.continueWith(requestToBeSent);
             }
 

@@ -30,7 +30,7 @@ class RequestHttpRequestEditor implements ExtensionProvidedHttpRequestEditor {
 
     RequestHttpRequestEditor (MontoyaApi api, EditorCreationContext creationContext) {
         this.api = api;
-        requestEditor = api.userInterface().createRawEditor(EditorOptions.WRAP_LINES, EditorOptions.SHOW_NON_PRINTABLE_CHARACTERS);
+        requestEditor = api.userInterface().createRawEditor();
     }
 
     @Override
@@ -65,7 +65,7 @@ class RequestHttpRequestEditor implements ExtensionProvidedHttpRequestEditor {
         else {
             request = requestResponse.request();
 
-           if (!request.isInScope()) {
+           if (!api.scope().isInScope(request.url())) {
 
             this.requestEditor.setEditable(false);
             this.requestEditor.setContents(ByteArray.byteArray(api.utilities().byteUtils().convertFromString("Request is out of scope")));

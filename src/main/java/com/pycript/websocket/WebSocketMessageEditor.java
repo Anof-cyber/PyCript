@@ -59,7 +59,7 @@ public class WebSocketMessageEditor implements ExtensionProvidedWebSocketMessage
     @Override
     public void setMessage(WebSocketMessage message) {
         // Check if the WebSocket upgrade request is in scope
-        if (message.upgradeRequest() == null || !message.upgradeRequest().isInScope()) {
+        if (message.upgradeRequest() == null || !api.scope().isInScope(message.upgradeRequest().url())) {
             editor.setEditable(false);
             editor.setContents(ByteArray.byteArray(api.utilities().byteUtils().convertFromString("WebSocket is out of scope")));
             return;

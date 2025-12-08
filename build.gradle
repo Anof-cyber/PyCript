@@ -11,9 +11,9 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'net.portswigger.burp.extensions:montoya-api:+' // Burp Suite API (provided by Burp)
-    implementation 'org.apache.commons:commons-lang3:3.12.0' // Apache Commons Lang
-    implementation 'com.google.code.gson:gson:2.10.1' // Gson for JSON processing
+    compileOnly 'net.portswigger.burp.extensions:montoya-api:2023.4' // Burp Suite API (provided by Burp)
+    implementation 'org.apache.commons:commons-lang3:3.19.0' // Apache Commons Lang
+    implementation 'com.google.code.gson:gson:2.13.2' // Gson for JSON processing
 }
 
 jar {
