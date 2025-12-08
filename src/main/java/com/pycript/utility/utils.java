@@ -55,11 +55,16 @@ public class utils {
         String method = requestLine[0];
         String path = requestLine[1];
 
-        // Start with basic request
+        // Start with basic request with body
         HttpRequest newRequest = HttpRequest.httpRequest()
                 .withMethod(method)
                 .withPath(path)
                 .withBody(ByteArray.byteArray(body));
+
+        // Remove all existing headers first
+        for (HttpHeader header : newRequest.headers()) {
+            newRequest = newRequest.withRemovedHeader(header.name());
+        }
 
         // Add all headers from the header string
         for (int i = 1; i < lines.length; i++) {
