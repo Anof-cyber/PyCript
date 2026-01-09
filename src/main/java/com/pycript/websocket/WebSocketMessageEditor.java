@@ -19,12 +19,14 @@ public class WebSocketMessageEditor implements ExtensionProvidedWebSocketMessage
 {
     private final RawEditor editor;
     private final MontoyaApi api;
+    private final boolean isReadOnly;
 
     public WebSocketMessageEditor(MontoyaApi api, EditorCreationContext creationContext)
     {
         this.api = api;
+        this.isReadOnly = creationContext.editorMode() == EditorMode.READ_ONLY;
 
-        if (creationContext.editorMode() == EditorMode.READ_ONLY)
+        if (isReadOnly)
         {
             editor = api.userInterface().createRawEditor(EditorOptions.READ_ONLY);
         }
@@ -58,14 +60,15 @@ public class WebSocketMessageEditor implements ExtensionProvidedWebSocketMessage
 
     @Override
     public void setMessage(WebSocketMessage message) {
-        // Check if the WebSocket upgrade request is in scope
         if (message.upgradeRequest() == null || !api.scope().isInScope(message.upgradeRequest().url())) {
             editor.setEditable(false);
             editor.setContents(ByteArray.byteArray(api.utilities().byteUtils().convertFromString("WebSocket is out of scope")));
             return;
         }
 
-        editor.setEditable(true);
+        if (!isReadOnly) {
+            editor.setEditable(true);
+        }
 
         if (!ConfigTab.webSocketEnabled || ConfigTab.webSocketDecryptionFile == null || ConfigTab.webSocketDecryptionFile.isBlank()) {
             editor.setContents(message.payload());
