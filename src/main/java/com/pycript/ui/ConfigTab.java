@@ -778,6 +778,26 @@ public class ConfigTab extends JPanel
         JButton selectLanguageButton = new JButton("Select Language Binary Path");
         JButton clearLanguageButton = new JButton("Clear Language Selected");
 
+        selectLanguageButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setDialogTitle("Select Language Binary");
+            int userSelection = fileChooser.showDialog(null, "Select");
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                if (selectedFile != null) {
+                    String filePath = selectedFile.getAbsolutePath();
+                    languageTextField.setText(filePath);
+                    api.persistence().preferences().setString("pycript.language.path", filePath);
+                }
+            }
+        });
+
+        clearLanguageButton.addActionListener(e -> {
+            languageTextField.setText("");
+            api.persistence().preferences().setString("pycript.language.path", "");
+        });
+
         JLabel methodLabel = new JLabel("Encryption Decryption Method");
         methodLabel.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
         methodLabel.setForeground(new Color(0xFF, 0x66, 0x33));
